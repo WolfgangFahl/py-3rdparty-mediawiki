@@ -7,7 +7,9 @@
 [![GitHub](https://img.shields.io/github/license/WolfgangFahl/py-3rdparty-mediawiki.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![BITPlan](http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/198px-BITPlanLogoFontLessTransparent.png)](http://www.bitplan.com)
 
-[Python](https://www.python.org/)
+## Links
+* [Python](https://www.python.org/)
+* [pywikibot]https://pypi.org/project/pywikibot/
 
 ## Documentation
 [Wiki](http://mediawiki-japi.bitplan.com/index.php/py-3rdparty-mediawiki)
