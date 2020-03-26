@@ -11,6 +11,5 @@ case $os in
    install="sudo apt-get install"
    ;;
 esac
-
-
+$install python3-pip
 sudo -H $pip install -r requirements.txt
