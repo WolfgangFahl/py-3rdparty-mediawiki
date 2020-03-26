@@ -9,7 +9,7 @@
 
 ## Links
 * [Python](https://www.python.org/)
-* [pywikibot]https://pypi.org/project/pywikibot/
+* [pywikibot](https://pypi.org/project/pywikibot/)
 
 ## Documentation
 [Wiki](http://mediawiki-japi.bitplan.com/index.php/py-3rdparty-mediawiki)
