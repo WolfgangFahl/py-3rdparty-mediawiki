@@ -19,9 +19,10 @@ before_install:
   #- sudo apt-get -y install graphviz
   #- sudo apt-get -y install mscgen
   #- sudo apt-get -y install openjdk-8-jdk
-# command to install dependencies
 install:
-  - ./install
+  - echo $USER
 # command to run tests
 script:
+  # command to install dependencies
+  - ./install
   - python3 -m unittest discover
