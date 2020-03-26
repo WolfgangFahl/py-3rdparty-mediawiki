@@ -13,6 +13,8 @@ case $os in
      # https://stackoverflow.com/a/20621143/1497139
      echo "environment is travis with python version $TRAVIS_PYTHON_VERSION"
      pip="pip"
+     # create an empty user-config to make pywikibot happy
+     touch user-config.py
    fi
    install="sudo apt-get install"
    ;;
