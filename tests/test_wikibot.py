@@ -8,17 +8,25 @@ from wikibot.wikibot import WikiBot
 from wikibot.crypt import Crypt
 
 class TestWikiBot(unittest.TestCase):
-
+    '''
+    Unit test for WikiBot
+    '''
 
     def setUp(self):
+        '''
+        general setup
+        '''
         pass
 
 
     def tearDown(self):
+        '''
+        general tear down
+        '''
         pass
 
     def testDecrypt(self):
-        ''' test decryption '''
+        ''' test encryption/decryption '''
         expected="01234567890unsecure"
         cypher="koyYMmY93wJS_aqpp_PmyxZJKPH5FhSG"
         secret="juMmHMtvrfDADGkRlnJRCMYkd4kUzRE3"
@@ -31,6 +39,9 @@ class TestWikiBot(unittest.TestCase):
         self.assertEquals(expected,pw)
 
     def testWikiBot(self):
+        '''
+        test collecting all bots for which credentials have been set up
+        '''
         bots=WikiBot.getBots()
         for bot in bots.values():
             print (bot)

@@ -3,7 +3,7 @@ Created on 24.03.2020
 
 @author: wf
 '''
-from os.path import expanduser,isfile,join
+from os.path import expanduser,isfile,isdir,join
 from os import listdir
 from urllib.parse import urlparse
 import pywikibot
@@ -37,14 +37,15 @@ class WikiBot(object):
         bots={}
         home = expanduser("~")
         mj=home+"/.mediawiki-japi"
-        for file in listdir(mj):
-            proppath=join(mj,file)
-            if isfile(proppath) and file.endswith(".ini"):
-                try:
-                    bot=WikiBot(proppath)
-                    bots[bot.wikiId]=bot
-                except Exception as e:
-                    print (e)    
+        if isdir(mj):
+            for file in listdir(mj):
+                proppath=join(mj,file)
+                if isfile(proppath) and file.endswith(".ini"):
+                    try:
+                        bot=WikiBot(proppath)
+                        bots[bot.wikiId]=bot
+                    except Exception as e:
+                        print (e)    
         return bots        
 
     def __init__(self,iniFile):

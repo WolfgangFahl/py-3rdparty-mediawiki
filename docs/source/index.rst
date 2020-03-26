@@ -28,6 +28,13 @@ wikibot module
    :members:
    :show-inheritance:
 
+crypt module
+--------------
+
+.. autoclass:: wikibot.crypt.Crypt
+  :members:
+  :show-inheritance:
+
 Unit Tests
 ==========
 
