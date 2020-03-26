@@ -10,7 +10,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='py-3rdparty-mediawiki',
-    version='0.0.1',
+    version='0.0.1a',
 
     packages=['wikibot',],
     author='Wolfgang Fahl',
