@@ -1,0 +1,6 @@
+# MediaWiki bot package
+# https://pypi.org/project/pywikibot/
+# https://www.mediawiki.org/wiki/Manual:Pywikibot
+pywikibot
+#https://pypi.org/project/pycrypto/
+pycrypto

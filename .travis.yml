@@ -1,0 +1,27 @@
+# tries avoiding Error: remove_overlap: Graphviz not built with triangulation library
+dist: bionic
+# see https://docs.travis-ci.com/user/languages/python/
+language: python
+# python versions to be tested
+python:
+#  - "2.7" # see https://github.com/WolfgangFahl/gremlin-python-tutorial/issues/7
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+# allow gui output
+services:
+  - xvfb
+before_install:
+  # install some renderers
+  # check version
+  - lsb_release -a
+  #- sudo apt-get -y install graphviz
+  #- sudo apt-get -y install mscgen
+  #- sudo apt-get -y install openjdk-8-jdk
+# command to install dependencies
+install:
+  - ./install
+# command to run tests
+script:
+  - python3 -m unittest discover
