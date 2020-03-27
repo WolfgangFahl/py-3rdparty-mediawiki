@@ -10,6 +10,8 @@ import pywikibot
 import getpass
 from pywikibot import config2
 from wikibot.crypt import Crypt
+from pywikibot.page import Page
+from pywikibot.login import LoginManager
 
 class WikiBot(object):
     '''
@@ -130,10 +132,20 @@ class Family(family.Family):
         #config2.authenticate[self.netloc] = (self.user,self.getPassword())
         self.site=pywikibot.Site('en',self.family)  
         self.site.login(password=self.getPassword())
+        # proposed in https://phabricator.wikimedia.org/T248471 but does not work
+        #lm = LoginManager(password=self.getPassword(), site=self.site)
+        #lm.login()
         
     def getPage(self,pageTitle):
+        ''' get the page with the given title'''
         page = pywikibot.Page(self.site, pageTitle)  
         return page             
+    
+    def savePage(self,pageTitle,pageContent,pageSummary):
+        ''' save a page with the given pageTitle, pageContent and pageSummary'''
+        newPage=self.getPage(pageTitle)
+        newPage.text=pageContent
+        newPage.save(pageSummary)
         
     def __str__(self):
         text="%20s: %s %s" % (self.wikiId,self.url,self.user)    
