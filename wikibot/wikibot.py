@@ -10,8 +10,8 @@ import pywikibot
 import getpass
 from pywikibot import config2
 from wikibot.crypt import Crypt
-from pywikibot.page import Page
-from pywikibot.login import LoginManager
+from pywikibot.data.api import LoginManager
+
 
 class WikiBot(object):
     '''
@@ -131,10 +131,10 @@ class Family(family.Family):
         config2.usernames[self.family]['en'] = self.user
         #config2.authenticate[self.netloc] = (self.user,self.getPassword())
         self.site=pywikibot.Site('en',self.family)  
-        self.site.login(password=self.getPassword())
-        # proposed in https://phabricator.wikimedia.org/T248471 but does not work
-        #lm = LoginManager(password=self.getPassword(), site=self.site)
-        #lm.login()
+        # needs patch as outlined in https://phabricator.wikimedia.org/T248471
+        #self.site.login(password=self.getPassword())
+        lm = LoginManager(password=self.getPassword(), site=self.site, user=self.user)
+        lm.login()
         
     def getPage(self,pageTitle):
         ''' get the page with the given title'''
