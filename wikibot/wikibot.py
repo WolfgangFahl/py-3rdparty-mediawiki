@@ -7,6 +7,7 @@ from os.path import expanduser,isfile,isdir,join
 from os import listdir
 from urllib.parse import urlparse
 import pywikibot
+import getpass
 from pywikibot import config2
 from wikibot.crypt import Crypt
 
@@ -33,10 +34,15 @@ class WikiBot(object):
         return props
     
     @staticmethod
-    def getBots():
-        bots={}
+    def iniPath():
         home = expanduser("~")
         mj=home+"/.mediawiki-japi"
+        return mj
+        
+    @staticmethod
+    def getBots():
+        bots={}
+        mj=WikiBot.iniPath()
         if isdir(mj):
             for file in listdir(mj):
                 proppath=join(mj,file)
@@ -46,7 +52,14 @@ class WikiBot(object):
                         bots[bot.wikiId]=bot
                     except Exception as e:
                         print (e)    
-        return bots        
+        return bots      
+    
+    @staticmethod
+    def ofWikiId(wikiId):
+        user=getpass.getuser()
+        iniFile="%s/%s_%s.ini" % (WikiBot.iniPath(),user,wikiId)
+        wikibot=WikiBot(iniFile)
+        return wikibot
 
     def __init__(self,iniFile):
         '''
@@ -73,7 +86,8 @@ class WikiBot(object):
         self.version=config['version']
         o=urlparse(self.url)
         self.scheme=o.scheme
-        self.netloc=o.netloc+o.path
+        self.netloc=o.netloc
+        self.scriptPath=o.path+self.scriptPath
         self.checkFamily()
         
     def getPassword(self):
@@ -81,6 +95,9 @@ class WikiBot(object):
         return c.decrypt(self.secret)
         
     def checkFamily(self):
+        '''
+        check if a family file exists and if not create it
+        '''
         famfile=self.iniFile.replace(".ini",".py")
         if not isfile(famfile):
             print("creating family file %s" % famfile)
@@ -121,6 +138,3 @@ class Family(family.Family):
     def __str__(self):
         text="%20s: %s %s" % (self.wikiId,self.url,self.user)    
         return text
-        
-        
-        

@@ -25,7 +25,7 @@ class TestWikiBot(unittest.TestCase):
         '''
         pass
 
-    def testDecrypt(self):
+    def testCrypt(self):
         ''' test encryption/decryption '''
         expected="01234567890unsecure"
         cypher="koyYMmY93wJS_aqpp_PmyxZJKPH5FhSG"
@@ -48,6 +48,8 @@ class TestWikiBot(unittest.TestCase):
             if bot.site is not None:
                 print (bot.site.sitename)
                 print (bot.getPage("MainPage").text)   
+                #bot2=WikiBot.ofWikiId(bot.wikiId)
+                #self.assertEquals(bot2.url,bot.url)
         pass
 
 
