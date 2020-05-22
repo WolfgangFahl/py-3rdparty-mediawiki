@@ -76,7 +76,3 @@ if __name__ == "__main__":
     print (s)
     d=c.decrypt(s)
     print (d)
-
-
-
-    
