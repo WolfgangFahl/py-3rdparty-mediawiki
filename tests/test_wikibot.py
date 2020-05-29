@@ -37,6 +37,10 @@ class TestWikiBot(unittest.TestCase):
         self.assertEquals(secret,secret1)
         pw=c.decrypt(secret)
         self.assertEquals(expected,pw)
+        
+    def testWikiBotNoLogin(self):
+        wikibot=WikiBot.ofWikiId("smw")
+             
 
     def testWikiBot(self):
         '''

@@ -75,21 +75,26 @@ class WikiBot(object):
         else: 
             raise Exception("wikiId missing for %s" % iniFile)
         self.family=self.wikiId.replace("-","").replace("_","")
-        self.user=config['user']
         self.url=config['url'].replace("\\:",":")
         if not self.url:
             raise Exception("url is missing for %s" % iniFile)
-            
-        self.email=config['email']
-        self.salt=config['salt']
-        self.cypher=config['cypher']
-        self.secret=config['secret']
+        
         self.scriptPath=config['scriptPath']
         self.version=config['version']
         o=urlparse(self.url)
         self.scheme=o.scheme
         self.netloc=o.netloc
         self.scriptPath=o.path+self.scriptPath
+        
+        # if a user is configured a login will be tried     
+        if 'user' in config:
+            self.user=config['user']
+            self.email=config['email']
+            self.salt=config['salt']
+            self.cypher=config['cypher']
+            self.secret=config['secret']
+        else:
+            self.user=None    
         self.checkFamily()
         
     def getPassword(self):
@@ -115,7 +120,7 @@ class Family(family.Family):
        return '%s'
        
     def isPublic(self):
-        return False   
+        return %s   
         
     def version(self, code):
         return "%s"  # The MediaWiki version used. Very important in most cases. (contrary to documentation)   
@@ -124,17 +129,20 @@ class Family(family.Family):
        return '%s'
 '''         
             mw_version=self.version.lower().replace("mediawiki ","")
-            code=template % (self.family,self.netloc,self.scriptPath,mw_version,self.scheme)
+            ispublic='False' if self.user is not None else 'True'
+            code=template % (self.family,self.netloc,self.scriptPath,ispublic,mw_version,self.scheme)
             with open(famfile,"w") as py_file:
                 py_file.write(code)
         config2.register_family_file(self.family, famfile)  
-        config2.usernames[self.family]['en'] = self.user
+        if self.user:
+            config2.usernames[self.family]['en'] = self.user
         #config2.authenticate[self.netloc] = (self.user,self.getPassword())
         self.site=pywikibot.Site('en',self.family)  
-        # needs patch as outlined in https://phabricator.wikimedia.org/T248471
-        #self.site.login(password=self.getPassword())
-        lm = LoginManager(password=self.getPassword(), site=self.site, user=self.user)
-        lm.login()
+        if self.user:
+            # needs patch as outlined in https://phabricator.wikimedia.org/T248471
+            #self.site.login(password=self.getPassword())
+            lm = LoginManager(password=self.getPassword(), site=self.site, user=self.user)
+            lm.login()
         
     def getPage(self,pageTitle):
         ''' get the page with the given title'''
