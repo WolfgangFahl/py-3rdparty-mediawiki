@@ -7,7 +7,7 @@ import unittest
 import getpass
 from wikibot.wikibot import WikiBot
 from wikibot.smw import SMW
-from test_wikibot import TestWikiBot
+from tests.test_wikibot import TestWikiBot
 
 class TestSMW(unittest.TestCase):
     """ test access to SemanticMediaWiki API"""
