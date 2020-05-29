@@ -5,6 +5,7 @@ Created on 24.03.2020
 '''
 from os.path import expanduser,isfile,isdir,join
 from os import listdir
+import datetime
 from urllib.parse import urlparse
 import pywikibot
 import getpass
@@ -55,14 +56,33 @@ class WikiBot(object):
                     except Exception as e:
                         print (e)    
         return bots      
+  
+    @staticmethod
+    def iniFilePath(wikiId):
+        user=getpass.getuser()
+        iniFilePath="%s/%s_%s.ini" % (WikiBot.iniPath(),user,wikiId)
+        return iniFilePath
     
     @staticmethod
     def ofWikiId(wikiId):
-        user=getpass.getuser()
-        iniFile="%s/%s_%s.ini" % (WikiBot.iniPath(),user,wikiId)
+        iniFile=WikiBot.iniFilePath(wikiId)
         wikibot=WikiBot(iniFile)
         return wikibot
-
+    
+    @staticmethod
+    def writeIni(wikiId,name,url,scriptPath,version):
+        iniFile=open(WikiBot.iniFilePath(wikiId),"w")
+        isodate=datetime.datetime.now().isoformat()
+        template="""# Mediawiki JAPI credentials for %s
+            # created by wikibot at %s
+            url=%s
+            scriptPath=%s
+            wikiId=%s
+            version=%s
+        """
+        iniFile.write(template % (name,isodate,url,scriptPath,wikiId,version))
+        iniFile.close()
+        
     def __init__(self,iniFile):
         '''
         Constructor

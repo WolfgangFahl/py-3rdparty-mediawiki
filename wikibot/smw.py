@@ -72,5 +72,4 @@ class SMW(object):
             part = re.sub(" ", "_",part);
             fixedAsk = fixedAsk+ part;
         return fixedAsk
-      
         

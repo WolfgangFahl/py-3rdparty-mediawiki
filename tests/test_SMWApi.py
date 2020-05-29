@@ -7,6 +7,7 @@ import unittest
 import getpass
 from wikibot.wikibot import WikiBot
 from wikibot.smw import SMW
+from test_wikibot import TestWikiBot
 
 class TestSMW(unittest.TestCase):
     """ test access to SemanticMediaWiki API"""
@@ -27,28 +28,17 @@ class TestSMW(unittest.TestCase):
         self.assertEqual(expected,fixedAsk)
             
     def testSMWInfo(self):
-        if not getpass.getuser()=="travis":   
-            '''
-            needs:
-            .mediawiki-japi/smw.ini as:
-            #Mediawiki JAPI credentials for semantic-mediawiki
-            #manually entered 2020-05-39
-            url=https://www.semantic-mediawiki.org
-            scriptPath=/w
-            wikiId=smw
-            version=MediaWiki 1.31.7
-            '''              
-            wikibot=WikiBot.ofWikiId("smw")
-            smw=SMW(wikibot.site)
-            result=smw.info()
-            if (TestSMW.debug):
-                print (result)
-            self.assertTrue('info' in result)   
-            info=result['info']
-            expectedlist=['propcount','usedpropcount','declaredpropcount']
-            for expected in expectedlist:
-                self.assertTrue(expected in info)
-                
+        wikibot=TestWikiBot.getSMW_Wiki()
+        smw=SMW(wikibot.site)
+        result=smw.info()
+        if (TestSMW.debug):
+            print (result)
+        self.assertTrue('info' in result)   
+        info=result['info']
+        expectedlist=['propcount','usedpropcount','declaredpropcount']
+        for expected in expectedlist:
+            self.assertTrue(expected in info)
+            
                 
     def testSMWAskRaw(self):
         if not getpass.getuser()=="travis": 
