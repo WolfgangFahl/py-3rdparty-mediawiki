@@ -75,5 +75,10 @@ class SMW(object):
     
     def getConcept(self,ask):
         """ get the concept from the given ask query"""
+        m=re.search(r"\[\[Concept:(.+?)\]\]",ask)
+        if m:
+            return m.groups()[0]
+        else:
+            return None
         
         

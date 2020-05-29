@@ -29,7 +29,8 @@ class TestSMW(unittest.TestCase):
         
     def testGetConcept(self):
         smw=SMW()
-        concept=smw.getConcept(TestSMW.testask1)
+        fixedAsk=smw.fixAsk(TestSMW.testask1)
+        concept=smw.getConcept(fixedAsk)
         if TestSMW.debug:
             print(concept)
         self.assertEquals(concept,"Semantic_MediaWiki_Cons_2012")
