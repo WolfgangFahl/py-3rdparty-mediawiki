@@ -72,4 +72,8 @@ class SMW(object):
             part = re.sub(" ", "_",part);
             fixedAsk = fixedAsk+ part;
         return fixedAsk
+    
+    def getConcept(self,ask):
+        """ get the concept from the given ask query"""
+        
         

@@ -4,7 +4,7 @@ Created on 24.03.2020
 @author: wf
 '''
 from os.path import expanduser,isfile,isdir,join
-from os import listdir
+from os import listdir,makedirs
 import datetime
 from urllib.parse import urlparse
 import pywikibot
@@ -71,6 +71,9 @@ class WikiBot(object):
     
     @staticmethod
     def writeIni(wikiId,name,url,scriptPath,version):
+        iniPath=WikiBot.iniPath()
+        if not isdir(iniPath):
+            makedirs(iniPath)
         iniFile=open(WikiBot.iniFilePath(wikiId),"w")
         isodate=datetime.datetime.now().isoformat()
         template="""# Mediawiki JAPI credentials for %s
