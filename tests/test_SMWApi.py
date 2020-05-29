@@ -49,15 +49,14 @@ class TestSMW(unittest.TestCase):
             
                 
     def testSMWAskRaw(self):
-        if not getpass.getuser()=="travis": 
-            wikibot=WikiBot.ofWikiId("smw")
-            smw=SMW(wikibot.site)  
-            result=smw.rawquery(TestSMW.testask1)
-            if TestSMW.debug:
-                print (result)
-            self.assertTrue('query' in result)
-            query=result['query']
-            self.assertTrue('printrequests' in query)
+        wikibot=TestWikiBot.getSMW_Wiki()
+        smw=SMW(wikibot.site)  
+        result=smw.rawquery(TestSMW.testask1)
+        if TestSMW.debug:
+            print (result)
+        self.assertTrue('query' in result)
+        query=result['query']
+        self.assertTrue('printrequests' in query)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSMWApi']
