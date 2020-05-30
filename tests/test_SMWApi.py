@@ -4,8 +4,6 @@ Created on 25.05.2020
 @author: wf
 '''
 import unittest
-import getpass
-from wikibot.wikibot import WikiBot
 from wikibot.smw import SMW
 from tests.test_wikibot import TestWikiBot
 
@@ -20,6 +18,7 @@ class TestSMW(unittest.TestCase):
         |  format=table  }}"""
     
     def testFixAsk(self):
+        """ test fixing an ask query to be made fit for API use"""
         smw=SMW()
         fixedAsk=smw.fixAsk(TestSMW.testask1)
         expected="""[[Concept:Semantic_MediaWiki_Cons_2012]]|?Has_Wikidata_item_ID=WikiDataId|?Has_planned_finish=finish|?Has_planned_start=start|?Has_location=location|format=table"""
@@ -28,6 +27,7 @@ class TestSMW(unittest.TestCase):
         self.assertEqual(expected,fixedAsk)
         
     def testGetConcept(self):
+        """ test extracting a concept from an ask query"""
         smw=SMW()
         fixedAsk=smw.fixAsk(TestSMW.testask1)
         concept=smw.getConcept(fixedAsk)
@@ -36,6 +36,7 @@ class TestSMW(unittest.TestCase):
         self.assertEquals(concept,"Semantic_MediaWiki_Cons_2012")
             
     def testSMWInfo(self):
+        """ test the SMW Info call"""
         wikibot=TestWikiBot.getSMW_Wiki()
         smw=SMW(wikibot.site)
         result=smw.info()
@@ -49,6 +50,7 @@ class TestSMW(unittest.TestCase):
             
                 
     def testSMWAskRaw(self):
+        """ test getting the raw result of an ask query"""
         wikibot=TestWikiBot.getSMW_Wiki()
         smw=SMW(wikibot.site)  
         result=smw.rawquery(TestSMW.testask1)
@@ -57,6 +59,16 @@ class TestSMW(unittest.TestCase):
         self.assertTrue('query' in result)
         query=result['query']
         self.assertTrue('printrequests' in query)
+        self.assertTrue('results' in query)
+        
+    def testSMWAsk(self):
+        """ test getting the unserialized json result of an ask query"""
+        wikibot=TestWikiBot.getSMW_Wiki()
+        smw=SMW(wikibot.site)  
+        result=smw.query(TestSMW.testask1)
+        if TestSMW.debug:
+            print (result)    
+        self.assertEquals(2,len(result))    
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSMWApi']

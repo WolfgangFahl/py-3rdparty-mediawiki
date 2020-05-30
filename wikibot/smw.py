@@ -6,6 +6,35 @@ Created on 29.05.2020
 from pywikibot.data.api import Request
 import re
 
+class PrintRequest(object):
+    """
+    construct the given print request
+    see https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
+    """
+    def __init__(self,record):
+        print(record)
+        self.label=record['label']
+        self.key=record['key']
+        self.redi=record['redi']
+        self.typeid=record['typeid']
+        self.mode=int(record['mode'])
+        if 'format' in record:
+            self.format=record['format']
+        else:
+            self.format=None   
+            
+    def deserialize(self,result):
+        po=result['printouts']
+        if self.label:
+            value=po[self.label]
+        else:
+            value=result['fullurl']
+        return value    
+            
+    def __repr__(self):
+        text="PrintRequest(label='%s' key='%s' redi='%s' typeid='%s' mode=%d format='%s')" % (self.label,self.key,self.redi,self.typeid,self.mode,self.format)
+        return text
+
 class SMW(object):
     '''
     Semantic MediaWiki Access e.g. for ask API
@@ -24,6 +53,7 @@ class SMW(object):
         self.site=site
         
     def submit(self, parameters):
+        """ submit the request with the given parameters"""
         request=Request(site=self.site,parameters=parameters)
         return request.submit()    
     
@@ -40,8 +70,37 @@ class SMW(object):
         result=self.submit(parameters)
         return result
     
+    def deserialize(self,rawresult):
+        """ deserialize the given rawresult according to 
+        https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
+        """
+        if not 'query' in rawresult:
+            raise Exception("invalid query result - 'query' missing")
+        query=rawresult['query']
+        if not 'printrequests' in query:
+            raise Exception("invalid query result - 'printrequests' missing")
+        printrequests=query['printrequests']
+        if not 'results' in query:
+            raise Exception("invalid query result - 'results' missing")
+        results=query['results']
+        prdict={}
+        for record in printrequests:
+            pr=PrintRequest(record)
+            prdict[pr.label]=pr
+        resultDict={}
+        for key in results.keys():
+            record=results[key]
+            recordDict={}
+            for label in prdict.keys():
+                pr=prdict[label]
+                recordDict[label]=pr.deserialize(record)
+            resultDict[key]=recordDict
+        return resultDict
+    
     def query(self,ask):
-        return self.rawquery(ask)
+        rawresult=self.rawquery(ask)
+        result=self.deserialize(rawresult)
+        return result
     
     def fixAsk(self,ask):
         """ fix an ask String to be usable for the API
