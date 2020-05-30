@@ -61,7 +61,25 @@ class TestSMW(unittest.TestCase):
         query=result['query']
         self.assertTrue('printrequests' in query)
         self.assertTrue('results' in query)
-        
+    
+    # Helpers for parsing the result of isoformat()
+    # https://github.com/python/cpython/blob/master/Lib/datetime.py
+    def dateFromIso(self,dtstr):
+        # It is assumed that this function will only be called with a
+        # string of length exactly 10, and (though this is not used) ASCII-only
+        year = int(dtstr[0:4])
+        if dtstr[4] != '-':
+            raise ValueError('Invalid date separator: %s' % dtstr[4])
+    
+        month = int(dtstr[5:7])
+    
+        if dtstr[7] != '-':
+            raise ValueError('Invalid date separator')
+    
+        day = int(dtstr[8:10])
+    
+        return datetime(year, month, day)
+    
     def testSMWAsk(self):
         """ test getting the unserialized json result of an ask query"""
         wikibot=TestWikiBot.getSMW_Wiki()
@@ -71,13 +89,13 @@ class TestSMW(unittest.TestCase):
         expectedRecords=[{
             'WikiDataId': 'Q42407116', 
             'location':'Cologne, Germany',
-            'start':datetime.fromisoformat('2012-10-24 00:00:00'),
-            'finish':datetime.fromisoformat('2012-10-26 00:00:00')
+            'start':self.dateFromIso('2012-10-24'),
+            'finish':self.dateFromIso('2012-10-26')
             },{
             'WikiDataId': 'Q42407127', 
             'location':'Carlsbad, CA, USA',
-            'start':datetime.fromisoformat('2012-04-25 00:00:00'),
-            'finish':datetime.fromisoformat('2012-04-27 00:00:00')
+            'start':self.dateFromIso('2012-04-25'),
+            'finish':self.dateFromIso('2012-04-27')
             }]
         if TestSMW.debug:
             print (result)    

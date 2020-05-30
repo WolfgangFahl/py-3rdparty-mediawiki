@@ -188,5 +188,3 @@ class SMW(object):
             return m.groups()[0]
         else:
             return None
-        
-        
