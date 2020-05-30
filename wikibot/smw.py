@@ -5,14 +5,18 @@ Created on 29.05.2020
 '''
 from pywikibot.data.api import Request
 import re
+from datetime import datetime
 
 class PrintRequest(object):
+    separator=';'
+    debug=False
     """
     construct the given print request
     see https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
     """
     def __init__(self,record):
-        print(record)
+        if PrintRequest.debug:
+            print(record)
         self.label=record['label']
         self.key=record['key']
         self.redi=record['redi']
@@ -24,11 +28,30 @@ class PrintRequest(object):
             self.format=None   
             
     def deserialize(self,result):
+        """ deserialize the given result record"""
         po=result['printouts']
         if self.label:
             value=po[self.label]
         else:
             value=result['fullurl']
+        if self.typeid=="_wpg":  
+            pass  
+        elif self.typeid=="_txt":
+            if isinstance(value,list):
+                value=PrintRequest.separator.join(value)
+        elif self.typeid=="_dat":
+            for valueitem in value:
+                ts=int(valueitem['timestamp'])
+                value=datetime.utcfromtimestamp(ts)
+                # print (date.strftime('%Y-%m-%d %H:%M:%S'))
+            pass
+        elif self.typeid=="_eid":
+            if isinstance(value,list):
+                value=PrintRequest.separator.join(value)
+        else:   
+            pass     
+        if PrintRequest.debug:
+            print ("%s(%s)='%s'" % (self.label,self.typeid,value))  
         return value    
             
     def __repr__(self):

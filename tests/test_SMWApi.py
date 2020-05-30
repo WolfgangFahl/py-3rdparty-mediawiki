@@ -4,8 +4,9 @@ Created on 25.05.2020
 @author: wf
 '''
 import unittest
-from wikibot.smw import SMW
+from wikibot.smw import SMW, PrintRequest
 from tests.test_wikibot import TestWikiBot
+from datetime import datetime
 
 class TestSMW(unittest.TestCase):
     """ test access to SemanticMediaWiki API"""
@@ -65,10 +66,28 @@ class TestSMW(unittest.TestCase):
         """ test getting the unserialized json result of an ask query"""
         wikibot=TestWikiBot.getSMW_Wiki()
         smw=SMW(wikibot.site)  
+        PrintRequest.debug=True
         result=smw.query(TestSMW.testask1)
+        expectedRecords=[{
+            'WikiDataId': 'Q42407116', 
+            'location':'Cologne, Germany',
+            'start':datetime.fromisoformat('2012-10-24 00:00:00'),
+            'finish':datetime.fromisoformat('2012-10-26 00:00:00')
+            },{
+            'WikiDataId': 'Q42407127', 
+            'location':'Carlsbad, CA, USA',
+            'start':datetime.fromisoformat('2012-04-25 00:00:00'),
+            'finish':datetime.fromisoformat('2012-04-27 00:00:00')
+            }]
         if TestSMW.debug:
             print (result)    
-        self.assertEquals(2,len(result))    
+        self.assertEquals(2,len(result))
+        resultlist=list(result.items())
+        for i in range(len(expectedRecords)):
+            expectedRecord=expectedRecords[i]
+            recordkey,record=resultlist[i];
+            for key in expectedRecord.keys():
+                self.assertEquals(expectedRecord[key],record[key])    
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSMWApi']
