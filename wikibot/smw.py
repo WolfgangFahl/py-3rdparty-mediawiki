@@ -13,8 +13,20 @@ class PrintRequest(object):
     """
     construct the given print request
     see https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
+    
+    :ivar label: the label of the printrequest
+    :ivar key: 
+    :ivar redi: 
+    :ivar typeid: 
+    :ivar mode:  
+    :ivar format: 
     """
     def __init__(self,record):
+        '''
+        construct me from the given record
+        Args:
+            record(dict): the dict derived from the printrequest json serialization  
+        '''
         if PrintRequest.debug:
             print(record)
         self.label=record['label']
@@ -28,7 +40,12 @@ class PrintRequest(object):
             self.format=None   
             
     def deserialize(self,result):
-        """ deserialize the given result record"""
+        """ deserialize the given result record
+        Args:
+            result(dict): a single result record dict from the deserialiation of the ask query
+        Returns:    
+            object: a single deserialized value according to my typeid   
+        """
         po=result['printouts']
         if self.label:
             value=po[self.label]
@@ -67,25 +84,35 @@ class SMW(object):
     
     adapted from Java SimpleGraph Module 
     https://github.com/BITPlan/com.bitplan.simplegraph/blob/master/simplegraph-smw/src/main/java/com/bitplan/simplegraph/smw/SmwSystem.java
+    :ivar site: the pywikibot site to use for requests
     '''
 
     def __init__(self, site=None):
         '''
         Constructor
+        Args:
+            site: the site to use (optional)
         '''
         self.site=site
         
     def submit(self, parameters):
-        """ submit the request with the given parameters"""
+        """ submit the request with the given parameters
+        Args:
+            parameters(list): the parameters to use for the SMW API request
+        Returns:
+            dict: the submit result"""
         request=Request(site=self.site,parameters=parameters)
         return request.submit()    
     
     def info(self):
+        """ see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
         parameters={"action": "smwinfo"}
         return self.submit(parameters)
     
     def rawquery(self,ask):
-        """ send a query """
+        """ send a query see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries#Parser_function_.23ask
+        Args:
+            ask(str): the SMW ASK query as it would be used in MediaWiki markup"""
         # allow usage of original Wiki ask content - strip all non needed parts
         fixedAsk=self.fixAsk(ask)
         # set parameters for request
@@ -127,9 +154,8 @@ class SMW(object):
     
     def fixAsk(self,ask):
         """ fix an ask String to be usable for the API
-        @param ask
-                 - a "normal" ask query
-        @return - the fixed asked query
+        :param ask: - a "normal" ask query
+        :return: the fixed asked query
         """
         # ^\\s*\\{\\{
         # remove {{ with surrounding white space at beginning

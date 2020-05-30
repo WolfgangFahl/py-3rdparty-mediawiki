@@ -10,7 +10,7 @@ checkinstalled() {
   fi
 }
 checkinstalled  sphinx-apidoc
-sphinx-apidoc -f -o docs/source . wikibot/crypt wikibot/wikibot
+sphinx-apidoc -f -o docs/source . wikibot/crypt wikibot/wikibot wikibot/smw
 cd docs
 make clean html
 open build/html/index.html

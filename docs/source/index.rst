@@ -28,6 +28,13 @@ wikibot module
    :members:
    :show-inheritance:
 
+smw module
+--------------
+
+.. autoclass:: wikibot.smw.SMW
+    :members:
+    :show-inheritance:
+
 crypt module
 --------------
 
