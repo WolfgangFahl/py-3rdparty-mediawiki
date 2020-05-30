@@ -4,6 +4,14 @@ tests package
 Submodules
 ----------
 
+tests.test\_SMWApi module
+-------------------------
+
+.. automodule:: tests.test_SMWApi
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.test\_wikibot module
 --------------------------
 

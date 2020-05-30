@@ -12,6 +12,14 @@ wikibot.crypt module
    :undoc-members:
    :show-inheritance:
 
+wikibot.smw module
+------------------
+
+.. automodule:: wikibot.smw
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wikibot.wikibot module
 ----------------------
 
