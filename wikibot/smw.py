@@ -6,6 +6,7 @@ Created on 29.05.2020
 from pywikibot.data.api import Request
 import re
 from datetime import datetime
+from urllib.parse import urlparse, unquote
 
 class PrintRequest(object):
     separator=';'
@@ -13,7 +14,7 @@ class PrintRequest(object):
     """
     construct the given print request
     see https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
-    
+    :ivar smw: SMW context for this printrequest
     :ivar label: the label of the printrequest
     :ivar key: 
     :ivar redi: 
@@ -21,12 +22,14 @@ class PrintRequest(object):
     :ivar mode:  
     :ivar format: 
     """
-    def __init__(self,record):
+    def __init__(self,smw,record):
         '''
         construct me from the given record
         Args:
+            smw(SMW): the SemanticMediaWiki context of this PrintRequest
             record(dict): the dict derived from the printrequest json serialization  
         '''
+        self.smw=smw
         if PrintRequest.debug:
             print(record)
         self.label=record['label']
@@ -47,16 +50,32 @@ class PrintRequest(object):
             object: a single deserialized value according to my typeid   
         """
         po=result['printouts']
-        if self.label:
+        if self.label in po:
             value=po[self.label]
         else:
             value=result['fullurl']
         if self.typeid=="_wpg":  
+            o=urlparse(value)
+            value=o.path
+            # remove prefix if present see https://stackoverflow.com/a/600195/1497139
+            if value.startswith(self.smw.prefix):
+                value=value[len(self.smw.prefix):]
+            # https://docs.python.org/3/library/urllib.parse.html#urllib.parse.unquote    
+            value=unquote(value)
             pass  
         elif self.typeid=="_txt":
             if isinstance(value,list):
                 value=PrintRequest.separator.join(value)
+        elif self.typeid=="_qty":    
+            # FIXME multiple values possible?     
+            for valueitem in value:
+                value=valueitem            
+        elif self.typeid=="_num":
+            # FIXME multiple values possible?    
+            for valueitem in value:
+                value=int(valueitem)            
         elif self.typeid=="_dat":
+            # FIXME multiple values possible?  
             for valueitem in value:
                 ts=int(valueitem['timestamp'])
                 value=datetime.utcfromtimestamp(ts)
@@ -85,15 +104,17 @@ class SMW(object):
     adapted from Java SimpleGraph Module 
     https://github.com/BITPlan/com.bitplan.simplegraph/blob/master/simplegraph-smw/src/main/java/com/bitplan/simplegraph/smw/SmwSystem.java
     :ivar site: the pywikibot site to use for requests
+    :ivar prefix: the path prefix for this site e.g. /wiki/
     '''
 
-    def __init__(self, site=None):
+    def __init__(self, site=None,prefix="/"):
         '''
         Constructor
         Args:
             site: the site to use (optional)
         '''
         self.site=site
+        self.prefix=prefix
         
     def submit(self, parameters):
         """ submit the request with the given parameters
@@ -135,7 +156,7 @@ class SMW(object):
         results=query['results']
         prdict={}
         for record in printrequests:
-            pr=PrintRequest(record)
+            pr=PrintRequest(self,record)
             prdict[pr.label]=pr
         resultDict={}
         for key in results.keys():

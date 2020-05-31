@@ -80,12 +80,24 @@ class TestSMW(unittest.TestCase):
     
         return datetime(year, month, day)
     
+    def checkExpected(self,ask,expectedRecords):
+        """ check that the given ask query returns the content of the expectedRecords""" 
+        wikibot=TestWikiBot.getSMW_Wiki()
+        smw=SMW(wikibot.site,"/wiki/")  
+        PrintRequest.debug=True
+        result=smw.query(ask)
+        if TestSMW.debug:
+            print (result)    
+        self.assertEquals(len(expectedRecords),len(result))
+        resultlist=list(result.items())
+        for i in range(len(expectedRecords)):
+            expectedRecord=expectedRecords[i]
+            recordkey,record=resultlist[i];
+            for key in expectedRecord.keys():
+                self.assertEquals(expectedRecord[key],record[key]) 
+    
     def testSMWAsk(self):
         """ test getting the unserialized json result of an ask query"""
-        wikibot=TestWikiBot.getSMW_Wiki()
-        smw=SMW(wikibot.site)  
-        PrintRequest.debug=True
-        result=smw.query(TestSMW.testask1)
         expectedRecords=[{
             'WikiDataId': 'Q42407116', 
             'location':'Cologne, Germany',
@@ -97,15 +109,40 @@ class TestSMW(unittest.TestCase):
             'start':self.dateFromIso('2012-04-25'),
             'finish':self.dateFromIso('2012-04-27')
             }]
-        if TestSMW.debug:
-            print (result)    
-        self.assertEquals(2,len(result))
-        resultlist=list(result.items())
-        for i in range(len(expectedRecords)):
-            expectedRecord=expectedRecords[i]
-            recordkey,record=resultlist[i];
-            for key in expectedRecord.keys():
-                self.assertEquals(expectedRecord[key],record[key])    
+        self.checkExpected(TestSMW.testask1,expectedRecords)   
+        
+    def testSMWBaseUrl(self):
+        wikibot=TestWikiBot.getSMW_Wiki()
+        print(wikibot.scriptPath)
+                
+    def testSMWAskWithMainLabel(self):
+        ask="""{{#ask:
+ [[Category:City]]
+ [[Located in::Germany]] 
+ |mainlabel=City
+ |?Population 
+ |?Area#km² = Size in km²
+}}"""
+        expectedRecords=[{
+            'City':'Demo:Berlin',
+            'Population': 3520061, 
+            },{
+            'City':'Demo:Cologne',
+            'Population': 1080394, 
+            },{
+            'City':'Demo:Frankfurt',    
+            'Population': 679664, 
+            },{
+            'City':'Demo:Munich',    
+            'Population': 1353186, 
+            },{
+            'City':'Demo:Stuttgart',    
+            'Population': 606588, 
+            },{
+            'City':'Demo:Würzburg',   
+            'Population': 126635, 
+            }]
+        self.checkExpected(ask, expectedRecords)   
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSMWApi']
