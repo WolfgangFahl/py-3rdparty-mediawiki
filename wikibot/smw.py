@@ -6,10 +6,9 @@ Created on 2020-05-29
 from pywikibot.data.api import Request
 import re
 from datetime import datetime
-from urllib.parse import urlparse, unquote
+from urllib.parse import unquote
 
 class PrintRequest(object):
-    separator=';'
     debug=False
     """
     construct the given print request
