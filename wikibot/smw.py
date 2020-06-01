@@ -42,7 +42,13 @@ class PrintRequest(object):
             self.format=None   
             
     def deserializeSingle(self,value):
-        """ deserialize a single value """
+        """ deserialize a single value 
+        Args:
+            value(object): the value to be deserialized according to the typeid
+            
+        Returns:
+            the deserialized value
+        """
         # FIXME complete list of types according to
         # https://www.semantic-mediawiki.org/wiki/Help:API:ask  
         # Page https://www.semantic-mediawiki.org/wiki/Help:API:ask/Page    

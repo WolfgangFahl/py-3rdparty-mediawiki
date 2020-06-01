@@ -35,6 +35,10 @@ smw module
     :members:
     :show-inheritance:
 
+.. autoclass:: wikibot.smw.PrintRequest
+    :members:
+    :show-inheritance:
+
 crypt module
 --------------
 
