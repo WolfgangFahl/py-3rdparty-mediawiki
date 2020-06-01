@@ -1,5 +1,5 @@
 '''
-Created on 29.05.2020
+Created on 2020-05-29
 
 @author: wf
 '''
@@ -42,6 +42,34 @@ class PrintRequest(object):
         else:
             self.format=None   
             
+    def deserializeSingle(self,value):
+        """ deserialize a single value """
+        # FIXME complete list of types according to
+        # https://www.semantic-mediawiki.org/wiki/Help:API:ask  
+        # Page https://www.semantic-mediawiki.org/wiki/Help:API:ask/Page    
+        if self.typeid=="_wpg":  
+            value=value["fulltext"]
+            if value:
+                value=unquote(value)
+            pass  
+        # Text https://www.semantic-mediawiki.org/wiki/Help:API:ask/Text
+        elif self.typeid=="_txt":
+            pass
+        elif self.typeid=="_qty":    
+            pass
+        elif self.typeid=="_num":
+            value=int(value)            
+        elif self.typeid=="_dat":
+            ts=int(value['timestamp'])
+            value=datetime.utcfromtimestamp(ts)
+            # print (date.strftime('%Y-%m-%d %H:%M:%S'))
+            pass
+        elif self.typeid=="_eid":
+            pass
+        else:   
+            pass
+        return value
+            
     def deserialize(self,result):
         """ deserialize the given result record
         Args:
@@ -53,39 +81,18 @@ class PrintRequest(object):
         if self.label in po:
             value=po[self.label]
         else:
-            value=result['fullurl']
-        if self.typeid=="_wpg":  
-            o=urlparse(value)
-            value=o.path
-            # remove prefix if present see https://stackoverflow.com/a/600195/1497139
-            if value.startswith(self.smw.prefix):
-                value=value[len(self.smw.prefix):]
-            # https://docs.python.org/3/library/urllib.parse.html#urllib.parse.unquote    
-            value=unquote(value)
-            pass  
-        elif self.typeid=="_txt":
-            if isinstance(value,list):
-                value=PrintRequest.separator.join(value)
-        elif self.typeid=="_qty":    
-            # FIXME multiple values possible?     
-            for valueitem in value:
-                value=valueitem            
-        elif self.typeid=="_num":
-            # FIXME multiple values possible?    
-            for valueitem in value:
-                value=int(valueitem)            
-        elif self.typeid=="_dat":
-            # FIXME multiple values possible?  
-            for valueitem in value:
-                ts=int(valueitem['timestamp'])
-                value=datetime.utcfromtimestamp(ts)
-                # print (date.strftime('%Y-%m-%d %H:%M:%S'))
-            pass
-        elif self.typeid=="_eid":
-            if isinstance(value,list):
-                value=PrintRequest.separator.join(value)
-        else:   
-            pass     
+            value=result
+        if isinstance(value,list):
+            valueList=[]
+            for valueItem in value:
+                valueList.append(self.deserializeSingle(valueItem))
+            if len(valueList)==1:
+                value=valueList[0]
+            else:        
+                value=valueList  
+        else:
+            value=self.deserializeSingle(value)                           
+        
         if PrintRequest.debug:
             print ("%s(%s)='%s'" % (self.label,self.typeid,value))  
         return value    

@@ -1,5 +1,5 @@
 '''
-Created on 25.05.2020
+Created on 2020-05-25
 
 @author: wf
 '''
@@ -9,8 +9,9 @@ from tests.test_wikibot import TestWikiBot
 from datetime import datetime
 
 class TestSMW(unittest.TestCase):
-    """ test access to SemanticMediaWiki API"""
+    """ test access to SemanticMediaWiki API see https://www.semantic-mediawiki.org/wiki/Help:API:ask"""
     debug=True
+    # sample queries
     testask1="""{{#ask:  [[Concept:Semantic MediaWiki Cons 2012]]
         |?Has_Wikidata_item_ID = WikiDataId
         |?Has planned finish = finish
@@ -49,7 +50,6 @@ class TestSMW(unittest.TestCase):
         for expected in expectedlist:
             self.assertTrue(expected in info)
             
-                
     def testSMWAskRaw(self):
         """ test getting the raw result of an ask query"""
         wikibot=TestWikiBot.getSMW_Wiki()
@@ -80,14 +80,19 @@ class TestSMW(unittest.TestCase):
     
         return datetime(year, month, day)
     
-    def checkExpected(self,ask,expectedRecords):
-        """ check that the given ask query returns the content of the expectedRecords""" 
+    def getAskResult(self,ask):
+        """ get the query result for the given ask query """
         wikibot=TestWikiBot.getSMW_Wiki()
         smw=SMW(wikibot.site,"/wiki/")  
         PrintRequest.debug=True
         result=smw.query(ask)
         if TestSMW.debug:
             print (result)    
+        return result;
+    
+    def checkExpected(self,ask,expectedRecords):
+        """ check that the given ask query returns the content of the expectedRecords""" 
+        result=self.getAskResult(ask)
         self.assertEquals(len(expectedRecords),len(result))
         resultlist=list(result.items())
         for i in range(len(expectedRecords)):
@@ -111,9 +116,25 @@ class TestSMW(unittest.TestCase):
             }]
         self.checkExpected(TestSMW.testask1,expectedRecords)   
         
+    # test the SMWBaseURL    
     def testSMWBaseUrl(self):
         wikibot=TestWikiBot.getSMW_Wiki()
-        print(wikibot.scriptPath)
+        if TestSMW.debug:
+            print(wikibot.scriptPath)
+        self.assertEquals("/w",wikibot.scriptPath)
+        
+    # issue https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/3
+    # see https://www.semantic-mediawiki.org/wiki/User:WolfgangFahl/Workdocumentation_2020-06-01
+    def testSMWAskwWithEmptyLink(self):
+        ask="""
+        {{#ask: [[Category:Event]]
+|mainlabel=Event
+|?Has_local_chair=chair
+|format=table
+}}
+        """
+        result=self.getAskResult(ask)
+        self.assertTrue(len(result)>7)
                 
     def testSMWAskWithMainLabel(self):
         ask="""{{#ask:
