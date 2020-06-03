@@ -91,8 +91,14 @@ class PrintRequest(object):
             valueList=[]
             for valueItem in value:
                 valueList.append(self.deserializeSingle(valueItem))
-            if len(valueList)==1:
+            # handle lists
+            # empty lists => None
+            if len(valueList)==0:
+                value=None    
+            # lists with one value -> return the item (this unfortunately removes the list property of the value)   
+            elif len(valueList)==1:
                 value=valueList[0]
+            # only if there is a "real" list return it    
             else:        
                 value=valueList  
         else:
