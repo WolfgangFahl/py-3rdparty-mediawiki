@@ -24,4 +24,4 @@ install:
 script:
   # command to install dependencies
   - ./install
-  - python3 -m unittest discover
+  - ./test
