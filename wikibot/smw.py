@@ -177,13 +177,14 @@ class SMW(object):
             pr=PrintRequest(self,record)
             prdict[pr.label]=pr
         resultDict={}
-        for key in results.keys():
-            record=results[key]
-            recordDict={}
-            for label in prdict.keys():
-                pr=prdict[label]
-                recordDict[label]=pr.deserialize(record)
-            resultDict[key]=recordDict
+        if results:
+            for key in results.keys():
+                record=results[key]
+                recordDict={}
+                for label in prdict.keys():
+                    pr=prdict[label]
+                    recordDict[label]=pr.deserialize(record)
+                resultDict[key]=recordDict
         return resultDict
     
     def query(self,ask):

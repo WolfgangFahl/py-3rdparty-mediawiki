@@ -36,6 +36,26 @@ class TestSMW(unittest.TestCase):
         if TestSMW.debug:
             print(concept)
         self.assertEquals(concept,"Semantic_MediaWiki_Cons_2012")
+        
+    def testGetEvents(self):
+        ''' text for issue #6 https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/6 '''    
+        wikibot=TestWikiBot.getSMW_Wiki('or')
+        smw=SMW(wikibot.site)
+        ask="""{{#ask: [[Acronym::+]]
+|mainlabel=Event
+| ?Acronym = acronym
+| ?Has location city = city
+| ?_CDAT=creation date
+| ?_MDAT=modification date
+| limit=200
+|format=table
+}}
+"""
+        result=smw.query(ask)
+        if TestSMW.debug:
+            print (len(result))
+            print (result)  
+        self.assertEquals(200,len(result))    
             
     def testSMWInfo(self):
         """ test the SMW Info call"""

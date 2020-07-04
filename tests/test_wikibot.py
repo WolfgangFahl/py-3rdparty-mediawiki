@@ -40,11 +40,13 @@ class TestWikiBot(unittest.TestCase):
         self.assertEquals(expected,pw)
         
     @staticmethod
-    def getSMW_Wiki():
-        wikiId="smw"
+    def getSMW_Wiki(wikiId="smw"):
         iniFile=WikiBot.iniFilePath(wikiId)
         if not os.path.isfile(iniFile):
-            WikiBot.writeIni(wikiId,"Semantic MediaWiki.org","https://www.semantic-mediawiki.org","/w","MediaWiki 1.31.7")
+            if wikiId=="smw":
+                WikiBot.writeIni(wikiId,"Semantic MediaWiki.org","https://www.semantic-mediawiki.org","/w","MediaWiki 1.31.7")
+            if wikiId=="or":
+                WikiBot.writeIni(wikiId,"OpenResearch.org","https://www.openresearch.org","/mediawiki/","MediaWiki 1.31.1")    
         wikibot=WikiBot.ofWikiId(wikiId)
         return  wikibot   
         
