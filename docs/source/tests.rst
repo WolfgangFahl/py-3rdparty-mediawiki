@@ -4,6 +4,14 @@ tests package
 Submodules
 ----------
 
+tests.test\_MediaWikiTable module
+---------------------------------
+
+.. automodule:: tests.test_MediaWikiTable
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.test\_SMWApi module
 -------------------------
 
@@ -19,7 +27,6 @@ tests.test\_wikibot module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------
