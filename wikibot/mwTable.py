@@ -67,7 +67,7 @@ class MediaWikiTable(object):
         self.content+=rowStart    
         for key in record.keys():
             value=record[key]
-            if key in self.colFormats:
+            if self.colFormats is not None and key in self.colFormats:
                 colFormat=self.colFormats[key]
             else:
                 colFormat="%s"    
