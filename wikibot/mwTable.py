@@ -78,7 +78,18 @@ class MediaWikiTable(object):
             self.addRow4Dict(record)
         pass
     
+    def noneReplace(self,value):
+        return "" if value is None else value;
+    
     def asWikiMarkup(self):
-        markup=self.start+self.header+self.content+self.end
-        return markup
+        '''
+        convert me to MediaWiki markup
         
+        Returns:
+            string: the MediWiki Markup for this table
+        '''
+        markup=self.noneReplace(self.start)+ \
+            self.noneReplace(self.header)+ \
+            self.noneReplace(self.content)+ \
+            self.noneReplace(self.end)
+        return markup
