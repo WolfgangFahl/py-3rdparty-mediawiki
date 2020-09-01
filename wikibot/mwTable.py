@@ -18,7 +18,7 @@ class MediaWikiTable(object):
         cssDelim=""
         if wikiTable:
             cWikiTable="wikitable"
-            cssDelim=", "
+            cssDelim=" "
         else: 
             cWikiTable=""
         if sortable:
