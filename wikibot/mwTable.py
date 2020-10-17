@@ -38,7 +38,7 @@ class MediaWikiTable(object):
         add the given record as a "sample" header
         '''
         if self.withNewLines:
-            headerStart="|+\n"
+            headerStart="|+"
             firstColDelim="\n!"
             colDelim=firstColDelim
         else:
@@ -59,7 +59,7 @@ class MediaWikiTable(object):
         if self.header is None:
             self.addHeader(record)
         if self.withNewLines:
-            rowStart="\n|-\n"
+            rowStart="\n|-"
             colDelim="\n|"
         else:
             rowStart="\n|-\n"
