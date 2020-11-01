@@ -6,6 +6,7 @@ Created on 25.03.2020
 from Crypto.Hash import MD5
 from Crypto.Cipher import DES
 import base64
+import secrets
 import os
 
 class Crypt(object):
@@ -19,7 +20,7 @@ class Crypt(object):
     converted to class
 '''
     def __init__(self,cypher,iterations=20,salt=None):
-        ''' construct me with the given cyper iterations and salt 
+        ''' construct me with the given cypher iterations and salt 
         '''
         self.cypher=cypher.encode('utf-8')
         self.iterations=iterations
@@ -28,6 +29,12 @@ class Crypt(object):
         else:
             self.salt=salt.encode('utf-8')      
         pass
+    
+    @staticmethod
+    def getRandomCrypt(cypherLen=32):
+        cypher=secrets.token_urlsafe(cypherLen)
+        crypt=Crypt(cypher)
+        return crypt;
     
     def getCrypt(self):
         '''

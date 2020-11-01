@@ -6,6 +6,7 @@ Created on 24.03.2020
 import unittest
 import os
 from wikibot.wikibot import WikiBot
+from wikibot.wikiuser import WikiUser
 from wikibot.crypt import Crypt
 
 class TestWikiBot(unittest.TestCase):
@@ -41,13 +42,20 @@ class TestWikiBot(unittest.TestCase):
         
     @staticmethod
     def getSMW_Wiki(wikiId="smw"):
-        iniFile=WikiBot.iniFilePath(wikiId)
+        iniFile=WikiUser.iniFilePath(wikiId)
         if not os.path.isfile(iniFile):
+            wikiDict=None
             if wikiId=="smw":
-                WikiBot.writeIni(wikiId,"Semantic MediaWiki.org","https://www.semantic-mediawiki.org","/w","MediaWiki 1.31.7")
+                wikiDict={"wikiId": wikiId,"url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.7"}
             if wikiId=="or":
-                WikiBot.writeIni(wikiId,"OpenResearch.org","https://www.openresearch.org","/mediawiki/","MediaWiki 1.31.1")    
-        wikibot=WikiBot.ofWikiId(wikiId)
+                wikiDict={"wikiId": wikiId,"url":"https://www.openresearch.org","scriptPath":"/mediawiki/","version":"MediaWiki 1.31.1"}   
+            if wikiDict is None:
+                raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
+            else:
+                wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
+                wikibot=WikiBot.ofWikiUser(wikiUser)
+        else:
+            wikibot=WikiBot.ofWikiId(wikiId)
         return  wikibot   
         
     def testWikiBotNoLogin(self):

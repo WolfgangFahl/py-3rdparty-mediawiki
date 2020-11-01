@@ -15,9 +15,6 @@ before_install:
   # install some renderers
   # check version
   - lsb_release -a
-  #- sudo apt-get -y install graphviz
-  #- sudo apt-get -y install mscgen
-  #- sudo apt-get -y install openjdk-8-jdk
 install:
   - echo $USER
 # command to run tests
