@@ -15,6 +15,7 @@ from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from pathlib import Path
 import getpass
+import warnings
 
 class WikiUser(object):
     '''
@@ -27,6 +28,9 @@ class WikiUser(object):
             self.__dict__[field]=None
     
     def getPassword(self):
+        # avoid annoying
+        #  /opt/local/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages/Crypto/Cipher/blockalgo.py:141: DeprecationWarning: PY_SSIZE_T_CLEAN will be required for '#' formats
+        warnings.filterwarnings("ignore", category=DeprecationWarning) 
         c=Crypt(self.cypher,20,self.salt)
         return c.decrypt(self.secret)
     
@@ -140,6 +144,10 @@ class WikiUser(object):
     @staticmethod
     def ofDict(userDict,encrypted=True,lenient=False):
         wikiUser=WikiUser()
+        # fix http\: entries from Java created entries
+        if 'url' in userDict and userDict['url'] is not None:
+            userDict['url']=userDict['url'].replace("\:",":")
+            
         for field in WikiUser.getFields(encrypted):
             if field in userDict:
                 wikiUser.__dict__[field]=userDict[field]    

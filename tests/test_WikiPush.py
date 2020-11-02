@@ -8,7 +8,9 @@ import getpass
 from wikibot.wikipush import WikiPush
 
 class TestWikiPush(unittest.TestCase):
-
+    '''
+    test pushing pages including images
+    '''
 
     def setUp(self):
         pass
@@ -17,7 +19,6 @@ class TestWikiPush(unittest.TestCase):
     def tearDown(self):
         pass
 
-
     def testWikiPush(self):
         '''
         test pushing a page from one wiki to another
@@ -25,8 +26,8 @@ class TestWikiPush(unittest.TestCase):
         # don't test this in Travis
         if getpass.getuser()=="travis":
             return
-        wp=WikiPush("wikipedia_org_test2","test")
-        wp.push("PictureTestPage")
+        wp=WikiPush("wikipedia_org_test2","test2")
+        wp.push(["PictureTestPage"],force=True)
         pass
 
 

@@ -17,11 +17,10 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 '''
-from wikibot.wikibot import WikiBot
-from pywikibot.page import Page
-from pywikibot.specialbots import UploadRobot
-import pywikibot
+from wikibot.wikiclient import WikiClient
+import io
 import os
+from pathlib import Path
 import sys
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -31,34 +30,51 @@ class WikiPush(object):
     Push pages from one MediaWiki to another
     '''
 
-
-    def __init__(self, fromWikiId, toWikId,verbose=True,debug=False):
+    def __init__(self, fromWikiId, toWikId,login=False,verbose=True,debug=False):
         '''
         Constructor
         '''
         self.verbose=verbose
         self.debug=debug
         self.fromWikiId=fromWikiId
-        self.fromWiki=WikiBot.ofWikiId(fromWikiId)
+        self.fromWiki=WikiClient.ofWikiId(fromWikiId)
         self.toWikiId=toWikId
-        self.toWiki=WikiBot.ofWikiId(toWikId)
+        self.toWiki=WikiClient.ofWikiId(toWikId)
+        if login:
+            self.fromWiki.login()
+        self.toWiki.login()
         
-    def push(self,*pageTitles):
+    def log(self,msg,end='\n'):
+        if self.verbose:
+                print (msg,end=end)
+        
+    def push(self,pageTitles,force=False):
         '''
         push the given page titles
         '''
-        if self.verbose:
-            print("copying %d pages from %s to %s" % (len(pageTitles),self.fromWikiId,self.toWikiId))
+        self.log("copying %d pages from %s to %s" % (len(pageTitles),self.fromWikiId,self.toWikiId))
         for pageTitle in pageTitles:
-            if self.verbose:
-                print ("copying %s ..." % pageTitle, end='')
+            self.log("copying %s ..." % pageTitle, end='')
             page=self.fromWiki.getPage(pageTitle)
-            newPage=Page(self.toWiki.site,pageTitle)
-            newPage.text=page.text
-            newPage.save("pushed by wikipush")
-            if self.verbose:
-                print ("✓")
-            self.pushImages(page.imagelinks())
+            if page.exists:
+                newPage=self.toWiki.getPage(pageTitle)
+                if not newPage.exists or force:
+                    newPage.edit(page.text(),"pushed by wikipush")
+                    self.log("✅")
+                    self.pushImages(page.images())
+                else:
+                    self.log("👎")
+            else:
+                self.log("❌")
+                
+    def getDownloadPath(self):
+        '''
+        get the download path
+        '''
+        downloadPath=str(Path.home() / "Downloads/mediawiki")
+        if not os.path.isdir(downloadPath):
+            os.makedirs(downloadPath)
+        return downloadPath
             
     def pushImages(self,imageList):
         '''
@@ -66,26 +82,28 @@ class WikiPush(object):
         
         Args:
             imageList(list): a list of images to be pushed
-        '''
-        
-        # see also https://gerrit.wikimedia.org/g/pywikibot/core/+/HEAD/scripts/imagetransfer.py
+        '''        
         for image in imageList:
-            if self.verbose:
-                print("copying image %s ..." % image, end='')
-                print()
-                targetTitle = 'File:' + image.title().split(':', 1)[1]
-                targetImage=Page(self.toWiki.site,targetTitle)
-                try:
-                    targetImage.get()
-                    imageExists=True
-                except pywikibot.NoPage:  
-                    imageExists=False
-                    pass
-                if not imageExists:
-                    # upload the image
-                    # see https://gerrit.wikimedia.org/g/pywikibot/core/+/HEAD/scripts/upload.py
-                    pass
-                                 
+            filename=image.name.replace("File:","")
+            downloadPath=self.getDownloadPath()
+            imagePath="%s/%s" % (downloadPath,filename)
+            self.log("copying image %s ..." % image.name, end='')
+            with open(imagePath,'wb') as imageFile:
+                image.download(imageFile)
+                
+            description=image.imageinfo['comment'] 
+            #imageFile=io.BytesIO(imageContent)
+            try:
+                with open(imagePath,'rb') as imageFile:
+                    response=self.toWiki.site.upload(imageFile,filename,description)
+                    if 'warnings' in response:
+                        self.log("❌:%s" % response['warnings'])  
+                    else:
+                        self.log("✅")
+                    if self.debug:
+                        print(image.imageinfo)
+            except Exception as ex:
+                self.log("❌:%s" % str(ex)) 
 
 __version__ = 0.1
 __date__ = '2020-10-31'
@@ -126,14 +144,17 @@ USAGE
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument("-d", "--debug", dest="debug",   action="count", help="set debug level [default: %(default)s]")
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
-
+        parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
+        parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to overwrite existing pages")
+     
         parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
         parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
         parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=True)
         # Process arguments
         args = parser.parse_args()
         
-        wikipush=WikiPush(args.source,args.target)
+        wikipush=WikiPush(args.source,args.target,login=args.login)
+        wikipush.push(args.pages,force=args.force)
         
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###

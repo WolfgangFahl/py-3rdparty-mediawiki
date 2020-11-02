@@ -35,7 +35,7 @@ class TestSMW(unittest.TestCase):
         concept=smw.getConcept(fixedAsk)
         if TestSMW.debug:
             print(concept)
-        self.assertEquals(concept,"Semantic_MediaWiki_Cons_2012")
+        self.assertEqual(concept,"Semantic_MediaWiki_Cons_2012")
         
     def testGetEvents(self):
         ''' text for issue #6 https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/6 '''    

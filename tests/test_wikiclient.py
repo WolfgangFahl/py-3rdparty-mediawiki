@@ -21,7 +21,13 @@ class TestWikiClient(unittest.TestCase):
         test clients
         '''
         for i,client in enumerate(WikiClient.getClients().values()):
-            print ("%2d %s" % (i,client))
+            print ("%2d %s" % (i,client),end="")
+            loggedIn=client.login()
+            print ('✅' if loggedIn else '❌',end='')
+            page=client.getPage("MainPage")
+            print ('✅' if page.exists else '❌',end='')
+            
+            
         pass
 
 
