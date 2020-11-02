@@ -37,6 +37,27 @@ class TestWikiUser(unittest.TestCase):
         print(testUser)
         pass
     
+    @staticmethod
+    def getSMW_WikiUser(wikiId="smw"):
+        '''
+        get semantic media wiki users for SemanticMediawiki.org and openresearch.org
+        '''
+        iniFile=WikiUser.iniFilePath(wikiId)
+        wikiUser=None
+        if not os.path.isfile(iniFile):
+            wikiDict=None
+            if wikiId=="smw":
+                wikiDict={"wikiId": wikiId,"url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.7"}
+            if wikiId=="or":
+                wikiDict={"wikiId": wikiId,"url":"https://www.openresearch.org","scriptPath":"/mediawiki/","version":"MediaWiki 1.31.1"}   
+            if wikiDict is None:
+                raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
+            else:
+                wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
+        else: 
+            wikiUser=WikiUser.ofWikiId(wikiId)
+        return wikiUser
+    
     def testCommandLine(self):
         '''
         test command line handling

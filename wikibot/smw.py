@@ -111,6 +111,7 @@ class PrintRequest(object):
     def __repr__(self):
         text="PrintRequest(label='%s' key='%s' redi='%s' typeid='%s' mode=%d format='%s')" % (self.label,self.key,self.redi,self.typeid,self.mode,self.format)
         return text
+    
 
 class SMW(object):
     '''
@@ -124,7 +125,6 @@ class SMW(object):
     :ivar site: the pywikibot site to use for requests
     :ivar prefix: the path prefix for this site e.g. /wiki/
     '''
-
     def __init__(self, site=None,prefix="/"):
         '''
         Constructor
@@ -133,31 +133,6 @@ class SMW(object):
         '''
         self.site=site
         self.prefix=prefix
-        
-    def submit(self, parameters):
-        """ submit the request with the given parameters
-        Args:
-            parameters(list): the parameters to use for the SMW API request
-        Returns:
-            dict: the submit result"""
-        request=Request(site=self.site,parameters=parameters)
-        return request.submit()    
-    
-    def info(self):
-        """ see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
-        parameters={"action": "smwinfo"}
-        return self.submit(parameters)
-    
-    def rawquery(self,ask):
-        """ send a query see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries#Parser_function_.23ask
-        Args:
-            ask(str): the SMW ASK query as it would be used in MediaWiki markup"""
-        # allow usage of original Wiki ask content - strip all non needed parts
-        fixedAsk=self.fixAsk(ask)
-        # set parameters for request
-        parameters={"action": "ask","query":fixedAsk}
-        result=self.submit(parameters)
-        return result
     
     def deserialize(self,rawresult):
         """ deserialize the given rawresult according to 
@@ -186,11 +161,6 @@ class SMW(object):
                     recordDict[label]=pr.deserialize(record)
                 resultDict[key]=recordDict
         return resultDict
-    
-    def query(self,ask):
-        rawresult=self.rawquery(ask)
-        result=self.deserialize(rawresult)
-        return result
     
     def fixAsk(self,ask):
         """ fix an ask String to be usable for the API
@@ -228,3 +198,89 @@ class SMW(object):
             return m.groups()[0]
         else:
             return None
+
+class SMWClient(SMW):
+    '''
+    Semantic MediaWiki access using mw client library
+    '''
+    
+    def __init__(self, site=None,prefix="/"):
+        super(SMWClient,self).__init__(site,prefix) 
+        pass
+    
+    def ask(self, query, title=None):
+        """
+        Ask a query against Semantic MediaWiki.
+
+        API doc: https://semantic-mediawiki.org/wiki/Ask_API
+
+        Returns:
+            Generator for retrieving all search results, with each answer as a dictionary.
+            If the query is invalid, an APIError is raised. A valid query with zero
+            results will not raise any error.
+
+        Examples:
+
+            >>> query = "[[Category:my cat]]|[[Has name::a name]]|?Has property"
+            >>> for answer in site.ask(query):
+            >>>     for title, data in answer.items()
+            >>>         print(title)
+            >>>         print(data)
+        """
+        kwargs = {}
+        if title is None:
+            kwargs['title'] = title
+
+        offset = 0
+        while offset is not None:
+            results = self.site.raw_api('ask', query=u'{query}|offset={offset}'.format(
+                query=query, offset=offset), http_method='GET', **kwargs)
+            self.site.handle_api_result(results)  # raises APIError on error
+            offset = results.get('query-continue-offset')
+            yield self.deserialize(results)
+    
+    def query(self,askQuery):
+        fixedAsk=self.fixAsk(askQuery)
+        for lod in self.ask(fixedAsk):
+            print(lod)
+    
+class SMWBot(SMW):
+    '''
+    Semantic MediaWiki access using pywikibot library
+    '''
+    def __init__(self, site=None,prefix="/"):
+        super(SMWBot,self).__init__(site,prefix) 
+        pass
+    
+    def submit(self, parameters):
+        """ submit the request with the given parameters
+        Args:
+            parameters(list): the parameters to use for the SMW API request
+        Returns:
+            dict: the submit result"""
+        request=Request(site=self.site,parameters=parameters)
+        return request.submit()    
+    
+    def info(self):
+        """ see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
+        parameters={"action": "smwinfo"}
+        return self.submit(parameters)
+    
+    def rawquery(self,ask):
+        """ send a query see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries#Parser_function_.23ask
+        Args:
+            ask(str): the SMW ASK query as it would be used in MediaWiki markup"""
+        # allow usage of original Wiki ask content - strip all non needed parts
+        fixedAsk=self.fixAsk(ask)
+        # set parameters for request
+        parameters={"action": "ask","query":fixedAsk}
+        result=self.submit(parameters)
+        return result
+    
+    def query(self,ask):
+        '''
+        send a query and deserialize it
+        '''
+        rawresult=self.rawquery(ask)
+        result=self.deserialize(rawresult)
+        return result

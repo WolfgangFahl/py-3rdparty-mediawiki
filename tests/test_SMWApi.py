@@ -4,13 +4,16 @@ Created on 2020-05-25
 @author: wf
 '''
 import unittest
-from wikibot.smw import SMW, PrintRequest
+from wikibot.smw import SMW,SMWBot, SMWClient, PrintRequest
+from wikibot.wikibot import WikiBot
+from wikibot.wikiclient import WikiClient
 from tests.test_wikibot import TestWikiBot
+from tests.test_WikiUser import TestWikiUser
 from datetime import datetime
 
 class TestSMW(unittest.TestCase):
     """ test access to SemanticMediaWiki API see https://www.semantic-mediawiki.org/wiki/Help:API:ask"""
-    debug=True
+
     # sample queries
     testask1="""{{#ask:  [[Concept:Semantic MediaWiki Cons 2012]]
         |?Has_Wikidata_item_ID = WikiDataId
@@ -18,6 +21,21 @@ class TestSMW(unittest.TestCase):
         |?Has planned start =    start
         |?Has_location  =        location
         |  format=table  }}"""
+        
+    def setUp(self):
+        '''
+        general setup
+        '''
+        self.debug=False
+        pass
+
+
+    def tearDown(self):
+        '''
+        general tear down
+        '''
+        pass
+
     
     def testFixAsk(self):
         """ test fixing an ask query to be made fit for API use"""
@@ -33,36 +51,46 @@ class TestSMW(unittest.TestCase):
         smw=SMW()
         fixedAsk=smw.fixAsk(TestSMW.testask1)
         concept=smw.getConcept(fixedAsk)
-        if TestSMW.debug:
+        if self.debug:
             print(concept)
         self.assertEqual(concept,"Semantic_MediaWiki_Cons_2012")
         
+    def getSMWs(self,wikiId):
+        ''' get the alternative SMW access instances for the given wiki id
+        '''
+        wikiuser=TestWikiUser.getSMW_WikiUser(wikiId)
+        wikibot=WikiBot.ofWikiUser(wikiuser)
+        wikiclient=WikiClient.ofWikiUser(wikiuser)
+        smwbot=SMWBot(wikibot.site)
+        smwclient=SMWClient(wikiclient.getSite())
+        return [smwbot,smwclient]
+         
     def testGetEvents(self):
         ''' text for issue #6 https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/6 '''    
-        wikibot=TestWikiBot.getSMW_Wiki('or')
-        smw=SMW(wikibot.site)
+        
         ask="""{{#ask: [[Acronym::+]]
-|mainlabel=Event
-| ?Acronym = acronym
-| ?Has location city = city
-| ?_CDAT=creation date
-| ?_MDAT=modification date
-| limit=200
-|format=table
-}}
-"""
-        result=smw.query(ask)
-        if TestSMW.debug:
-            print (len(result))
-            print (result)  
-        self.assertEqual(200,len(result))    
+    |mainlabel=Event
+    | ?Acronym = acronym
+    | ?Has location city = city
+    | ?_CDAT=creation date
+    | ?_MDAT=modification date
+    | limit=200
+    |format=table
+    }}
+    """
+        for smw in self.getSMWs("or"):
+            result=smw.query(ask)
+            if self.debug:
+                print (len(result))
+                print (result)  
+            self.assertEqual(200,len(result))    
             
     def testSMWInfo(self):
         """ test the SMW Info call"""
         wikibot=TestWikiBot.getSMW_Wiki()
         smw=SMW(wikibot.site)
         result=smw.info()
-        if (TestSMW.debug):
+        if (self.debug):
             print (result)
         self.assertTrue('info' in result)   
         info=result['info']
@@ -100,27 +128,26 @@ class TestSMW(unittest.TestCase):
     
         return datetime(year, month, day)
     
-    def getAskResult(self,ask):
+    def getAskResult(self,smw,ask):
         """ get the query result for the given ask query """
-        wikibot=TestWikiBot.getSMW_Wiki()
-        smw=SMW(wikibot.site,"/wiki/")  
         PrintRequest.debug=True
         result=smw.query(ask)
-        if TestSMW.debug:
+        if self.debug:
             print (result)    
         return result;
     
     def checkExpected(self,ask,expectedRecords):
         """ check that the given ask query returns the content of the expectedRecords""" 
-        result=self.getAskResult(ask)
-        self.assertEquals(len(expectedRecords),len(result))
-        resultlist=list(result.items())
-        for i in range(len(expectedRecords)):
-            expectedRecord=expectedRecords[i]
-            recordkey,record=resultlist[i];
-            for key in expectedRecord.keys():
-                self.assertEquals(expectedRecord[key],record[key]) 
-    
+        for smw in self.getSMWs('smw'):
+            result=self.getAskResult(smw,ask)
+            self.assertEquals(len(expectedRecords),len(result))
+            resultlist=list(result.items())
+            for i in range(len(expectedRecords)):
+                expectedRecord=expectedRecords[i]
+                recordkey,record=resultlist[i];
+                for key in expectedRecord.keys():
+                    self.assertEquals(expectedRecord[key],record[key]) 
+        
     def testSMWAsk(self):
         """ test getting the unserialized json result of an ask query"""
         expectedRecords=[{

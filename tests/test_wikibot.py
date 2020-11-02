@@ -4,9 +4,8 @@ Created on 24.03.2020
 @author: wf
 '''
 import unittest
-import os
 from wikibot.wikibot import WikiBot
-from wikibot.wikiuser import WikiUser
+from tests.test_WikiUser import TestWikiUser
 from wikibot.crypt import Crypt
 
 class TestWikiBot(unittest.TestCase):
@@ -54,30 +53,13 @@ class TestWikiBot(unittest.TestCase):
             print (salt)
         self.assertEqual(32,len(cypher))
         self.assertEqual(8,len(salt))
-        
-    @staticmethod
-    def getSMW_WikiUser(wikiId="smw"):
-        iniFile=WikiUser.iniFilePath(wikiId)
-        if not os.path.isfile(iniFile):
-            wikiDict=None
-            if wikiId=="smw":
-                wikiDict={"wikiId": wikiId,"url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.7"}
-            if wikiId=="or":
-                wikiDict={"wikiId": wikiId,"url":"https://www.openresearch.org","scriptPath":"/mediawiki/","version":"MediaWiki 1.31.1"}   
-            if wikiDict is None:
-                raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
-            else:
-                wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
-                return wikiUser
-        return None
     
     @staticmethod
     def getSMW_Wiki(wikiId="smw"):
-        wikiUser=TestWikiBot.getSMW_WikiUser(wikiId)
+        wikiUser=TestWikiUser.getSMW_WikiUser(wikiId)
+        wikibot=None
         if wikiUser is not None:
             wikibot=WikiBot.ofWikiUser(wikiUser)
-        else:
-            wikibot=WikiBot.ofWikiId(wikiId)
         return  wikibot   
         
     def testWikiBotNoLogin(self):
