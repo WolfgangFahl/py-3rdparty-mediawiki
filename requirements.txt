@@ -2,5 +2,8 @@
 # https://pypi.org/project/pywikibot/
 # https://www.mediawiki.org/wiki/Manual:Pywikibot
 pywikibot==5.1.0
+# Mwclient API
+# https://pypi.org/project/mwclient/
+mwclient
 #https://pypi.org/project/pycrypto/
 pycrypto

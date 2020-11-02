@@ -10,7 +10,6 @@ from wikibot.wikiuser import WikiUser
 from pywikibot import config2
 from pywikibot.data.api import LoginManager
 
-
 class WikiBot(object):
     '''
     WikiBot
@@ -95,7 +94,7 @@ class Family(family.Family):
         self.site=pywikibot.Site('en',self.family)  
         if self.wikiUser.user is not None:
             # needs patch as outlined in https://phabricator.wikimedia.org/T248471
-            #self.site.login(password=self.getPassword())
+            #self.site.login(password=self.wikiUser.getPassword())
             lm = LoginManager(password=self.wikiUser.getPassword(), site=self.site, user=self.wikiUser.user)
             lm.login()
         
