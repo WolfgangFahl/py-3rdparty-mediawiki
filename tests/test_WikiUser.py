@@ -6,12 +6,15 @@ Created on 01.11.2020
 import unittest
 import getpass
 from wikibot.wikiuser import WikiUser
-from wikibot.crypt import Crypt
 import wikibot
 import os
 import tempfile
 
 class TestWikiUser(unittest.TestCase):
+    '''
+    test for WikiUser handling e.g. credentials and parsing
+    user info from Java properties compatible ini file
+    '''
 
     def setUp(self):
         self.debug=False
@@ -51,7 +54,6 @@ class TestWikiUser(unittest.TestCase):
             rUser=WikiUser.ofDict(props, encrypted=True)
             self.assertEqual(password,rUser.getPassword())
             os.remove(path)
-
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

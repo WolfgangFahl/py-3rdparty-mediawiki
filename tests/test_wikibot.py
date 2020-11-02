@@ -18,6 +18,7 @@ class TestWikiBot(unittest.TestCase):
         '''
         general setup
         '''
+        self.debug=False
         pass
 
 
@@ -40,6 +41,19 @@ class TestWikiBot(unittest.TestCase):
         pw=c.decrypt(secret)
         self.assertEquals(expected,pw)
         
+    def testRandomCrypt(self):
+        '''
+        test creating a random crypt
+        '''
+        c=Crypt.getRandomCrypt()
+        cypher=c.cypher.decode()
+        salt=c.salt.decode()
+        if self.debug:
+            print (cypher)
+            print (salt)
+        self.assertEqual(43,len(cypher))
+        self.assertEqual(11,len(salt))
+        
     @staticmethod
     def getSMW_Wiki(wikiId="smw"):
         iniFile=WikiUser.iniFilePath(wikiId)
@@ -59,6 +73,9 @@ class TestWikiBot(unittest.TestCase):
         return  wikibot   
         
     def testWikiBotNoLogin(self):
+        '''
+        test a wikibot where no login is needed
+        '''
         wikibot=TestWikiBot.getSMW_Wiki()
         pageTitle="Help:Configuration"
         page=wikibot.getPage(pageTitle)

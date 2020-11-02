@@ -19,6 +19,7 @@ Created on 2020-10-29
 '''
 from wikibot.wikibot import WikiBot
 from pywikibot.page import Page
+from pywikibot.specialbots import UploadRobot
 import pywikibot
 import os
 import sys
@@ -81,6 +82,8 @@ class WikiPush(object):
                     imageExists=False
                     pass
                 if not imageExists:
+                    # upload the image
+                    # see https://gerrit.wikimedia.org/g/pywikibot/core/+/HEAD/scripts/upload.py
                     pass
                                  
 
