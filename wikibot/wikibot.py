@@ -84,7 +84,7 @@ class Family(family.Family):
        return '%s'
 '''         
             mw_version=self.wikiUser.version.lower().replace("mediawiki ","")
-            ispublic='False' if self.user is not None else 'True'
+            ispublic='False' if self.wikiUser.user is not None else 'True'
             code=template % (self.family,self.netloc,self.scriptPath,ispublic,mw_version,self.scheme)
             with open(famfile,"w") as py_file:
                 py_file.write(code)

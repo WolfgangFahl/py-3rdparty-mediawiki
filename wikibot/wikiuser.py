@@ -94,7 +94,6 @@ class WikiUser(object):
         iniFile.write(content)
         iniFile.close()
        
-        
     @staticmethod
     def readPropertyFile(filepath, sep='=', comment_char='#'):
         """
@@ -115,15 +114,17 @@ class WikiUser(object):
     @staticmethod
     def getWikiUsers():
         wikiUsers={}
-        with os.scandir(WikiUser.getIniPath()) as it:
-            for entry in it:
-                if entry.name.endswith(".ini") and entry.is_file():
-                    try:
-                        config=WikiUser.readPropertyFile(entry.path)
-                        wikiUser=WikiUser.ofDict(config)
-                        wikiUsers[wikiUser.wikiId]=wikiUser
-                    except Exception as ex:
-                        print ("error in %s: %s" % (entry.path,str(ex)))
+        iniPath=WikiUser.getIniPath()
+        if os.path.isdir(iniPath):
+            with os.scandir(iniPath) as it:
+                for entry in it:
+                    if entry.name.endswith(".ini") and entry.is_file():
+                        try:
+                            config=WikiUser.readPropertyFile(entry.path)
+                            wikiUser=WikiUser.ofDict(config)
+                            wikiUsers[wikiUser.wikiId]=wikiUser
+                        except Exception as ex:
+                            print ("error in %s: %s" % (entry.path,str(ex)))
         return wikiUsers
     
     @staticmethod

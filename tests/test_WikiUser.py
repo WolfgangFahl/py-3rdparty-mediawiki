@@ -6,16 +6,16 @@ Created on 01.11.2020
 import unittest
 import getpass
 from wikibot.wikiuser import WikiUser
+from wikibot.crypt import Crypt
 import wikibot
 import os
 import tempfile
 
 class TestWikiUser(unittest.TestCase):
 
-
     def setUp(self):
+        self.debug=False
         pass
-
 
     def tearDown(self):
         pass
@@ -39,12 +39,17 @@ class TestWikiUser(unittest.TestCase):
         test command line handling
         '''
         fd,path=tempfile.mkstemp(".ini")
+        password="anUnsecurePassword"
         try:
             if (fd):
-                args=["--url","http://wiki.doe.com","-u","john","-e","john@doe.com","-w","doe","-s","","-v","MediaWiki 1.35.0","-p","anUnsecurePassword","-f",path,'-y']
+                args=["--url","http://wiki.doe.com","-u","john","-e","john@doe.com","-w","doe","-s","","-v","MediaWiki 1.35.0","-p",password,"-f",path,'-y']
                 wikibot.wikiuser.main(args)
         finally:
-            print(open(path, 'r').read())
+            if self.debug:
+                print(open(path, 'r').read())
+            props=WikiUser.readPropertyFile(path)
+            rUser=WikiUser.ofDict(props, encrypted=True)
+            self.assertEqual(password,rUser.getPassword())
             os.remove(path)
 
 

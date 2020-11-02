@@ -33,7 +33,8 @@ class Crypt(object):
     @staticmethod
     def getRandomCrypt(cypherLen=32):
         cypher=secrets.token_urlsafe(cypherLen)
-        crypt=Crypt(cypher)
+        salt=secrets.token_urlsafe(8)
+        crypt=Crypt(cypher,salt=salt)
         return crypt;
     
     def getCrypt(self):

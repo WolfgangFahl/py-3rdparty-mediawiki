@@ -19,6 +19,7 @@ Created on 2020-10-29
 '''
 from wikibot.wikibot import WikiBot
 from pywikibot.page import Page
+import pywikibot
 import os
 import sys
 from argparse import ArgumentParser
@@ -65,10 +66,23 @@ class WikiPush(object):
         Args:
             imageList(list): a list of images to be pushed
         '''
+        
+        # see also https://gerrit.wikimedia.org/g/pywikibot/core/+/HEAD/scripts/imagetransfer.py
         for image in imageList:
             if self.verbose:
                 print("copying image %s ..." % image, end='')
                 print()
+                targetTitle = 'File:' + image.title().split(':', 1)[1]
+                targetImage=Page(self.toWiki.site,targetTitle)
+                try:
+                    targetImage.get()
+                    imageExists=True
+                except pywikibot.NoPage:  
+                    imageExists=False
+                    pass
+                if not imageExists:
+                    pass
+                                 
 
 __version__ = 0.1
 __date__ = '2020-10-31'
