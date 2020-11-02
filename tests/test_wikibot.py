@@ -56,7 +56,7 @@ class TestWikiBot(unittest.TestCase):
         self.assertEqual(8,len(salt))
         
     @staticmethod
-    def getSMW_Wiki(wikiId="smw"):
+    def getSMW_WikiUser(wikiId="smw"):
         iniFile=WikiUser.iniFilePath(wikiId)
         if not os.path.isfile(iniFile):
             wikiDict=None
@@ -68,7 +68,14 @@ class TestWikiBot(unittest.TestCase):
                 raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
             else:
                 wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
-                wikibot=WikiBot.ofWikiUser(wikiUser)
+                return wikiUser
+        return None
+    
+    @staticmethod
+    def getSMW_Wiki(wikiId="smw"):
+        wikiUser=TestWikiBot.getSMW_WikiUser(wikiId)
+        if wikiUser is not None:
+            wikibot=WikiBot.ofWikiUser(wikiUser)
         else:
             wikibot=WikiBot.ofWikiId(wikiId)
         return  wikibot   
@@ -87,7 +94,7 @@ class TestWikiBot(unittest.TestCase):
         '''
         test collecting all bots for which credentials have been set up
         '''
-        bots=WikiBot.getBots()
+        bots=WikiBot.getBots(1)
         for bot in bots.values():
             print (bot)
             if bot.site is not None:

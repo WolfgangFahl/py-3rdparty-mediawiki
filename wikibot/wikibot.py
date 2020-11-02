@@ -15,11 +15,13 @@ class WikiBot(object):
     WikiBot
     '''      
     @staticmethod
-    def getBots():
+    def getBots(limit=None):
         bots={}
         for wikiUser in WikiUser.getWikiUsers().values():
             wikibot=WikiBot(wikiUser)
             bots[wikiUser.wikiId]=wikibot
+            if limit is not None and len(bots)>=limit:
+                break
         return bots
     
     @staticmethod
