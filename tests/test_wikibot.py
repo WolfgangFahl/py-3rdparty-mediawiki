@@ -48,11 +48,12 @@ class TestWikiBot(unittest.TestCase):
         c=Crypt.getRandomCrypt()
         cypher=c.cypher.decode()
         salt=c.salt.decode()
+        self.debug=True
         if self.debug:
             print (cypher)
             print (salt)
-        self.assertEqual(43,len(cypher))
-        self.assertEqual(11,len(salt))
+        self.assertEqual(32,len(cypher))
+        self.assertEqual(8,len(salt))
         
     @staticmethod
     def getSMW_Wiki(wikiId="smw"):

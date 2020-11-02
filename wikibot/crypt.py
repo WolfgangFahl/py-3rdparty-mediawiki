@@ -7,6 +7,7 @@ from Crypto.Hash import MD5
 from Crypto.Cipher import DES
 import base64
 import secrets
+import string
 import os
 
 class Crypt(object):
@@ -31,9 +32,16 @@ class Crypt(object):
         pass
     
     @staticmethod
+    def getRandomString(rlen=32):
+        #https://docs.python.org/3/library/secrets.html
+        alphabet = string.ascii_letters + string.digits
+        rstring = ''.join(secrets.choice(alphabet) for i in range(rlen))
+        return rstring
+    
+    @staticmethod
     def getRandomCrypt(cypherLen=32):
-        cypher=secrets.token_urlsafe(cypherLen)
-        salt=secrets.token_urlsafe(8)
+        cypher=Crypt.getRandomString(cypherLen)
+        salt=Crypt.getRandomString(8)
         crypt=Crypt(cypher,salt=salt)
         return crypt;
     
