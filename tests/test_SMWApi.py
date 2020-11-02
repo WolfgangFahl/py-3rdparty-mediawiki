@@ -55,7 +55,7 @@ class TestSMW(unittest.TestCase):
         if TestSMW.debug:
             print (len(result))
             print (result)  
-        self.assertEquals(200,len(result))    
+        self.assertEqual(200,len(result))    
             
     def testSMWInfo(self):
         """ test the SMW Info call"""

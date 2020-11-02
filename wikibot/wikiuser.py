@@ -55,7 +55,7 @@ class WikiUser(object):
     @staticmethod
     def getIniPath():
         home = str(Path.home())
-        return "%s/.mediawiki-japi/" % home
+        return "%s/.mediawiki-japi" % home
     
     @staticmethod
     def iniFilePath(wikiId):
