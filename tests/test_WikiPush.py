@@ -26,8 +26,10 @@ class TestWikiPush(unittest.TestCase):
         # don't test this in Travis
         if getpass.getuser()=="travis":
             return
-        wp=WikiPush("wikipedia_org_test2","test2")
-        wp.push(["PictureTestPage"],force=True)
+        wp=WikiPush("wikipedia_org_test2","test")
+        for force in [False,True]:
+            for ignore in [False,True]:
+                wp.push(["PictureTestPage"],force=force,ignore=ignore)
         pass
 
 

@@ -48,7 +48,7 @@ class WikiPush(object):
         if self.verbose:
                 print (msg,end=end)
         
-    def push(self,pageTitles,force=False):
+    def push(self,pageTitles,force=False,ignore=False):
         '''
         push the given page titles
         '''
@@ -61,7 +61,7 @@ class WikiPush(object):
                 if not newPage.exists or force:
                     newPage.edit(page.text(),"pushed by wikipush")
                     self.log("✅")
-                    self.pushImages(page.images())
+                    self.pushImages(page.images(),ignore=ignore)
                 else:
                     self.log("👎")
             else:
@@ -76,12 +76,13 @@ class WikiPush(object):
             os.makedirs(downloadPath)
         return downloadPath
             
-    def pushImages(self,imageList):
+    def pushImages(self,imageList,ignore=False):
         '''
         push the images in the given image List
         
         Args:
             imageList(list): a list of images to be pushed
+            ignore(bool): True to upload despite any warnings.
         '''        
         for image in imageList:
             filename=image.name.replace("File:","")
@@ -95,9 +96,17 @@ class WikiPush(object):
             #imageFile=io.BytesIO(imageContent)
             try:
                 with open(imagePath,'rb') as imageFile:
-                    response=self.toWiki.site.upload(imageFile,filename,description)
+                    warnings=None
+                    response=self.toWiki.site.upload(imageFile,filename,description,ignore=ignore)
                     if 'warnings' in response:
-                        self.log("❌:%s" % response['warnings'])  
+                        warnings=response['warnings']
+                    if 'upload' in response and 'warnings' in response['upload']:
+                        warningsDict=response['upload']['warnings']
+                        warnings=[]
+                        for item in warningsDict.items():
+                            warnings.append(item)
+                    if warnings is not None:
+                        self.log("❌:%s" % warnings)  
                     else:
                         self.log("✅")
                     if self.debug:
@@ -146,7 +155,8 @@ USAGE
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
         parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
         parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to overwrite existing pages")
-     
+        parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
+      
         parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
         parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
         parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=True)
@@ -154,7 +164,7 @@ USAGE
         args = parser.parse_args()
         
         wikipush=WikiPush(args.source,args.target,login=args.login)
-        wikipush.push(args.pages,force=args.force)
+        wikipush.push(args.pages,force=args.force,ignore=args.ignore)
         
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###

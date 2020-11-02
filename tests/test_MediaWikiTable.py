@@ -13,6 +13,7 @@ class Test_MediaWikiTable(unittest.TestCase):
     '''
 
     def setUp(self):
+        self.debug=False
         pass
 
 
@@ -48,7 +49,9 @@ class Test_MediaWikiTable(unittest.TestCase):
             mwTable=MediaWikiTable(withNewLines=nlMode,colFormats=colFormats)
             mwTable.fromListOfDicts(listOfDicts)
             wikiMarkup=mwTable.asWikiMarkup()
-            print (wikiMarkup)
+            if self.debug:
+                print (wikiMarkup)
+            self.assertTrue('{|class="wikitable sortable"' in wikiMarkup)
         pass
 
 
