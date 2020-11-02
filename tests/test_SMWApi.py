@@ -67,23 +67,23 @@ class TestSMW(unittest.TestCase):
          
     def testGetEvents(self):
         ''' text for issue #6 https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/6 '''    
-        
+        limit=20
         ask="""{{#ask: [[Acronym::+]]
     |mainlabel=Event
     | ?Acronym = acronym
     | ?Has location city = city
     | ?_CDAT=creation date
     | ?_MDAT=modification date
-    | limit=200
+    | limit=%d
     |format=table
     }}
-    """
+    """ % limit
         for smw in self.getSMWs("or"):
             result=smw.query(ask)
             if self.debug:
                 print (len(result))
                 print (result)  
-            self.assertEqual(200,len(result))    
+            self.assertEqual(limit,len(result))    
             
     def testSMWInfo(self):
         """ test the SMW Info call"""

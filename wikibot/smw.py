@@ -119,6 +119,7 @@ class SMW(object):
     see
     * https://www.semantic-mediawiki.org/wiki/Help:API
     * https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
+    * https://www.semantic-mediawiki.org/wiki/Help:API:askargs
     
     adapted from Java SimpleGraph Module 
     https://github.com/BITPlan/com.bitplan.simplegraph/blob/master/simplegraph-smw/src/main/java/com/bitplan/simplegraph/smw/SmwSystem.java
