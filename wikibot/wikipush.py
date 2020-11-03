@@ -18,7 +18,7 @@ Created on 2020-10-29
 
 '''
 from wikibot.wikiclient import WikiClient
-import io
+from wikibot.smw import SMWClient
 import os
 from pathlib import Path
 import sys
@@ -47,7 +47,21 @@ class WikiPush(object):
     def log(self,msg,end='\n'):
         if self.verbose:
                 print (msg,end=end)
+     
+    def query(self,askQuery):
+        '''
+        query the from Wiki for pages matching the given askQuery
         
+        Args:
+            askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
+            
+        Returns:
+            list: a list of pageTitles matching the given askQuery
+        '''
+        smwClient=SMWClient(self.fromWiki.getSite())
+        pageRecords=smwClient.query(askQuery)  
+        return pageRecords.keys()
+    
     def push(self,pageTitles,force=False,ignore=False):
         '''
         push the given page titles
@@ -156,15 +170,22 @@ USAGE
         parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
         parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to overwrite existing pages")
         parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
+        
+        parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
       
         parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
         parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
-        parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=True)
+        parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
         # Process arguments
         args = parser.parse_args()
         
         wikipush=WikiPush(args.source,args.target,login=args.login)
-        wikipush.push(args.pages,force=args.force,ignore=args.ignore)
+        if args.pages:
+            pages=args.pages
+        elif args.query:
+            pages=wikipush.query(args.query)
+        if pages:
+            wikipush.push(pages,force=args.force,ignore=args.ignore)
         
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
