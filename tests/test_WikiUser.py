@@ -54,6 +54,8 @@ class TestWikiUser(unittest.TestCase):
                 raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
             else:
                 wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
+                if getpass.getuser()=="travis":
+                    wikiUser.save(self)
         else: 
             wikiUser=WikiUser.ofWikiId(wikiId)
         return wikiUser

@@ -20,10 +20,34 @@ tests.test\_SMWApi module
    :undoc-members:
    :show-inheritance:
 
+tests.test\_WikiPush module
+---------------------------
+
+.. automodule:: tests.test_WikiPush
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_WikiUser module
+---------------------------
+
+.. automodule:: tests.test_WikiUser
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.test\_wikibot module
 --------------------------
 
 .. automodule:: tests.test_wikibot
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+tests.test\_wikiclient module
+-----------------------------
+
+.. automodule:: tests.test_wikiclient
    :members:
    :undoc-members:
    :show-inheritance:

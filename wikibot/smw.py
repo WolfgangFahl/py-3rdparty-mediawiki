@@ -241,6 +241,9 @@ class SMWClient(SMW):
             yield self.deserialize(results)
     
     def query(self,askQuery):
+        '''
+        run query and return list of Dicts
+        '''
         fixedAsk=self.fixAsk(askQuery)
         for lod in self.ask(fixedAsk):
             print(lod)

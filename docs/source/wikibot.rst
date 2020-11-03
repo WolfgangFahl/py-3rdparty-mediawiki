@@ -36,6 +36,30 @@ wikibot.wikibot module
    :undoc-members:
    :show-inheritance:
 
+wikibot.wikiclient module
+-------------------------
+
+.. automodule:: wikibot.wikiclient
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+wikibot.wikipush module
+-----------------------
+
+.. automodule:: wikibot.wikipush
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+wikibot.wikiuser module
+-----------------------
+
+.. automodule:: wikibot.wikiuser
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
