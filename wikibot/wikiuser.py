@@ -64,10 +64,10 @@ class WikiUser(object):
         return iniFilePath
     
     @staticmethod
-    def ofWikiId(wikiId):
+    def ofWikiId(wikiId,lenient=False):
         path=WikiUser.iniFilePath(wikiId)
         config=WikiUser.readPropertyFile(path)
-        wikiUser=WikiUser.ofDict(config)
+        wikiUser=WikiUser.ofDict(config,lenient=lenient)
         return wikiUser
     
     def save(self,iniFilePath=None):

@@ -138,10 +138,12 @@ class TestSMW(unittest.TestCase):
             print (result)    
         return result;
     
-    def checkExpected(self,ask,expectedRecords):
+    def checkExpected(self,ask,expectedRecords,debug=False):
         """ check that the given ask query returns the content of the expectedRecords""" 
         for smw in self.getSMWs('smw'):
             result=self.getAskResult(smw,ask)
+            if debug:
+                print(result)
             self.assertEquals(len(expectedRecords),len(result))
             resultlist=list(result.items())
             for i in range(len(expectedRecords)):
@@ -214,6 +216,49 @@ class TestSMW(unittest.TestCase):
             'Population': 126635, 
             }]
         self.checkExpected(ask, expectedRecords)   
+        
+    def testIssue5(self):
+        '''
+        https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/5
+        Support more datatypes
+        '''
+        # https://www.semantic-mediawiki.org/wiki/Help:List_of_datatypes
+        properties=[
+            "Has annotation uri",
+            "Has boolean",
+            "Has code",
+            "Has date",
+            "Has SMW issue ID",
+            "Has email address",
+            "Has coordinates",
+            "Has keyword",
+            "Has number",
+            "Has mlt",
+            "Has example",
+            "Has area",
+            "Has Wikidata reference",
+            "Has conservation status",
+            "Telephone number",
+            "Has temperatureExample",
+            "SomeProperty",
+            "Has URL"            
+        ]
+        for prop in properties:
+            ask="""{{#ask:[[%s::+]]
+ |?%s
+ |format=json
+ |limit=1
+}}
+""" % (prop,prop)
+            for smw in self.getSMWs('smw'):
+                result=self.getAskResult(smw,ask)
+                debug=True
+                if debug:
+                    print("%s: %s" % (prop,result))
+                self.assertEqual(1,len(result))
+                record=list(result.values())[0]
+                #print(record.keys())
+                self.assertTrue(prop in record.keys())
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSMWApi']

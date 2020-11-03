@@ -57,7 +57,7 @@ class TestWikiUser(unittest.TestCase):
                 if getpass.getuser()=="travis":
                     wikiUser.save()
         else: 
-            wikiUser=WikiUser.ofWikiId(wikiId)
+            wikiUser=WikiUser.ofWikiId(wikiId,lenient=True)
         return wikiUser
     
     def testCommandLine(self):
