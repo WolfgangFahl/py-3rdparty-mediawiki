@@ -55,7 +55,7 @@ class TestWikiUser(unittest.TestCase):
             else:
                 wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
                 if getpass.getuser()=="travis":
-                    wikiUser.save(self)
+                    wikiUser.save()
         else: 
             wikiUser=WikiUser.ofWikiId(wikiId)
         return wikiUser
