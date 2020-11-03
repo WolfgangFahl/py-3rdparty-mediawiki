@@ -170,9 +170,8 @@ USAGE
         parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
         parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to overwrite existing pages")
         parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
-        
         parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
-      
+        
         parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
         parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
         parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)

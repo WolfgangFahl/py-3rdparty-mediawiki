@@ -27,8 +27,8 @@ class TestWikiPush(unittest.TestCase):
         if getpass.getuser()=="travis":
             return
         wp=WikiPush("smw","test")
-        pages=wp.query("[[Category:City]]")
-        self.assertTrue(len(pages)>5)
+        pages=wp.query("[[Category:City]]|limit=10")
+        self.assertTrue(len(pages)<=10)
         self.assertTrue("Demo:Tokyo" in pages)
 
     def testWikiPush(self):
