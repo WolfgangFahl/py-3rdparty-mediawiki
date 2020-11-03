@@ -209,7 +209,14 @@ class SMWClient(SMW):
         super(SMWClient,self).__init__(site,prefix) 
         pass
     
-    def ask(self, query, title=None):
+    def info(self):
+        """ see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
+        results = self.site.raw_api('smwinfo', http_method='GET')
+        self.site.handle_api_result(results)  # raises APIError on error
+        
+        return results
+    
+    def ask(self, query, title=None, limit=None):
         """
         Ask a query against Semantic MediaWiki.
 
@@ -238,15 +245,25 @@ class SMWClient(SMW):
                 query=query, offset=offset), http_method='GET', **kwargs)
             self.site.handle_api_result(results)  # raises APIError on error
             offset = results.get('query-continue-offset')
-            yield self.deserialize(results)
+            # workaround limit
+            if limit is not None and offset is not None and offset>=limit:
+                offset=None
+            yield results
     
-    def query(self,askQuery):
+    def rawquery(self,askQuery,title=None,limit=None):
+        fixedAsk=self.fixAsk(askQuery)
+        result={}
+        for singleResult in self.ask(fixedAsk, title, limit):
+            result.update(singleResult)
+        return result
+        
+    def query(self,askQuery,title=None,limit=None):
         '''
         run query and return list of Dicts
         '''
-        fixedAsk=self.fixAsk(askQuery)
-        for lod in self.ask(fixedAsk):
-            print(lod)
+        rawresult=self.rawquery(askQuery, title, limit)
+        lod=self.deserialize(rawresult)
+        return lod
     
 class SMWBot(SMW):
     '''
@@ -270,7 +287,7 @@ class SMWBot(SMW):
         parameters={"action": "smwinfo"}
         return self.submit(parameters)
     
-    def rawquery(self,ask):
+    def rawquery(self,ask,limit=None):
         """ send a query see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries#Parser_function_.23ask
         Args:
             ask(str): the SMW ASK query as it would be used in MediaWiki markup"""
@@ -281,10 +298,10 @@ class SMWBot(SMW):
         result=self.submit(parameters)
         return result
     
-    def query(self,ask):
+    def query(self,ask,limit=None):
         '''
         send a query and deserialize it
         '''
-        rawresult=self.rawquery(ask)
+        rawresult=self.rawquery(ask,limit=limit)
         result=self.deserialize(rawresult)
         return result

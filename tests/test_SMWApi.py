@@ -55,7 +55,7 @@ class TestSMW(unittest.TestCase):
             print(concept)
         self.assertEqual(concept,"Semantic_MediaWiki_Cons_2012")
         
-    def getSMWs(self,wikiId):
+    def getSMWs(self,wikiId='smw'):
         ''' get the alternative SMW access instances for the given wiki id
         '''
         wikiuser=TestWikiUser.getSMW_WikiUser(wikiId)
@@ -79,37 +79,39 @@ class TestSMW(unittest.TestCase):
     }}
     """ % limit
         for smw in self.getSMWs("or"):
-            result=smw.query(ask)
+            result=smw.query(ask,limit=limit)
             if self.debug:
                 print (len(result))
                 print (result)  
             self.assertEqual(limit,len(result))    
+            fields=['Event','acronym','city','creation_date','modification_date']
+            for record in result.values():
+                for field in fields:
+                    self.assertTrue(field in record)
             
     def testSMWInfo(self):
         """ test the SMW Info call"""
-        wikibot=TestWikiBot.getSMW_Wiki()
-        smw=SMW(wikibot.site)
-        result=smw.info()
-        if (self.debug):
-            print (result)
-        self.assertTrue('info' in result)   
-        info=result['info']
-        expectedlist=['propcount','usedpropcount','declaredpropcount']
-        for expected in expectedlist:
-            self.assertTrue(expected in info)
-            
+        for smw in self.getSMWs():
+            result=smw.info()
+            if (self.debug):
+                print (result)
+            self.assertTrue('info' in result)   
+            info=result['info']
+            expectedlist=['propcount','usedpropcount','declaredpropcount']
+            for expected in expectedlist:
+                self.assertTrue(expected in info)
+                
     def testSMWAskRaw(self):
         """ test getting the raw result of an ask query"""
-        wikibot=TestWikiBot.getSMW_Wiki()
-        smw=SMW(wikibot.site)  
-        result=smw.rawquery(TestSMW.testask1)
-        if TestSMW.debug:
-            print (result)
-        self.assertTrue('query' in result)
-        query=result['query']
-        self.assertTrue('printrequests' in query)
-        self.assertTrue('results' in query)
-    
+        for smw in self.getSMWs():
+            result=smw.rawquery(TestSMW.testask1)
+            if TestSMW.debug:
+                print (result)
+            self.assertTrue('query' in result)
+            query=result['query']
+            self.assertTrue('printrequests' in query)
+            self.assertTrue('results' in query)
+        
     # Helpers for parsing the result of isoformat()
     # https://github.com/python/cpython/blob/master/Lib/datetime.py
     def dateFromIso(self,dtstr):
@@ -128,10 +130,10 @@ class TestSMW(unittest.TestCase):
     
         return datetime(year, month, day)
     
-    def getAskResult(self,smw,ask):
+    def getAskResult(self,smw,ask,limit=20):
         """ get the query result for the given ask query """
-        PrintRequest.debug=True
-        result=smw.query(ask)
+        PrintRequest.debug=self.debug
+        result=smw.query(ask,limit=limit)
         if self.debug:
             print (result)    
         return result;
@@ -180,8 +182,9 @@ class TestSMW(unittest.TestCase):
 |format=table
 }}
         """
-        result=self.getAskResult(ask)
-        self.assertTrue(len(result)>7)
+        for smw in self.getSMWs('or'):
+            result=self.getAskResult(smw,ask)
+            self.assertTrue(len(result)>7)
                 
     def testSMWAskWithMainLabel(self):
         ask="""{{#ask:
