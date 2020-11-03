@@ -28,6 +28,28 @@ wikibot module
    :members:
    :show-inheritance:
 
+wikiclient module
+--------------
+
+.. autoclass:: wikibot.wikiclient.WikiClient
+   :members:
+   :show-inheritance:
+
+wikipush module
+--------------
+
+.. autoclass:: wikibot.wikipush.WikiPush
+   :members:
+   :show-inheritance:
+
+wikiuser module
+--------------
+
+.. autoclass:: wikibot.wikiuser.WikiUser
+   :members:
+   :show-inheritance:
+
+
 smw module
 --------------
 
@@ -35,9 +57,24 @@ smw module
     :members:
     :show-inheritance:
 
+.. autoclass:: wikibot.smw.SMWClient
+    :members:
+    :show-inheritance:
+
+.. autoclass:: wikibot.smw.SMWBot
+    :members:
+    :show-inheritance:
+
 .. autoclass:: wikibot.smw.PrintRequest
     :members:
     :show-inheritance:
+
+mwTable module
+--------------
+
+.. autoclass:: wikibot.mwTable.MediaWikiTable
+  :members:
+  :show-inheritance:
 
 crypt module
 --------------
@@ -45,21 +82,6 @@ crypt module
 .. autoclass:: wikibot.crypt.Crypt
   :members:
   :show-inheritance:
-
-Unit Tests
-==========
-
-test_wikibot module
---------------------
-
-.. automodule:: tests.test_wikibot
-   :members:
-   :show-inheritance:
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
 
 Indices and tables
 ==================
