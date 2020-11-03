@@ -1,0 +1,19 @@
+#!/bin/bash
+# WF 2020-10-31
+# wrapper for wikipush python
+script=$(readlink -nf $BASH_SOURCE)
+scriptname=$(basename $script)
+scriptdir=$(dirname $script)
+base=$scriptdir/..
+export PYTHONPATH="${PYTHONPATH}:$base"
+case $scriptname in
+   "wikipush")
+	python -m wikibot.wikipush "$@"
+	;;
+   "wikiuser")
+	python -m wikibot.wikiuser "$@"
+	;;
+   *)
+	echo "undefined script behavior:  $scriptname"
+	;;
+esac
