@@ -9,6 +9,7 @@ import base64
 import secrets
 import string
 import os
+import warnings
 
 class Crypt(object):
     '''
@@ -23,6 +24,10 @@ class Crypt(object):
     def __init__(self,cypher,iterations=20,salt=None):
         ''' construct me with the given cypher iterations and salt 
         '''
+        # avoid annoying
+        #  /opt/local/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages/Crypto/Cipher/blockalgo.py:141: DeprecationWarning: PY_SSIZE_T_CLEAN will be required for '#' formats
+        warnings.filterwarnings("ignore", category=DeprecationWarning) 
+ 
         self.cypher=cypher.encode('utf-8')
         self.iterations=iterations
         if salt is None:

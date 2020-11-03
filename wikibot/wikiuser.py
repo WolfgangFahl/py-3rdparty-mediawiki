@@ -15,7 +15,6 @@ from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from pathlib import Path
 import getpass
-import warnings
 
 class WikiUser(object):
     '''
@@ -28,9 +27,6 @@ class WikiUser(object):
             self.__dict__[field]=None
     
     def getPassword(self):
-        # avoid annoying
-        #  /opt/local/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/site-packages/Crypto/Cipher/blockalgo.py:141: DeprecationWarning: PY_SSIZE_T_CLEAN will be required for '#' formats
-        warnings.filterwarnings("ignore", category=DeprecationWarning) 
         c=Crypt(self.cypher,20,self.salt)
         return c.decrypt(self.secret)
     
@@ -162,7 +158,9 @@ __updated__ = '2020-10-31'
 DEBUG=False    
 
 def main(argv=None): # IGNORE:C0111
-    '''main program.'''
+    '''
+    WikiUser credential handling
+    '''
 
     if argv is None:
         argv = sys.argv[1:]
@@ -171,7 +169,7 @@ def main(argv=None): # IGNORE:C0111
     program_version = "v%s" % __version__
     program_build_date = str(__updated__)
     program_version_message = '%%(prog)s %s (%s)' % (program_version, program_build_date)
-    program_shortdesc = __import__('__main__').__doc__.split("\n")[1]
+    program_shortdesc = "WikiUser credential handling"
     user_name="Wolfgang Fahl"
     
     program_license = '''%s
