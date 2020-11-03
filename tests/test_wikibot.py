@@ -76,7 +76,7 @@ class TestWikiBot(unittest.TestCase):
         '''
         test collecting all bots for which credentials have been set up
         '''
-        bots=WikiBot.getBots(name="url",valueExpr=".*\.org")
+        bots=WikiBot.getBots(name="url",valueExpr="www.*\.org")
         for bot in bots.values():
             print (bot)
             if bot.site is not None:
