@@ -76,7 +76,7 @@ class TestWikiBot(unittest.TestCase):
         '''
         test collecting all bots for which credentials have been set up
         '''
-        bots=WikiBot.getBots(1)
+        bots=WikiBot.getBots(name="url",valueExpr=".*\.org")
         for bot in bots.values():
             print (bot)
             if bot.site is not None:
@@ -85,7 +85,6 @@ class TestWikiBot(unittest.TestCase):
                 #bot2=WikiBot.ofWikiId(bot.wikiId)
                 #self.assertEquals(bot2.url,bot.url)
         pass
-
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

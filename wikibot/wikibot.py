@@ -5,6 +5,7 @@ Created on 2020-03-24
 '''
 from urllib.parse import urlparse
 import pywikibot
+import re
 from os.path import isfile 
 from wikibot.wikiuser import WikiUser
 from pywikibot import config2
@@ -15,13 +16,20 @@ class WikiBot(object):
     WikiBot
     '''      
     @staticmethod
-    def getBots(limit=None):
+    def getBots(limit=None,name=None,valueExpr=None):
         bots={}
-        for wikiUser in WikiUser.getWikiUsers().values():
-            wikibot=WikiBot(wikiUser)
-            bots[wikiUser.wikiId]=wikibot
-            if limit is not None and len(bots)>=limit:
-                break
+        wikiUsers=WikiUser.getWikiUsers().values()
+        for wikiUser in wikiUsers:
+            selected=True
+            if name is not None:
+                value=wikiUser.__dict__[name]
+                found=re.search(valueExpr,value)
+                selected=found is not None
+            if selected:
+                wikibot=WikiBot(wikiUser)
+                bots[wikiUser.wikiId]=wikibot
+                if limit is not None and len(bots)>=limit:
+                    break
         return bots
     
     @staticmethod
