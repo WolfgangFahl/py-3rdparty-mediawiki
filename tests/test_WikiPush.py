@@ -19,6 +19,42 @@ class TestWikiPush(unittest.TestCase):
     def tearDown(self):
         pass
     
+    def testIssue12(self):
+        '''
+        https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/12
+        add -qf / queryField option to allow to select other property than mainlabel
+        '''
+        # don't test this in Travis
+        if getpass.getuser()=="travis":
+            return
+        wikipush=WikiPush("smw","test")
+        ask="""{{#ask:[[Has conference::+]]
+ |mainlabel=Talk
+ |?Has description=Description
+ |?Has conference=Event
+ |sort=Has conference
+ |order=descending
+ |format=table
+ |limit=200
+}}"""
+        pages=wikipush.query(ask,queryField="Event")
+        if self.debug:
+            print (pages)
+            print (len(pages))
+        self.assertTrue(len(pages)>15)
+        self.assertTrue(len(pages)<100)
+    
+    def testTransferPagesFromMaster(self):
+        '''
+        test transferpages
+        '''
+        # only activate when needed
+        #return 
+        ask="{{#ask: [[TransferPage page::+]][[TransferPage wiki::Master]]| mainlabel=-| ?TransferPage page = page| format=table|limit=300}}"
+        wikipush=WikiPush("master","test")
+        pages=wikipush.query(ask,queryField="page")
+        print (pages)
+    
     def testQuery(self):
         '''
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/10

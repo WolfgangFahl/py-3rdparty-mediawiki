@@ -251,10 +251,25 @@ class SMWClient(SMW):
             yield results
     
     def rawquery(self,askQuery,title=None,limit=None):
+        '''
+        run the given askQuery and return the raw result
+        Args:
+            askQuery(string): the SMW inline query to be send via api
+            title(string): the title (if any)
+            limit(int): the maximum number of records to be retrieved (if any)
+            
+        Returns:
+            dict: the raw query result as returned by the ask API
+        '''
         fixedAsk=self.fixAsk(askQuery)
-        result={}
+        result=None
         for singleResult in self.ask(fixedAsk, title, limit):
-            result.update(singleResult)
+            if result is None:
+                result=singleResult
+            else:
+                results=result['query']['results']
+                singleResults=singleResult['query']['results']
+                results.update(singleResults)
         return result
         
     def query(self,askQuery,title=None,limit=None):

@@ -48,7 +48,7 @@ class WikiPush(object):
         if self.verbose:
                 print (msg,end=end)
      
-    def query(self,askQuery):
+    def query(self,askQuery,queryField=None):
         '''
         query the from Wiki for pages matching the given askQuery
         
@@ -60,26 +60,43 @@ class WikiPush(object):
         '''
         smwClient=SMWClient(self.fromWiki.getSite())
         pageRecords=smwClient.query(askQuery)  
-        return pageRecords.keys()
+        if queryField is None:
+            return pageRecords.keys()
+        # use a Dict to remove duplicates
+        pagesDict={}
+        for pageRecord in pageRecords.values():
+            pagesDict[pageRecord[queryField]]=True
+        return pagesDict.keys()
     
-    def push(self,pageTitles,force=False,ignore=False):
+    def push(self,pageTitles,force=False,ignore=False,withImages=False):
         '''
         push the given page titles
+        
+        Args:
+            pageTitles(list): a list of page titles to be transfered from the formWiki to the toWiki
+            force(bool): True if pages should be overwritten if they exist
+            ignore(bool): True if warning for images should be ignored (e.g if they exist)
+            withImages(bool): True if the image on a page should also be copied
         '''
-        self.log("copying %d pages from %s to %s" % (len(pageTitles),self.fromWikiId,self.toWikiId))
-        for pageTitle in pageTitles:
-            self.log("copying %s ..." % pageTitle, end='')
-            page=self.fromWiki.getPage(pageTitle)
-            if page.exists:
-                newPage=self.toWiki.getPage(pageTitle)
-                if not newPage.exists or force:
-                    newPage.edit(page.text(),"pushed by wikipush")
-                    self.log("✅")
-                    self.pushImages(page.images(),ignore=ignore)
+        total=len(pageTitles)
+        self.log("copying %d pages from %s to %s" % (total,self.fromWikiId,self.toWikiId))
+        for i,pageTitle in enumerate(pageTitles):
+            try:
+                self.log("%d/%d (%4.0f%%): copying %s ..." % (i+1,total,(i+1)/total*100,pageTitle), end='')
+                page=self.fromWiki.getPage(pageTitle)
+                if page.exists:
+                    newPage=self.toWiki.getPage(pageTitle)
+                    if not newPage.exists or force:
+                        newPage.edit(page.text(),"pushed by wikipush")
+                        self.log("✅")
+                        if withImages:
+                            self.pushImages(page.images(),ignore=ignore)
+                    else:
+                        self.log("👎")
                 else:
-                    self.log("👎")
-            else:
-                self.log("❌")
+                    self.log("❌")
+            except Exception as ex:
+                self.log("❌:%s" % str(ex) )
                 
     def getDownloadPath(self):
         '''
@@ -99,16 +116,16 @@ class WikiPush(object):
             ignore(bool): True to upload despite any warnings.
         '''        
         for image in imageList:
-            filename=image.name.replace("File:","")
-            downloadPath=self.getDownloadPath()
-            imagePath="%s/%s" % (downloadPath,filename)
-            self.log("copying image %s ..." % image.name, end='')
-            with open(imagePath,'wb') as imageFile:
-                image.download(imageFile)
-                
-            description=image.imageinfo['comment'] 
-            #imageFile=io.BytesIO(imageContent)
             try:
+                filename=image.name.replace("File:","")
+                downloadPath=self.getDownloadPath()
+                imagePath="%s/%s" % (downloadPath,filename)
+                self.log("copying image %s ..." % image.name, end='')
+                with open(imagePath,'wb') as imageFile:
+                    image.download(imageFile)
+                    
+                description=image.imageinfo['comment'] 
+                #imageFile=io.BytesIO(imageContent)
                 with open(imagePath,'rb') as imageFile:
                     warnings=None
                     response=self.toWiki.site.upload(imageFile,filename,description,ignore=ignore)
@@ -170,7 +187,9 @@ USAGE
         parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
         parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to overwrite existing pages")
         parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
+        parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
         parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
+        parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
         
         parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
         parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
@@ -182,9 +201,9 @@ USAGE
         if args.pages:
             pages=args.pages
         elif args.query:
-            pages=wikipush.query(args.query)
+            pages=wikipush.query(args.query,args.queryField)
         if pages:
-            wikipush.push(pages,force=args.force,ignore=args.ignore)
+            wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
         
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
