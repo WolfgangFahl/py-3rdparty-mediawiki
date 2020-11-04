@@ -20,6 +20,19 @@ class TestWikiPush(unittest.TestCase):
     def tearDown(self):
         pass
     
+    def testIssue14(self):
+        '''
+        https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/14
+        Pushing pages in File: namespace should be working
+        '''
+        return # don't test this nightly
+        # don't test this in Travis
+        if getpass.getuser()=="travis":
+            return
+        wikipush=WikiPush("master","test")
+        wikipush.push(["File:index.png"], force=True, ignore=True, withImages=True)
+        
+         
     def testIssue12(self):
         '''
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/12

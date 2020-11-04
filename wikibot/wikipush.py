@@ -18,6 +18,7 @@ Created on 2020-10-29
 
 '''
 from wikibot.wikiclient import WikiClient
+from mwclient.image import Image
 from wikibot.smw import SMWClient
 import os
 from pathlib import Path
@@ -85,14 +86,18 @@ class WikiPush(object):
                 self.log("%d/%d (%4.0f%%): copying %s ..." % (i+1,total,(i+1)/total*100,pageTitle), end='')
                 page=self.fromWiki.getPage(pageTitle)
                 if page.exists:
-                    newPage=self.toWiki.getPage(pageTitle)
-                    if not newPage.exists or force:
-                        newPage.edit(page.text(),"pushed by wikipush")
-                        self.log("✅")
-                        if withImages:
-                            self.pushImages(page.images(),ignore=ignore)
+                    # is this an image?
+                    if isinstance(page,Image):
+                        self.pushImages([page], ignore)
                     else:
-                        self.log("👎")
+                        newPage=self.toWiki.getPage(pageTitle)
+                        if not newPage.exists or force:
+                            newPage.edit(page.text(),"pushed by wikipush")
+                            self.log("✅")
+                            if withImages:
+                                self.pushImages(page.images(),ignore=ignore)
+                        else:
+                            self.log("👎")
                 else:
                     self.log("❌")
             except Exception as ex:

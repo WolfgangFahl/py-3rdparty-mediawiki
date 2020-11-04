@@ -10,13 +10,14 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='py-3rdparty-mediawiki',
-    version='0.1.8',
+    version='0.1.9',
 
     packages=['wikibot',],
     
     install_requires=[
           'pywikibot',
           'pycrypto',
+	  'mwclient',
     ],
     author='Wolfgang Fahl',
     maintainer='Wolfgang Fahl',
