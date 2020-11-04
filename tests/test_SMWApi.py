@@ -132,7 +132,7 @@ class TestSMW(unittest.TestCase):
     
     def getAskResult(self,smw,ask,limit=20):
         """ get the query result for the given ask query """
-        PrintRequest.debug=self.debug
+        #PrintRequest.debug=self.debug
         result=smw.query(ask,limit=limit)
         if self.debug:
             print (result)    
@@ -243,6 +243,7 @@ class TestSMW(unittest.TestCase):
             "SomeProperty",
             "Has URL"            
         ]
+        #PrintRequest.debug=True
         for prop in properties:
             ask="""{{#ask:[[%s::+]]
  |?%s
@@ -255,7 +256,7 @@ class TestSMW(unittest.TestCase):
                 debug=True
                 if debug:
                     print("%s: %s" % (prop,result))
-                self.assertEqual(1,len(result))
+                self.assertTrue(len(result)>=1)
                 record=list(result.values())[0]
                 #print(record.keys())
                 self.assertTrue(prop in record.keys())

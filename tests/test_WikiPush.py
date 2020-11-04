@@ -13,6 +13,7 @@ class TestWikiPush(unittest.TestCase):
     '''
 
     def setUp(self):
+        self.debug=False
         pass
 
 
@@ -64,9 +65,11 @@ class TestWikiPush(unittest.TestCase):
         if getpass.getuser()=="travis":
             return
         wp=WikiPush("smw","test")
-        pages=wp.query("[[Category:City]]|limit=10")
-        self.assertTrue(len(pages)<=10)
-        self.assertTrue("Demo:Tokyo" in pages)
+        pages=wp.query("[[Capital of::+]]")
+        if self.debug:
+            print (pages)
+        self.assertTrue(len(pages)>=5)
+        self.assertTrue("Demo:Berlin" in pages)
 
     def testWikiPush(self):
         '''
@@ -80,7 +83,6 @@ class TestWikiPush(unittest.TestCase):
             for ignore in [False,True]:
                 wp.push(["PictureTestPage"],force=force,ignore=ignore)
         pass
-
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

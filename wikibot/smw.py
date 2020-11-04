@@ -29,7 +29,8 @@ class PrintRequest(object):
             record(dict): the dict derived from the printrequest json serialization  
         '''
         self.smw=smw
-        if PrintRequest.debug:
+        self.debug=PrintRequest.debug
+        if self.debug:
             print(record)
         self.label=record['label']
         self.key=record['key']
@@ -65,10 +66,20 @@ class PrintRequest(object):
         elif self.typeid=="_num":
             value=int(value)            
         elif self.typeid=="_dat":
-            ts=int(value['timestamp'])
-            value=datetime.utcfromtimestamp(ts)
-            # print (date.strftime('%Y-%m-%d %H:%M:%S'))
-            pass
+            if 'timestamp' in value:
+                ts=int(value['timestamp'])
+                try:
+                    value=datetime.utcfromtimestamp(ts)
+                    #  print (date.strftime('%Y-%m-%d %H:%M:%S'))
+                except ValueError as ve:
+                    if self.debug:
+                        print("Warning timestamp %d is invalid: %s" % (ts,str(ve)))
+                    pass
+            else:
+                # ignore faulty values
+                if self.debug:
+                    print("Warning: timestamp missing for value")
+                pass
         elif self.typeid=="_eid":
             pass
         else:   
