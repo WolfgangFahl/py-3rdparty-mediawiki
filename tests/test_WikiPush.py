@@ -48,12 +48,13 @@ class TestWikiPush(unittest.TestCase):
         '''
         test transferpages
         '''
-        # only activate when needed
-        #return 
+        if getpass.getuser()=="travis":
+            return
         ask="{{#ask: [[TransferPage page::+]][[TransferPage wiki::Master]]| mainlabel=-| ?TransferPage page = page| format=table|limit=300}}"
         wikipush=WikiPush("master","test")
         pages=wikipush.query(ask,queryField="page")
-        print (pages)
+        if self.debug:
+            print (pages)
     
     def testQuery(self):
         '''
