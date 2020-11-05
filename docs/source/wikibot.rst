@@ -28,6 +28,14 @@ wikibot.smw module
    :undoc-members:
    :show-inheritance:
 
+wikibot.wiki module
+-------------------
+
+.. automodule:: wikibot.wiki
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wikibot.wikibot module
 ----------------------
 
