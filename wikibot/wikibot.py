@@ -10,8 +10,9 @@ from os.path import isfile
 from wikibot.wikiuser import WikiUser
 from pywikibot import config2
 from pywikibot.data.api import LoginManager
+from wikibot.wiki import Wiki
 
-class WikiBot(object):
+class WikiBot(Wiki):
     '''
     WikiBot
     '''      
@@ -43,14 +44,14 @@ class WikiBot(object):
         wikibot=WikiBot(wikiUser)
         return wikibot
         
-    def __init__(self,wikiUser):
+    def __init__(self,wikiUser,debug=False):
         '''
         Constructor
         
         Args:
             wikiUser(WikiUser): the wiki user to initialize me for
         '''
-        self.wikiUser=wikiUser
+        super(WikiBot,self).__init__(wikiUser,debug) 
         self.family=wikiUser.wikiId.replace("-","").replace("_","")
         self.url=wikiUser.url.replace("\\:",":")
         if not self.url:

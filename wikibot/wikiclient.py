@@ -6,8 +6,9 @@ Created on 2020-11-02
 from wikibot.wikiuser import WikiUser
 from mwclient import Site
 from urllib.parse import urlparse
+from wikibot.wiki import Wiki
 
-class WikiClient(object):
+class WikiClient(Wiki):
     '''
     access MediaWiki via mwclient library
     '''
@@ -16,9 +17,10 @@ class WikiClient(object):
         '''
         Constructor
         '''
+        super(WikiClient,self).__init__(wikiUser,debug) 
         self.wikiUser=wikiUser
         self.site=None
-        self.debug=debug
+      
         
     def getSite(self):
         '''
@@ -49,6 +51,17 @@ class WikiClient(object):
     def getPage(self,pageTitle):
         page=self.getSite().pages[pageTitle]
         return page
+    
+    def savePage(self,pageTitle,pageContent,pageSummary):
+        '''
+        save the page
+        Args:
+            pageTitle(str): the title of the page
+            pageContent(str): the wikimarkup content
+            pageSummary(str): 
+        '''
+        newPage=self.getPage(pageTitle)
+        newPage.edit(pageContent,pageSummary)
     
     def __str__(self):
         wu=self.wikiUser
