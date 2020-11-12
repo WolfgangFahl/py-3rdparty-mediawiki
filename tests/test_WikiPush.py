@@ -34,8 +34,7 @@ class TestWikiPush(unittest.TestCase):
             newPage=wikipush.toWiki.getPage(pageTitle)            
             newPage.edit("content for %s" % pageTitle,"created by testIssue16")
         wikipush.nuke(pageTitles, force=False)
-        #wikipush.nuke(pageTitles, force=True)
-        
+        wikipush.nuke(pageTitles, force=True)
     
     def testIssue14(self):
         '''
