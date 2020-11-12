@@ -50,17 +50,19 @@ class WikiPush(object):
         if self.verbose:
                 print (msg,end=end)
      
-    def query(self,wiki,askQuery,queryField=None):
+    def query(self,askQuery,wiki=None,queryField=None):
         '''
         query the given wiki for pages matching the given askQuery
         
         Args:
-            wiki(wikibot): the wiki to query
             askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
+            wiki(wikibot): the wiki to query - use fromWiki if not specified
             queryField(string): the field to select the pageTitle from
         Returns:
             list: a list of pageTitles matching the given askQuery
         '''
+        if wiki is None:
+            wiki=self.fromWiki
         smwClient=SMWClient(wiki.getSite())
         pageRecords=smwClient.query(askQuery)  
         if queryField is None:
@@ -246,7 +248,7 @@ USAGE
         if args.pages:
             pages=args.pages
         elif args.query:
-            pages=wikipush.query(queryWiki,args.query,args.queryField)
+            pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField)
         if pages:
             if mode=="wikipush":
                 wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
