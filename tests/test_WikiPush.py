@@ -20,6 +20,23 @@ class TestWikiPush(unittest.TestCase):
     def tearDown(self):
         pass
     
+    def testIssue16(self):
+        '''
+        https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/16
+        allow mass delete of pages
+        '''
+        # don't test this in Travis
+        if getpass.getuser()=="travis":
+            return
+        wikipush=WikiPush(None,"test")
+        pageTitles=['deleteMe1','deleteMe2','deleteMe3']
+        for pageTitle in pageTitles:
+            newPage=wikipush.toWiki.getPage(pageTitle)            
+            newPage.edit("content for %s" % pageTitle,"created by testIssue16")
+        wikipush.nuke(pageTitles, force=False)
+        #wikipush.nuke(pageTitles, force=True)
+        
+    
     def testIssue14(self):
         '''
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/14

@@ -13,6 +13,9 @@ case $scriptname in
    "wikiuser")
 	python -m wikibot.wikiuser "$@"
 	;;
+   "wikinuke")
+   	python -m wikibot.wikinuke "$@"
+   	;;
    *)
 	echo "undefined script behavior:  $scriptname"
 	;;
