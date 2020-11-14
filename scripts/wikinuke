@@ -1,7 +1,7 @@
 #!/bin/bash
 # WF 2020-10-31
 # wrapper for wikipush python
-script=$(readlink -nf $BASH_SOURCE)
+script=$(python -c "import os;import sys;print (os.path.realpath(sys.argv[1]))" $BASH_SOURCE)
 scriptname=$(basename $script)
 scriptdir=$(dirname $script)
 base=$scriptdir/..
