@@ -52,6 +52,22 @@ wikibot.wikiclient module
    :undoc-members:
    :show-inheritance:
 
+wikibot.wikiedit module
+-----------------------
+
+.. automodule:: wikibot.wikiedit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+wikibot.wikinuke module
+-----------------------
+
+.. automodule:: wikibot.wikinuke
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wikibot.wikipush module
 -----------------------
 
