@@ -120,7 +120,8 @@ class WikiPush(object):
                     else:
                         newPage=self.toWiki.getPage(pageTitle)
                         if not newPage.exists or force:
-                            newPage.edit(page.text(),"pushed by wikipush")
+                            comment="pushed from %s by wikipush" % self.fromWikiId
+                            newPage.edit(page.text(),comment)
                             self.log("✅")
                             if withImages:
                                 self.pushImages(page.images(),ignore=ignore)
