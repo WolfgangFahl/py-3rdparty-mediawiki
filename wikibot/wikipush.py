@@ -20,7 +20,10 @@ Created on 2020-10-29
 from wikibot.wikiclient import WikiClient
 from mwclient.image import Image
 from wikibot.smw import SMWClient
+#from difflib import Differ
+import difflib
 import os
+import re
 from pathlib import Path
 import sys
 from argparse import ArgumentParser
@@ -30,13 +33,15 @@ class WikiPush(object):
     '''
     Push pages from one MediaWiki to another
     '''
-
+    differ=None
+    
     def __init__(self, fromWikiId, toWikId,login=False,verbose=True,debug=False):
         '''
         Constructor
         '''
         self.verbose=verbose
         self.debug=debug
+        
         self.fromWikiId=fromWikiId
         if self.fromWikiId is not None:
             self.fromWiki=WikiClient.ofWikiId(fromWikiId)
@@ -95,6 +100,74 @@ class WikiPush(object):
             except Exception as ex:
                 msg=str(ex)
                 self.log("❌:%s" % msg )
+                
+    @staticmethod
+    def getDiff(text,newText,n=1,forHuman=True):
+        #if WikiPush.differ is None:
+        #    WikiPush.differ=Differ()
+        # https://docs.python.org/3/library/difflib.html
+        #  difflib.unified_diff(a, b, fromfile='', tofile='', fromfiledate='', tofiledate='', n=3, lineterm='\n')¶
+        #diffs=WikiPush.differ.compare(,)
+        textLines=text.split("\n")
+        newTextLines=newText.split("\n")
+        diffs=difflib.unified_diff(textLines,newTextLines,n=n)
+        if forHuman:
+            hdiffs=[]
+            for line in diffs:
+                unwantedItems=["@@","---","+++"]
+                keep=True
+                for unwanted in unwantedItems:
+                    if unwanted in line:
+                        keep=False
+                if keep:
+                    hdiffs.append(line)    
+        else:
+            hdiffs=diffs
+        diffStr="\n".join(hdiffs)
+        return diffStr
+    
+    @staticmethod
+    def getModify(search,replace):
+        searchRegex=r"%s" % search
+        replaceRegex=r"%s" % replace
+        modify=lambda text: re.sub(searchRegex,replaceRegex,text)
+        return modify
+
+                
+    def edit(self,pageTitles,modify=None,context=1,force=False):
+        '''
+        edit the pages with the given page Titles
+        
+        Args:
+            pageTitles(list): a list of page titles to be transfered from the formWiki to the toWiki
+            force(bool): True if pages should be actually deleted - dry run only listing pages is default
+        '''
+        if modify is None:
+            raise Exception("wikipush edit needs a modify function!")
+        total=len(pageTitles)
+        self.log("editing %d pages in %s (%s)" % (total,self.toWikiId,"forced" if force else "dry run"))
+        for i,pageTitle in enumerate(pageTitles):
+            try:
+                self.log("%d/%d (%4.0f%%): editing %s ..." % (i+1,total,(i+1)/total*100,pageTitle), end='')
+                pageToBeEdited=self.toWiki.getPage(pageTitle)   
+                if not force and not pageToBeEdited.exists:
+                    self.log("👎")
+                else:
+                    comment="edited by wikiedit" 
+                    text=pageToBeEdited.text()
+                    newText=modify(text)
+                    if newText!=text:
+                        if force:
+                            pageToBeEdited.edit(newText,comment)  
+                            self.log("✅")
+                        else:
+                            diffStr=self.getDiff(text, newText,n=context)
+                            self.log("👍%s" % diffStr)
+                    else:
+                        self.log("↔")
+            except Exception as ex:
+                msg=str(ex)
+                self.log("❌:%s" % msg )            
                 
     
     def push(self,pageTitles,force=False,ignore=False,withImages=False):
@@ -187,6 +260,9 @@ DEBUG=False
 def mainNuke(argv=None):
     main(argv,mode='wikinuke')
     
+def mainEdit(argv=None):
+    main(argv,mode='wikiedit')
+    
 def mainPush(argv=None):
     main(argv,mode='wikipush')
     
@@ -230,8 +306,13 @@ USAGE
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to overwrite existing pages")
             parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
-        else:
+        elif mode=="wikinuke":
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to delete pages - default is 'dry' run only listing pages")            
+        elif mode=="wikiedit":
+            parser.add_argument("--search", dest="search", help="search pattern", required=True)
+            parser.add_argument("--replace", dest="replace", help="replace pattern", required=True)
+            parser.add_argument("--context", dest="context",type=int, help="number of context lines to show in dry run diff display",default=1)
+            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")            
         parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
         parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
         
@@ -253,8 +334,14 @@ USAGE
         if pages:
             if mode=="wikipush":
                 wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
-            else:
+            elif mode=='wikinuke':
                 wikipush.nuke(pages,force=args.force)
+            elif mode=='wikiedit':
+                modify=WikiPush.getModify(args.search,args.replace)
+                wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
+            else:
+                raise Exception("undefined wikipush mode %s" % mode)
+      
         
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###

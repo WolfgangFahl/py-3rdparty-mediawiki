@@ -112,6 +112,20 @@ class TestWikiPush(unittest.TestCase):
             for ignore in [False,True]:
                 wp.push(["PictureTestPage"],force=force,ignore=ignore)
         pass
+    
+    def testDiff(self):
+        '''
+        check the diff functionality
+        '''
+        text="Hello World!\nLet's test the search and replace function.\nTry Apples and Oranges!\nOr do you like chocolate better?"
+        #print (text)
+        modify=WikiPush.getModify("Apples","Peaches")
+        newText=modify(text)
+        diff=WikiPush.getDiff(text, newText,n=0)
+        if self.debug:
+            print (diff)
+        self.assertEqual(2,len(diff.split("\n")))
+        
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
