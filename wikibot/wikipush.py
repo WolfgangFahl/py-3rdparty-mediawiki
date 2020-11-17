@@ -169,7 +169,24 @@ class WikiPush(object):
                 msg=str(ex)
                 self.log("❌:%s" % msg )            
                 
-    
+    def upload(self,files,force=False):
+        '''
+        push the given files
+        Args:
+            files(list): a list of filenames to be transfered to the toWiki
+            force(bool): True if images should be overwritten if they exist
+        '''
+        total=len(files)
+        self.log("uploading %d files to %s" % (total,self.toWikiId))
+        for i,file in enumerate(files):
+            try:
+                self.log("%d/%d (%4.0f%%): uploading %s ..." % (i+1,total,(i+1)/total*100,file), end='')
+                description="uploaded by wikiupload" 
+                filename=os.path.basename(file)
+                self.uploadImage(file, filename, description, force)
+            except Exception as ex:
+                self.log("❌:%s" % str(ex) )
+        
     def push(self,pageTitles,force=False,ignore=False,withImages=False):
         '''
         push the given page titles
@@ -233,24 +250,37 @@ class WikiPush(object):
                     
                 description=image.imageinfo['comment'] 
                 #imageFile=io.BytesIO(imageContent)
-                with open(imagePath,'rb') as imageFile:
-                    warnings=None
-                    response=self.toWiki.site.upload(imageFile,filename,description,ignore=ignore)
-                    if 'warnings' in response:
-                        warnings=response['warnings']
-                    if 'upload' in response and 'warnings' in response['upload']:
-                        warningsDict=response['upload']['warnings']
-                        warnings=[]
-                        for item in warningsDict.items():
-                            warnings.append(item)
-                    if warnings is not None:
-                        self.log("❌:%s" % warnings)  
-                    else:
-                        self.log("✅")
-                    if self.debug:
-                        print(image.imageinfo)
+                self.uploadImage(imagePath,filename,description)
+                if self.debug:
+                    print(image.imageinfo)
             except Exception as ex:
                 self.log("❌:%s" % str(ex)) 
+                            
+    def uploadImage(self,imagePath,filename,description,ignore=False):
+        '''
+        upload an image
+        
+        Args:
+            imagePath(str): the path to the image
+            filename(str): the filename to use
+            description(str): the description to use
+            ignore(bool): True if it should be ignored if the image exists
+        '''
+        with open(imagePath,'rb') as imageFile:
+            warnings=None
+            response=self.toWiki.site.upload(imageFile,filename,description,ignore=ignore)
+            if 'warnings' in response:
+                warnings=response['warnings']
+            if 'upload' in response and 'warnings' in response['upload']:
+                warningsDict=response['upload']['warnings']
+                warnings=[]
+                for item in warningsDict.items():
+                    warnings.append(item)
+            if warnings is not None:
+                self.log("❌:%s" % warnings)  
+            else:
+                self.log("✅")
+       
 
 __version__ = 0.1
 __date__ = '2020-10-31'
@@ -265,6 +295,10 @@ def mainEdit(argv=None):
     
 def mainPush(argv=None):
     main(argv,mode='wikipush')
+    
+def mainUpload(argv=None):
+    main(argv,mode='wikiupload')
+        
     
 def main(argv=None,mode='wikipush'): # IGNORE:C0111
     '''main program.'''
@@ -299,7 +333,7 @@ USAGE
         # Setup argument parser
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument("-d", "--debug", dest="debug",   action="count", help="set debug level [default: %(default)s]")
-        parser.add_argument('-V', '--version', action='version', version=program_version_message)
+        parser.add_argument('-V', '--version', action='version', version=program_version_message)       
         if mode=="wikipush":
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
@@ -313,34 +347,44 @@ USAGE
             parser.add_argument("--replace", dest="replace", help="replace pattern", required=True)
             parser.add_argument("--context", dest="context",type=int, help="number of context lines to show in dry run diff display",default=1)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")            
-        parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
-        parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
+        elif mode=="wikiupload":
+            parser.add_argument("--files", nargs='+', help="list of files to be pushed", required=True)
+            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")            
+            pass
+        if mode in  ["wikipush","wikiedit","wikinuke"]: 
+            parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
+            parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
+            parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
         
         parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
-        parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
         # Process arguments
         args = parser.parse_args()
         
         if mode=="wikipush":
             wikipush=WikiPush(args.source,args.target,login=args.login)
             queryWiki=wikipush.fromWiki
+        elif mode=="wikiupload":
+            wikipush=WikiPush(None,args.target)
         else:
             wikipush=WikiPush(None,args.target)
             queryWiki=wikipush.toWiki
-        if args.pages:
-            pages=args.pages
-        elif args.query:
-            pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField)
-        if pages:
-            if mode=="wikipush":
-                wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
-            elif mode=='wikinuke':
-                wikipush.nuke(pages,force=args.force)
-            elif mode=='wikiedit':
-                modify=WikiPush.getModify(args.search,args.replace)
-                wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
-            else:
-                raise Exception("undefined wikipush mode %s" % mode)
+        if mode=="wikiupload":
+            wikipush.upload(args.files,args.force)
+        else:    
+            if args.pages:
+                pages=args.pages
+            elif args.query:
+                pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField)
+            if pages:
+                if mode=="wikipush":
+                    wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
+                elif mode=='wikinuke':
+                    wikipush.nuke(pages,force=args.force)
+                elif mode=='wikiedit':
+                    modify=WikiPush.getModify(args.search,args.replace)
+                    wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
+                else:
+                    raise Exception("undefined wikipush mode %s" % mode)
       
         
     except KeyboardInterrupt:
