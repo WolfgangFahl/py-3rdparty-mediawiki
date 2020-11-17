@@ -348,7 +348,7 @@ USAGE
             parser.add_argument("--context", dest="context",type=int, help="number of context lines to show in dry run diff display",default=1)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")            
         elif mode=="wikiupload":
-            parser.add_argument("--files", nargs='+', help="list of files to be pushed", required=True)
+            parser.add_argument("--files", nargs='+', help="list of files to be uploaded", required=True)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")            
             pass
         if mode in  ["wikipush","wikiedit","wikinuke"]: 

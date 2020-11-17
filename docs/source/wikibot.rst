@@ -76,6 +76,14 @@ wikibot.wikipush module
    :undoc-members:
    :show-inheritance:
 
+wikibot.wikiupload module
+-------------------------
+
+.. automodule:: wikibot.wikiupload
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wikibot.wikiuser module
 -----------------------
 
