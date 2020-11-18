@@ -131,6 +131,9 @@ class TestWikiPush(unittest.TestCase):
         '''
         check the image download
         '''
+        # don't test this in Travis
+        if getpass.getuser()=="travis":
+            return
         wp=WikiPush("wikipedia_org_test2","test")
         page=wp.fromWiki.getPage("PictureTestPage")
         images=list(page.images())
