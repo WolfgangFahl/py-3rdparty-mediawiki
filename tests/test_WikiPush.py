@@ -4,6 +4,7 @@ Created on 2020-10-29
 @author: wf
 '''
 import unittest
+import os
 import getpass
 from wikibot.wikipush import WikiPush
 
@@ -125,6 +126,24 @@ class TestWikiPush(unittest.TestCase):
         if self.debug:
             print (diff)
         self.assertEqual(2,len(diff.split("\n")))
+        
+    def testDownload(self):
+        '''
+        check the image download
+        '''
+        wp=WikiPush("wikipedia_org_test2","test")
+        page=wp.fromWiki.getPage("PictureTestPage")
+        images=list(page.images())
+        self.assertEqual(3,len(images))
+        for image in images:
+            if "Mona" in image.name:
+                imagePath,filename=wp.downloadImage(image,"/tmp")
+                imageSize=os.path.getsize(imagePath)
+                if self.debug:
+                    print ("size of %s is %d bytes" % (filename,imageSize))
+                self.assertEqual(3506068,imageSize)
+                
+        
         
 
 if __name__ == "__main__":

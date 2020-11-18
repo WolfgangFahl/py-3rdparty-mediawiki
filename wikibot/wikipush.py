@@ -53,7 +53,7 @@ class WikiPush(object):
         
     def log(self,msg,end='\n'):
         if self.verbose:
-                print (msg,end=end)
+            print (msg,end=end)
      
     def query(self,askQuery,wiki=None,queryField=None):
         '''
@@ -206,14 +206,18 @@ class WikiPush(object):
                 if page.exists:
                     # is this an image?
                     if isinstance(page,Image):
-                        self.pushImages([page], ignore)
+                        self.pushImages([page],ignore=ignore)
                     else:
                         newPage=self.toWiki.getPage(pageTitle)
                         if not newPage.exists or force:
-                            comment="pushed from %s by wikipush" % self.fromWikiId
-                            newPage.edit(page.text(),comment)
-                            self.log("✅")
-                            if withImages:
+                            try:
+                                comment="pushed from %s by wikipush" % self.fromWikiId
+                                newPage.edit(page.text(),comment)
+                                self.log("✅")
+                                pageOk=True
+                            except Exception as ex:
+                                pageOk=self.handleException(ex, ignore)
+                            if withImages and pageOk:
                                 self.pushImages(page.images(),ignore=ignore)
                         else:
                             self.log("👎")
@@ -241,22 +245,65 @@ class WikiPush(object):
         '''        
         for image in imageList:
             try:
-                filename=image.name.replace("File:","")
-                downloadPath=self.getDownloadPath()
-                imagePath="%s/%s" % (downloadPath,filename)
-                self.log("copying image %s ..." % image.name, end='')
-                with open(imagePath,'wb') as imageFile:
-                    image.download(imageFile)
-                    
+                self.log("copying image %s ..." % image.name, end='')  
+                imagePath,filename=self.downloadImage(image);
                 description=image.imageinfo['comment'] 
-                #imageFile=io.BytesIO(imageContent)
-                self.uploadImage(imagePath,filename,description)
+                self.uploadImage(imagePath,filename,description,ignore)
                 if self.debug:
                     print(image.imageinfo)
             except Exception as ex:
-                self.log("❌:%s" % str(ex)) 
+                self.handleException(ex,ignore)
+                
+    def handleException(self,ex,ignoreExists=False):
+        '''
+        handle the given exception and ignore it if it includes "exists" and ignoreExists is True
+        
+        Args:
+            ex(Exception): the exception to handle
+            ignoreExists(bool): True if "exists" should be ignored
+            
+        Returns:
+            bool: True if the exception was handled as ok False if it was logged as an error
+        '''
+        msg=str(ex)
+        return self.handleWarning(msg, ignoreExists=ignoreExists)
+        
+    def handleWarning(self,msg,ignoreExists=False):
+        '''
+        handle the given warning and ignore it if it includes "exists" and ignoreExists is True
+        
+        Args:
+            msg(string): the warning to handle
+            ignoreExists(bool): True if "exists" should be ignored
+            
+        Returns:
+            bool: True if the exception was handled as ok False if it was logged as an error
+        '''
+        marker="❌"
+        #print ("handling warning %s with ignoreExists=%r" % (msg,ignoreExists))
+        if ignoreExists and "exists" in msg:
+            marker="✅"
+        self.log("%s:%s" % (marker,msg))
+        return marker=="✅"
+        
+                
+    def downloadImage(self,image,downloadPath=None):
+        '''
+        download the given image
+        
+        Args:
+            image(image): the image to download
+            downloadPath(str): the path to download to if None getDownloadPath will be used
+        '''
+        filename=image.name.replace("File:","")
+        if downloadPath is None:
+            downloadPath=self.getDownloadPath()
+        imagePath="%s/%s" % (downloadPath,filename)
+        with open(imagePath,'wb') as imageFile:
+            image.download(imageFile)
+        return imagePath,filename
                             
-    def uploadImage(self,imagePath,filename,description,ignore=False):
+    def uploadImage(self,imagePath,filename,description,ignoreExists=False):
         '''
         upload an image
         
@@ -264,11 +311,11 @@ class WikiPush(object):
             imagePath(str): the path to the image
             filename(str): the filename to use
             description(str): the description to use
-            ignore(bool): True if it should be ignored if the image exists
+            ignoreExists(bool): True if it should be ignored if the image exists
         '''
         with open(imagePath,'rb') as imageFile:
             warnings=None
-            response=self.toWiki.site.upload(imageFile,filename,description,ignore=ignore)
+            response=self.toWiki.site.upload(imageFile,filename,description,ignoreExists)
             if 'warnings' in response:
                 warnings=response['warnings']
             if 'upload' in response and 'warnings' in response['upload']:
@@ -276,10 +323,7 @@ class WikiPush(object):
                 warnings=[]
                 for item in warningsDict.items():
                     warnings.append(item)
-            if warnings is not None:
-                self.log("❌:%s" % warnings)  
-            else:
-                self.log("✅")
+            self.handleWarning("\n".join(warnings),ignoreExists)
        
 
 __version__ = 0.1
