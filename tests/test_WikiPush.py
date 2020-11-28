@@ -58,7 +58,7 @@ class TestWikiPush(unittest.TestCase):
         # don't test this in Travis
         if getpass.getuser()=="travis":
             return
-        wikipush=WikiPush("smw","test")
+        wikipush=WikiPush("smwcopy","test")
         ask="""{{#ask:[[Has conference::+]]
  |mainlabel=Talk
  |?Has description=Description
@@ -69,6 +69,7 @@ class TestWikiPush(unittest.TestCase):
  |limit=200
 }}"""
         pages=wikipush.query(ask,queryField="Event")
+        #self.debug=True
         if self.debug:
             print (pages)
             print (len(pages))
