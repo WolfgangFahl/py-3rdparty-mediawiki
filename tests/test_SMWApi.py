@@ -251,7 +251,7 @@ class TestSMW(unittest.TestCase):
  |limit=1
 }}
 """ % (prop,prop)
-            for smw in self.getSMWs('smw'):
+            for smw in self.getSMWs('smwcopy'):
                 result=self.getAskResult(smw,ask)
                 debug=True
                 if debug:
