@@ -95,7 +95,7 @@ class TestWikiPush(unittest.TestCase):
         '''
         if getpass.getuser()=="travis":
             return
-        wp=WikiPush("smw","test")
+        wp=WikiPush("smwcopy","test")
         pages=wp.query("[[Capital of::+]]")
         if self.debug:
             print (pages)
