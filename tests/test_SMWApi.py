@@ -4,7 +4,7 @@ Created on 2020-05-25
 @author: wf
 '''
 import unittest
-from wikibot.smw import SMW,SMWBot, SMWClient, PrintRequest
+from wikibot.smw import SMW,SMWBot, SMWClient
 from wikibot.wikibot import WikiBot
 from wikibot.wikiclient import WikiClient
 from tests.test_wikibot import TestWikiBot
@@ -42,7 +42,7 @@ class TestSMW(unittest.TestCase):
         smw=SMW()
         fixedAsk=smw.fixAsk(TestSMW.testask1)
         expected="""[[Concept:Semantic_MediaWiki_Cons_2012]]|?Has_Wikidata_item_ID=WikiDataId|?Has_planned_finish=finish|?Has_planned_start=start|?Has_location=location|format=table"""
-        if TestSMW.debug:
+        if self.debug:
             print(fixedAsk)
         self.assertEqual(expected,fixedAsk)
         
@@ -55,7 +55,7 @@ class TestSMW(unittest.TestCase):
             print(concept)
         self.assertEqual(concept,"Semantic_MediaWiki_Cons_2012")
         
-    def getSMWs(self,wikiId='smw'):
+    def getSMWs(self,wikiId='smwcopy'):
         ''' get the alternative SMW access instances for the given wiki id
         '''
         wikiuser=TestWikiUser.getSMW_WikiUser(wikiId)
@@ -105,7 +105,7 @@ class TestSMW(unittest.TestCase):
         """ test getting the raw result of an ask query"""
         for smw in self.getSMWs():
             result=smw.rawquery(TestSMW.testask1)
-            if TestSMW.debug:
+            if self.debug:
                 print (result)
             self.assertTrue('query' in result)
             query=result['query']
@@ -140,7 +140,7 @@ class TestSMW(unittest.TestCase):
     
     def checkExpected(self,ask,expectedRecords,debug=False):
         """ check that the given ask query returns the content of the expectedRecords""" 
-        for smw in self.getSMWs('smw'):
+        for smw in self.getSMWs('smwcopy'):
             result=self.getAskResult(smw,ask)
             if debug:
                 print(result)
