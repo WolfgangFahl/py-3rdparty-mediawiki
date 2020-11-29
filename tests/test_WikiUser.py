@@ -46,10 +46,12 @@ class TestWikiUser(unittest.TestCase):
         wikiUser=None
         if not os.path.isfile(iniFile):
             wikiDict=None
+            if wikiId=="smwcopy":
+                wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"http://smw.bitplan.com","scriptPath":"","version":"MediaWiki 1.35.0"}
             if wikiId=="smw":
-                wikiDict={"wikiId": wikiId,"url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.7"}
+                wikiDict={"wikiId": wikiId,"email":"webmaster@semantic-mediawiki.org","url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.7"}
             if wikiId=="or":
-                wikiDict={"wikiId": wikiId,"url":"https://www.openresearch.org","scriptPath":"/mediawiki/","version":"MediaWiki 1.31.1"}   
+                wikiDict={"wikiId": wikiId,"email":"webmaster@openresearch.org","url":"https://www.openresearch.org","scriptPath":"/mediawiki/","version":"MediaWiki 1.31.1"}   
             if wikiDict is None:
                 raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
             else:

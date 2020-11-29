@@ -29,8 +29,6 @@ class TestWikiClient(unittest.TestCase):
                 page=client.getPage(mainpage)
                 print ('✅' if page.exists else '❌',end='')
             print()
-            
-            
         pass
 
 
