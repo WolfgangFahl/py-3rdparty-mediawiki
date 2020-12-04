@@ -146,8 +146,6 @@ class TestWikiPush(unittest.TestCase):
                 if self.debug:
                     print ("size of %s is %d bytes" % (filename,imageSize))
                 self.assertEqual(3506068,imageSize)
-                
-        
         
 
 if __name__ == "__main__":

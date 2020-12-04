@@ -268,6 +268,20 @@ class WikiPush(object):
         msg=str(ex)
         return self.handleWarning(msg, ignoreExists=ignoreExists)
         
+    def handleAPIWarnings(self,warnings,ignoreExists=False):
+        '''
+        handle API Warnings
+        
+        Args:
+            warnings(list): a list of API warnings
+            ignoreExists(bool): ignore messages that warn about existing content
+        '''
+        msg=""
+        if warnings:
+            for warning in warnings:
+                msg+="%s\n" % str(warning)
+        self.handleWarning(msg,ignoreExists)
+        
     def handleWarning(self,msg,ignoreExists=False):
         '''
         handle the given warning and ignore it if it includes "exists" and ignoreExists is True
@@ -323,7 +337,7 @@ class WikiPush(object):
                 warnings=[]
                 for item in warningsDict.items():
                     warnings.append(item)
-            self.handleWarning("\n".join(warnings),ignoreExists)
+            self.handleAPIWarnings(warnings,ignoreExists)
        
 
 __version__ = 0.1
