@@ -235,7 +235,7 @@ class WikiPush(object):
             os.makedirs(downloadPath)
         return downloadPath
             
-    def pushImages(self,imageList,ignore=False):
+    def pushImages(self,imageList,delim="",ignore=False):
         '''
         push the images in the given image List
         
@@ -245,7 +245,7 @@ class WikiPush(object):
         '''        
         for image in imageList:
             try:
-                self.log("copying image %s ..." % image.name, end='')  
+                self.log("%scopying image %s ..." % (delim,image.name), end='')  
                 imagePath,filename=self.downloadImage(image);
                 description=image.imageinfo['comment'] 
                 self.uploadImage(imagePath,filename,description,ignore)
@@ -266,7 +266,7 @@ class WikiPush(object):
             bool: True if the exception was handled as ok False if it was logged as an error
         '''
         msg=str(ex)
-        return self.handleWarning(msg, ignoreExists=ignoreExists)
+        return self.handleWarning(msg,marker="❌",ignoreExists=ignoreExists)
         
     def handleAPIWarnings(self,warnings,ignoreExists=False):
         '''
@@ -282,23 +282,26 @@ class WikiPush(object):
                 msg+="%s\n" % str(warning)
         self.handleWarning(msg,ignoreExists)
         
-    def handleWarning(self,msg,ignoreExists=False):
+    def handleWarning(self,msg,marker="⚠️",ignoreExists=False):
         '''
         handle the given warning and ignore it if it includes "exists" and ignoreExists is True
         
         Args:
             msg(string): the warning to handle
+            marker(string): the marker to use for the message
             ignoreExists(bool): True if "exists" should be ignored
             
         Returns:
             bool: True if the exception was handled as ok False if it was logged as an error
         '''
-        marker="❌"
         #print ("handling warning %s with ignoreExists=%r" % (msg,ignoreExists))
         if ignoreExists and "exists" in msg:
-            marker="✅"
+            # shorten exact duplicate message
+            if "exact duplicate in msg":
+                msg="exact duplicate"
+            marker="👀"
         self.log("%s:%s" % (marker,msg))
-        return marker=="✅"
+        return marker=="👀"
         
                 
     def downloadImage(self,image,downloadPath=None):
@@ -336,7 +339,7 @@ class WikiPush(object):
                 warningsDict=response['upload']['warnings']
                 warnings=[]
                 for item in warningsDict.items():
-                    warnings.append(item)
+                    warnings.append(str(item))
             self.handleAPIWarnings(warnings,ignoreExists)
        
 
@@ -362,9 +365,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
     '''main program.'''
 
     if argv is None:
-        argv = sys.argv
-    else:
-        sys.argv.extend(argv)   
+        argv = sys.argv[1:]
     
     program_name = mode
     program_version = "v%s" % __version__
@@ -416,7 +417,7 @@ USAGE
         
         parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
         # Process arguments
-        args = parser.parse_args()
+        args = parser.parse_args(argv)
         
         if mode=="wikipush":
             wikipush=WikiPush(args.source,args.target,login=args.login)
@@ -443,7 +444,6 @@ USAGE
                     wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
                 else:
                     raise Exception("undefined wikipush mode %s" % mode)
-      
         
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###

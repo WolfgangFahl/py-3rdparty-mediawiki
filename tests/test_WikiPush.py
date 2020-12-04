@@ -6,6 +6,7 @@ Created on 2020-10-29
 import unittest
 import os
 import getpass
+import wikibot
 from wikibot.wikipush import WikiPush
 
 class TestWikiPush(unittest.TestCase):
@@ -148,6 +149,16 @@ class TestWikiPush(unittest.TestCase):
                 self.assertEqual(3506068,imageSize)
         
 
+    def testWarnings(self):
+        '''
+        test the warning handling
+        '''
+        # return 
+        # https://stackoverflow.com/a/5222474/1497139
+        argv=["-l","-s","swa","-t","test","-q","[[modification date::>2020-11-29]]","-wi","-f","-i"]
+        wikibot.wikipush.main(argv)
+
+    
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
