@@ -153,7 +153,7 @@ class TestWikiPush(unittest.TestCase):
         '''
         test the warning handling
         '''
-        # return 
+        return 
         # https://stackoverflow.com/a/5222474/1497139
         argv=["-l","-s","swa","-t","test","-q","[[modification date::>2020-11-29]]","-wi","-f","-i"]
         wikibot.wikipush.main(argv)
