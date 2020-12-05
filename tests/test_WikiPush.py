@@ -102,6 +102,15 @@ class TestWikiPush(unittest.TestCase):
             print (pages)
         self.assertTrue(len(pages)>=5)
         self.assertTrue("Demo:Berlin" in pages)
+        
+    def testWikiBackup(self):
+        # don't test this in Travis
+        if getpass.getuser()=="travis":
+            return
+        wp=WikiPush("smw")
+        pageTitles=wp.query("[[Capital of::+]]")
+        wp.backup(pageTitles)
+        
 
     def testWikiPush(self):
         '''

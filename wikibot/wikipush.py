@@ -1,18 +1,5 @@
 '''
 Created on 2020-10-29
-
-@author: wf
-
- script to read push wikipages from one MediaWiki to another
-  
-  use: python3 wikipush.py --source [sourceId] --target [targetId] --pages [pageTitleList]
-  @param sourceId - id of the source wiki
-  @param targetId - id of the target wiki
-  @param pages - pageList to transfer
-  
-  example: 
-      python3 wikipush -s wikipedia-de -t test Berlin
-
   @author:     wf
   @copyright:  Wolfgang Fahl. All rights reserved.
 
@@ -35,21 +22,25 @@ class WikiPush(object):
     '''
     differ=None
     
-    def __init__(self, fromWikiId, toWikId,login=False,verbose=True,debug=False):
+    def __init__(self, fromWikiId, toWikiId=None,login=False,verbose=True,debug=False):
         '''
         Constructor
         '''
         self.verbose=verbose
         self.debug=debug
+        self.fromWiki=None
+        self.toWiki=None
         
         self.fromWikiId=fromWikiId
         if self.fromWikiId is not None:
             self.fromWiki=WikiClient.ofWikiId(fromWikiId)
-        self.toWikiId=toWikId
-        self.toWiki=WikiClient.ofWikiId(toWikId)
+        self.toWikiId=toWikiId
+        if self.toWikiId is not None:
+            self.toWiki=WikiClient.ofWikiId(toWikiId)
         if login and self.fromWikiId is not None:
             self.fromWiki.login()
-        self.toWiki.login()
+        if self.toWiki is not None:
+            self.toWiki.login()
         
     def log(self,msg,end='\n'):
         if self.verbose:
@@ -186,6 +177,28 @@ class WikiPush(object):
                 self.uploadImage(file, filename, description, force)
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
+                
+    def backup(self,pageTitles,backupPath=None,withImages=False):
+        '''
+        backup the given page titles
+        Args:
+            pageTitles(list): a list of page titles to be downloaded from the fromWiki
+            withImages(bool): True if the image on a page should also be copied
+        '''
+        if backupPath is None:
+            backupPath=self.getHomePath("wikibackup/%s" % self.fromWikiId)
+        total=len(pageTitles)
+        self.log("downloading %d pages from %s to %s" % (total,self.fromWikiId,backupPath))
+        for i,pageTitle in enumerate(pageTitles):
+            try:
+                self.log("%d/%d (%4.0f%%): downloading %s ..." % (i+1,total,(i+1)/total*100,pageTitle), end='')
+                page=self.fromWiki.getPage(pageTitle)
+                wikiFilePath="%s/%s.wiki" % (backupPath,pageTitle)
+                with open (wikiFilePath,"w") as wikiFile:
+                    wikiFile.write(page.text())
+                self.log("✅")
+            except Exception as ex:
+                self.log("❌:%s" % str(ex) )
         
     def push(self,pageTitles,force=False,ignore=False,withImages=False):
         '''
@@ -226,14 +239,18 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
                 
+    def getHomePath(self,localPath):
+        homePath=str(Path.home() / localPath)
+        if not os.path.isdir(homePath):
+            os.makedirs(homePath)
+        return homePath
+                    
     def getDownloadPath(self):
         '''
         get the download path
         '''
-        downloadPath=str(Path.home() / "Downloads/mediawiki")
-        if not os.path.isdir(downloadPath):
-            os.makedirs(downloadPath)
-        return downloadPath
+        return self.getHomePath("Downloads/mediawiki")
+        
             
     def pushImages(self,imageList,delim="",ignore=False):
         '''
@@ -343,9 +360,9 @@ class WikiPush(object):
             self.handleAPIWarnings(warnings,ignoreExists)
        
 
-__version__ = 0.1
+__version__ = "0.1.15"
 __date__ = '2020-10-31'
-__updated__ = '2020-10-31'
+__updated__ = '2020-12-05'
 DEBUG=False
 
 def mainNuke(argv=None):
@@ -359,7 +376,9 @@ def mainPush(argv=None):
     
 def mainUpload(argv=None):
     main(argv,mode='wikiupload')
-        
+
+def mainBackup(argv=None):
+    main(argv,mode='wikibackup')
     
 def main(argv=None,mode='wikipush'): # IGNORE:C0111
     '''main program.'''
@@ -371,7 +390,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
     program_version = "v%s" % __version__
     program_build_date = str(__updated__)
     program_version_message = '%%(prog)s %s (%s)' % (program_version, program_build_date)
-    program_shortdesc = __import__('__main__').__doc__.split("\n")[1]
+    program_shortdesc = "wikipush"
     user_name="Wolfgang Fahl"
     
     program_license = '''%s
@@ -385,7 +404,6 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
   Distributed on an "AS IS" basis without warranties
   or conditions of any kind, either express or implied.
 
-USAGE
 ''' % (program_shortdesc,user_name, str(__date__))
 
     try:
@@ -399,6 +417,9 @@ USAGE
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to overwrite existing pages")
             parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
+        elif mode=="wikibackup": 
+            parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
+            parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
         elif mode=="wikinuke":
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to delete pages - default is 'dry' run only listing pages")            
         elif mode=="wikiedit":
@@ -410,17 +431,21 @@ USAGE
             parser.add_argument("--files", nargs='+', help="list of files to be uploaded", required=True)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")            
             pass
-        if mode in  ["wikipush","wikiedit","wikinuke"]: 
+        if mode in  ["wikipush","wikiedit","wikinuke","wikibackup"]: 
             parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
             parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
             parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
         
-        parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
+        if not mode=="wikibackup":
+            parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
         # Process arguments
         args = parser.parse_args(argv)
         
         if mode=="wikipush":
             wikipush=WikiPush(args.source,args.target,login=args.login)
+            queryWiki=wikipush.fromWiki
+        elif mode=="wikibackup":
+            wikipush=WikiPush(args.source,None,login=args.login)    
             queryWiki=wikipush.fromWiki
         elif mode=="wikiupload":
             wikipush=WikiPush(None,args.target)
@@ -437,6 +462,8 @@ USAGE
             if pages:
                 if mode=="wikipush":
                     wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
+                elif mode=="wikibackup":
+                    wikipush.backup(pages,withImages=args.withImages)    
                 elif mode=='wikinuke':
                     wikipush.nuke(pages,force=args.force)
                 elif mode=='wikiedit':

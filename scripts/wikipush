@@ -7,21 +7,24 @@ scriptdir=$(dirname $script)
 base=$scriptdir/..
 export PYTHONPATH="${PYTHONPATH}:$base"
 case $scriptname in
-   "wikipush")
+  "wikibackup")
+    python -m wikibot.wikibackup "$@"
+    ;;
+  "wikipush")
 	  python -m wikibot.wikipush "$@"
-	   ;;
-   "wikiedit")
+	  ;;
+  "wikiedit")
    	python -m wikibot.wikiedit "$@"
    	;;
-   "wikiuser")
+  "wikiuser")
 	  python -m wikibot.wikiuser "$@"
-	   ;;
-   "wikinuke")
-   	  python -m wikibot.wikinuke "$@"
+	  ;;
+  "wikinuke")
+   	python -m wikibot.wikinuke "$@"
    	;;
-    "wikiupload")
-    	  python -m wikibot.wikiupload "$@"
-    	;;
+  "wikiupload")
+    python -m wikibot.wikiupload "$@"
+    ;;
    *)
 	echo "undefined wikipush script behavior:  $scriptname"
 	;;
