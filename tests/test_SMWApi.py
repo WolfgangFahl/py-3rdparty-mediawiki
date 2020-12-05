@@ -144,7 +144,7 @@ class TestSMW(unittest.TestCase):
             result=self.getAskResult(smw,ask)
             if debug:
                 print(result)
-            self.assertEquals(len(expectedRecords),len(result))
+            self.assertEqual(len(expectedRecords),len(result))
             resultlist=list(result.items())
             for i in range(len(expectedRecords)):
                 expectedRecord=expectedRecords[i]
