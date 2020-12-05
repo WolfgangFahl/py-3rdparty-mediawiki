@@ -187,6 +187,7 @@ class WikiPush(object):
         '''
         if backupPath is None:
             backupPath=self.getHomePath("wikibackup/%s" % self.fromWikiId)
+        imageBackupPath="%s/images" % backupPath
         total=len(pageTitles)
         self.log("downloading %d pages from %s to %s" % (total,self.fromWikiId,backupPath))
         for i,pageTitle in enumerate(pageTitles):
@@ -194,14 +195,26 @@ class WikiPush(object):
                 self.log("%d/%d (%4.0f%%): downloading %s ..." % (i+1,total,(i+1)/total*100,pageTitle), end='')
                 page=self.fromWiki.getPage(pageTitle)
                 wikiFilePath="%s/%s.wiki" % (backupPath,pageTitle)
-                # for pages that have a "/" in the name:
-                directory = os.path.dirname(wikiFilePath)
-                Path(directory).mkdir(parents=True, exist_ok=True)
+                self.ensureParentDirectoryExists(wikiFilePath)
                 with open (wikiFilePath,"w") as wikiFile:
                     wikiFile.write(page.text())
                 self.log("✅")
+                if isinstance(page,Image):
+                    self.backupImages([page],imageBackupPath)
+                    
+                    
+                    
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
+        
+    def backupImages(self,imageList,imageBackupPath):
+        '''
+        '''
+        for image in imageList:
+            try:
+                imagePath,filename=self.downloadImage(image,imageBackupPath);
+            except Exception as ex:
+                self.handleException(ex)
         
     def push(self,pageTitles,force=False,ignore=False,withImages=False):
         '''
@@ -242,10 +255,20 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
                 
+    def ensureParentDirectoryExists(self,filePath):
+        # for pages that have a "/" in the name:
+        directory = os.path.dirname(filePath)
+        self.ensureDirectoryExists(directory)
+        
+    def ensureDirectoryExists(self,directory):
+        Path(directory).mkdir(parents=True, exist_ok=True)
+        
     def getHomePath(self,localPath):
+        '''
+        get the given home path
+        '''
         homePath=str(Path.home() / localPath)
-        if not os.path.isdir(homePath):
-            os.makedirs(homePath)
+        self.ensureDirectoryExists(homePath)
         return homePath
                     
     def getDownloadPath(self):
@@ -322,7 +345,6 @@ class WikiPush(object):
             marker="👀"
         self.log("%s:%s" % (marker,msg))
         return marker=="👀"
-        
                 
     def downloadImage(self,image,downloadPath=None):
         '''
@@ -336,6 +358,7 @@ class WikiPush(object):
         if downloadPath is None:
             downloadPath=self.getDownloadPath()
         imagePath="%s/%s" % (downloadPath,filename)
+        self.ensureParentDirectoryExists(imagePath)
         with open(imagePath,'wb') as imageFile:
             image.download(imageFile)
         return imagePath,filename
