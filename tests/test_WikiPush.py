@@ -111,6 +111,13 @@ class TestWikiPush(unittest.TestCase):
         pageTitles=wp.query("[[Capital of::+]]")
         wp.backup(pageTitles)
         
+    def testWikiBackupCommandLine(self):
+        '''
+        test starting backup from the command line
+        '''
+        argv=["-s","smwcopy","-q","[[modification date::+]]"]
+        wikibot.wikipush.mainBackup(argv)
+  
 
     def testWikiPush(self):
         '''

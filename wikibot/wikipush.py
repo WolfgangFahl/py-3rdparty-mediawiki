@@ -194,6 +194,9 @@ class WikiPush(object):
                 self.log("%d/%d (%4.0f%%): downloading %s ..." % (i+1,total,(i+1)/total*100,pageTitle), end='')
                 page=self.fromWiki.getPage(pageTitle)
                 wikiFilePath="%s/%s.wiki" % (backupPath,pageTitle)
+                # for pages that have a "/" in the name:
+                directory = os.path.dirname(wikiFilePath)
+                Path(directory).mkdir(parents=True, exist_ok=True)
                 with open (wikiFilePath,"w") as wikiFile:
                     wikiFile.write(page.text())
                 self.log("✅")
@@ -418,6 +421,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
         elif mode=="wikibackup": 
+            parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
         elif mode=="wikinuke":
@@ -455,11 +459,14 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
         if mode=="wikiupload":
             wikipush.upload(args.files,args.force)
         else:    
+            pages=None
             if args.pages:
                 pages=args.pages
             elif args.query:
                 pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField)
-            if pages:
+            if not pages:
+                raise Exception("no pages specified - you might want to use the -p or -q option")
+            else:
                 if mode=="wikipush":
                     wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
                 elif mode=="wikibackup":
