@@ -17,7 +17,7 @@ setup(
     install_requires=[
       'pywikibot',
       'pycrypto',
-	  'mwclient',
+      'mwclient',
     ],
     entry_points={
       'console_scripts': [

@@ -36,6 +36,14 @@ wikibot.wiki module
    :undoc-members:
    :show-inheritance:
 
+wikibot.wikibackup module
+-------------------------
+
+.. automodule:: wikibot.wikibackup
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wikibot.wikibot module
 ----------------------
 
