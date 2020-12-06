@@ -20,5 +20,6 @@ case $os in
    ;;
 esac
 #$install python3-pip
-$pip --version
-$pip install -r requirements.txt
+#$pip --version
+#$pip install -r requirements.txt
+python setup.py install --user

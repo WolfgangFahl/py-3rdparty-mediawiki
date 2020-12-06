@@ -7,3 +7,5 @@ pywikibot==5.1.0
 mwclient
 #https://pypi.org/project/pycrypto/
 pycrypto
+# https://pypi.org/project/GitPython/
+gitpython

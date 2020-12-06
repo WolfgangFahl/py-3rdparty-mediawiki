@@ -9,6 +9,8 @@ from mwclient.image import Image
 from wikibot.smw import SMWClient
 #from difflib import Differ
 import difflib
+import datetime
+from git import Repo
 import os
 import re
 from pathlib import Path
@@ -178,11 +180,12 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
                 
-    def backup(self,pageTitles,backupPath=None,withImages=False):
+    def backup(self,pageTitles,backupPath=None,git=False,withImages=False):
         '''
         backup the given page titles
         Args:
             pageTitles(list): a list of page titles to be downloaded from the fromWiki
+            git(bool): True if git should be used as a version control system
             withImages(bool): True if the image on a page should also be copied
         '''
         if backupPath is None:
@@ -201,11 +204,22 @@ class WikiPush(object):
                 self.log("✅")
                 if isinstance(page,Image):
                     self.backupImages([page],imageBackupPath)
-                    
-                    
+                if withImages:
+                    self.backupImages(page.images(), imageBackupPath)    
                     
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
+        if git:
+            gitPath="%s/.git" % backupPath
+            if not os.path.isdir(gitPath):
+                self.log("initializing git repository ...")
+                repo=Repo.init(backupPath)
+            else:
+                repo=Repo(backupPath)
+            self.log("committing to git repository")
+            repo.git.add(all=True)
+            timestamp=datetime.datetime.now().isoformat()
+            repo.index.commit("auto commit by wikibackup at %s" % timestamp)
         
     def backupImages(self,imageList,imageBackupPath):
         '''
@@ -444,6 +458,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
         elif mode=="wikibackup": 
+            parser.add_argument("-g", "--git", dest="git", action='store_true', help="use git for version control")
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
@@ -487,13 +502,13 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 pages=args.pages
             elif args.query:
                 pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField)
-            if not pages:
+            if pages is None:
                 raise Exception("no pages specified - you might want to use the -p or -q option")
             else:
                 if mode=="wikipush":
                     wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
                 elif mode=="wikibackup":
-                    wikipush.backup(pages,withImages=args.withImages)    
+                    wikipush.backup(pages,git=args.git,withImages=args.withImages)    
                 elif mode=='wikinuke':
                     wikipush.nuke(pages,force=args.force)
                 elif mode=='wikiedit':
