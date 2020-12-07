@@ -22,4 +22,4 @@ esac
 #$install python3-pip
 $pip --version
 $pip install -r requirements.txt
-python setup.py install --user
+python3 setup.py install --user
