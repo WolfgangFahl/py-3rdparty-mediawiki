@@ -34,8 +34,8 @@ class WikiBot(Wiki):
         return bots
     
     @staticmethod
-    def ofWikiId(wikiId):
-        wikiUser=WikiUser.ofWikiId(wikiId)
+    def ofWikiId(wikiId,lenient=True):
+        wikiUser=WikiUser.ofWikiId(wikiId,lenient=lenient)
         wikibot=WikiBot(wikiUser)
         return wikibot
     
