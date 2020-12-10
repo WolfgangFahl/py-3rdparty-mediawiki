@@ -103,7 +103,7 @@ class Family(family.Family):
             config2.usernames[self.family]['en'] = self.wikiUser.user
         #config2.authenticate[self.netloc] = (self.user,self.getPassword())
         self.site=pywikibot.Site('en',self.family)  
-        if self.wikiUser.user is not None:
+        if self.wikiUser.user:
             # needs patch as outlined in https://phabricator.wikimedia.org/T248471
             #self.site.login(password=self.wikiUser.getPassword())
             lm = LoginManager(password=self.wikiUser.getPassword(), site=self.site, user=self.wikiUser.user)
