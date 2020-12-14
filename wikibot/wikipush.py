@@ -48,7 +48,7 @@ class WikiPush(object):
         if self.verbose:
             print (msg,end=end)
      
-    def query(self,askQuery,wiki=None,queryField=None):
+    def query(self,askQuery,wiki=None,queryField=None,showProgress=False):
         '''
         query the given wiki for pages matching the given askQuery
         
@@ -56,12 +56,13 @@ class WikiPush(object):
             askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
             wiki(wikibot): the wiki to query - use fromWiki if not specified
             queryField(string): the field to select the pageTitle from
+            showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
         Returns:
             list: a list of pageTitles matching the given askQuery
         '''
         if wiki is None:
             wiki=self.fromWiki
-        smwClient=SMWClient(wiki.getSite())
+        smwClient=SMWClient(wiki.getSite(),showProgress=showProgress)
         pageRecords=smwClient.query(askQuery)  
         if queryField is None:
             return pageRecords.keys()
@@ -474,6 +475,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")            
             pass
         if mode in  ["wikipush","wikiedit","wikinuke","wikibackup"]: 
+            parser.add_argument("--progress",dest="showProgress",action='store_true',help="shows progress for query")
             parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
             parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
             parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
@@ -501,7 +503,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             if args.pages:
                 pages=args.pages
             elif args.query:
-                pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField)
+                pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField,showProgress=args.showProgress)
             if pages is None:
                 raise Exception("no pages specified - you might want to use the -p or -q option")
             else:

@@ -137,7 +137,7 @@ class SMW(object):
     :ivar site: the pywikibot site to use for requests
     :ivar prefix: the path prefix for this site e.g. /wiki/
     '''
-    def __init__(self, site=None,prefix="/"):
+    def __init__(self, site=None,prefix="/",showProgress=False):
         '''
         Constructor
         Args:
@@ -145,6 +145,7 @@ class SMW(object):
         '''
         self.site=site
         self.prefix=prefix
+        self.showProgress=showProgress
     
     def deserialize(self,rawresult):
         """ deserialize the given rawresult according to 
@@ -216,8 +217,8 @@ class SMWClient(SMW):
     Semantic MediaWiki access using mw client library
     '''
     
-    def __init__(self, site=None,prefix="/"):
-        super(SMWClient,self).__init__(site,prefix) 
+    def __init__(self, site=None,prefix="/",showProgress=False):
+        super(SMWClient,self).__init__(site,prefix,showProgress=showProgress) 
         pass
     
     def info(self):
@@ -251,14 +252,25 @@ class SMWClient(SMW):
             kwargs['title'] = title
 
         offset = 0
-        while offset is not None:
+        done=False
+        count=0
+        while not done:
+            count+=1
+            if self.showProgress:
+                sep="\n" if count%80==0 else "" 
+                print(".",end=sep)
             results = self.site.raw_api('ask', query=u'{query}|offset={offset}'.format(
                 query=query, offset=offset), http_method='GET', **kwargs)
             self.site.handle_api_result(results)  # raises APIError on error
-            offset = results.get('query-continue-offset')
-            # workaround limit
-            if limit is not None and offset is not None and offset>=limit:
-                offset=None
+            continueOffset = results.get('query-continue-offset')
+            if continueOffset is None:
+                done=True
+            else:
+                if limit is not None and continueOffset>=limit:
+                    done=True
+                if continueOffset<offset:
+                    done=True
+            offset=continueOffset
             yield results
     
     def rawquery(self,askQuery,title=None,limit=None):
@@ -295,8 +307,8 @@ class SMWBot(SMW):
     '''
     Semantic MediaWiki access using pywikibot library
     '''
-    def __init__(self, site=None,prefix="/"):
-        super(SMWBot,self).__init__(site,prefix) 
+    def __init__(self, site=None,prefix="/",showProgress=False):
+        super(SMWBot,self).__init__(site,prefix,showProgress=showProgress) 
         pass
     
     def submit(self, parameters):

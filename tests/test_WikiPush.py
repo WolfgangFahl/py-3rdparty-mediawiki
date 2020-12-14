@@ -8,6 +8,7 @@ import os
 import getpass
 import wikibot
 from wikibot.wikipush import WikiPush
+from google.protobuf.internal.well_known_types import WKTBASES
 
 class TestWikiPush(unittest.TestCase):
     '''
@@ -20,6 +21,15 @@ class TestWikiPush(unittest.TestCase):
 
 
     def tearDown(self):
+        pass
+    
+    def testIssue29(self):
+        '''
+        
+        '''
+        askQuery="[[isA::Event]]"
+        wikipush=WikiPush("orcopy",None)
+        wikipush.query(askQuery,showProgress=True)
         pass
     
     def testIssue16(self):
