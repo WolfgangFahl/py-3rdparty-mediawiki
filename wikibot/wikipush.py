@@ -35,14 +35,16 @@ class WikiPush(object):
         
         self.fromWikiId=fromWikiId
         if self.fromWikiId is not None:
-            self.fromWiki=WikiClient.ofWikiId(fromWikiId)
+            self.fromWiki=WikiClient.ofWikiId(fromWikiId,debug=self.debug)
         self.toWikiId=toWikiId
         if self.toWikiId is not None:
-            self.toWiki=WikiClient.ofWikiId(toWikiId)
+            self.toWiki=WikiClient.ofWikiId(toWikiId,debug=self.debug)
         if login and self.fromWikiId is not None:
-            self.fromWiki.login()
+            if not self.fromWiki.login():
+                raise Exception("can't login to source Wiki %s" % fromWikiId )
         if self.toWiki is not None:
-            self.toWiki.login()
+            if not self.toWiki.login():
+                raise Exception("can't login to target Wiki %s" % toWikiId )
         
     def log(self,msg,end='\n'):
         if self.verbose:
@@ -450,7 +452,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
     try:
         # Setup argument parser
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
-        parser.add_argument("-d", "--debug", dest="debug",   action="count", help="set debug level [default: %(default)s]")
+        parser.add_argument("-d", "--debug", dest="debug",   action="store_true", help="set debug level [default: %(default)s]")
         parser.add_argument('-V', '--version', action='version', version=program_version_message)       
         if mode=="wikipush":
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
@@ -486,15 +488,15 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
         args = parser.parse_args(argv)
         
         if mode=="wikipush":
-            wikipush=WikiPush(args.source,args.target,login=args.login)
+            wikipush=WikiPush(args.source,args.target,login=args.login,debug=args.debug)
             queryWiki=wikipush.fromWiki
         elif mode=="wikibackup":
-            wikipush=WikiPush(args.source,None,login=args.login)    
+            wikipush=WikiPush(args.source,None,login=args.login,debug=args.debug)    
             queryWiki=wikipush.fromWiki
         elif mode=="wikiupload":
-            wikipush=WikiPush(None,args.target)
+            wikipush=WikiPush(None,args.target,debug=args.debug)
         else:
-            wikipush=WikiPush(None,args.target)
+            wikipush=WikiPush(None,args.target,debug=args.debug)
             queryWiki=wikipush.toWiki
         if mode=="wikiupload":
             wikipush.upload(args.files,args.force)

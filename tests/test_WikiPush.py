@@ -8,7 +8,6 @@ import os
 import getpass
 import wikibot
 from wikibot.wikipush import WikiPush
-from google.protobuf.internal.well_known_types import WKTBASES
 
 class TestWikiPush(unittest.TestCase):
     '''
@@ -25,11 +24,16 @@ class TestWikiPush(unittest.TestCase):
     
     def testIssue29(self):
         '''
-        
+        makes sure query does not hang on large queries
         '''
+        # don't test this in Travis
+        if getpass.getuser()=="travis":
+            return
+        return # test takes 22 secs - don't activate if not necessary
         askQuery="[[isA::Event]]"
         wikipush=WikiPush("orcopy",None)
-        wikipush.query(askQuery,showProgress=True)
+        pages=wikipush.query(askQuery,showProgress=True)
+        print(len(pages))
         pass
     
     def testIssue16(self):
@@ -183,6 +187,14 @@ class TestWikiPush(unittest.TestCase):
         # https://stackoverflow.com/a/5222474/1497139
         argv=["-l","-s","swa","-t","test","-q","[[modification date::>2020-11-29]]","-wi","-f","-i"]
         wikibot.wikipush.main(argv)
+        
+    def testEdit(self):
+        return
+        # this actually edits data ... don't activate if you don't really want to do this
+        argv=["-t","orcopy","-d","-q","[[isA::Event]]","--search","\\[Category:","--replace","[has category::","-f","--progress"]
+        wikibot.wikipush.mainEdit(argv)
+        return
+    
 
     
 if __name__ == "__main__":

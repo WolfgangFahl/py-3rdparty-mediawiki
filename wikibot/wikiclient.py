@@ -77,9 +77,9 @@ class WikiClient(Wiki):
         return clients
         
     @staticmethod
-    def ofWikiId(wikiId,lenient=True):
+    def ofWikiId(wikiId,lenient=True,debug=False):
         wikiUser=WikiUser.ofWikiId(wikiId,lenient=lenient)
-        wikibot=WikiClient(wikiUser)
+        wikibot=WikiClient(wikiUser,debug=debug)
         return wikibot
     
     @staticmethod
