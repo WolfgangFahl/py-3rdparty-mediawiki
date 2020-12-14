@@ -258,7 +258,7 @@ class SMWClient(SMW):
             count+=1
             if self.showProgress:
                 sep="\n" if count%80==0 else "" 
-                print(".",end=sep)
+                print(".",end=sep,flush=True)
             results = self.site.raw_api('ask', query=u'{query}|offset={offset}'.format(
                 query=query, offset=offset), http_method='GET', **kwargs)
             self.site.handle_api_result(results)  # raises APIError on error
