@@ -22,6 +22,19 @@ class TestWikiPush(unittest.TestCase):
     def tearDown(self):
         pass
     
+    def testIssue11(self):
+        '''
+        test the limit handling 
+        '''
+        # don't test this in Travis
+        if getpass.getuser()=="travis":
+            return
+        askQuery="[[isA::Event]]"
+        wikipush=WikiPush("or",None)
+        pages=wikipush.query(askQuery,showProgress=False,limit=10)
+        self.assertEqual(10,len(pages))
+        
+    
     def testIssue29(self):
         '''
         makes sure query does not hang on large queries
@@ -194,7 +207,6 @@ class TestWikiPush(unittest.TestCase):
         argv=["-t","orcopy","-d","-q","[[isA::Event]]","--search","\\[Category:","--replace","[has category::","-f","--progress"]
         wikibot.wikipush.mainEdit(argv)
         return
-    
 
     
 if __name__ == "__main__":

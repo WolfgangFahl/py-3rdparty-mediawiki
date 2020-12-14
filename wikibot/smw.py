@@ -259,8 +259,11 @@ class SMWClient(SMW):
             if self.showProgress:
                 sep="\n" if count%80==0 else "" 
                 print(".",end=sep,flush=True)
-            results = self.site.raw_api('ask', query=u'{query}|offset={offset}'.format(
-                query=query, offset=offset), http_method='GET', **kwargs)
+                
+            queryParam=u'{query}|offset={offset}'.format(query=query,offset=offset)
+            if limit is not None:
+                queryParam+="|limit={limit}".format(limit=limit)
+            results = self.site.raw_api('ask', query=queryParam, http_method='GET', **kwargs)
             self.site.handle_api_result(results)  # raises APIError on error
             continueOffset = results.get('query-continue-offset')
             if continueOffset is None:
