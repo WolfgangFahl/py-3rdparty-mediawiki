@@ -26,18 +26,30 @@ class App:
         self.var = dict()
         self.count = 1
     def createWindow(self, root):
-        print(self.pages)
+        allvar=IntVar()
+        Checkbutton(root, text="Select All", command=lambda: self.select_all(allvar),variable=allvar).grid(row=self.count,sticky= W)
         for child in self.pages:
-            self.var[child]=IntVar()
-            chk = Checkbutton(root, text=child, variable=self.var[child]).grid(row=self.count,sticky= W)
             self.count += 1
-        Button(root, text='Push', command=lambda : self.remove_states(self,self.pages,self.var,root)).grid(row=self.count+1, sticky=W, pady=4)
+            self.var[child]=IntVar()
+            Checkbutton(root, text=child, variable=self.var[child]).grid(row=self.count,sticky= W)
+        Button(root, text='Push', command=lambda : self.remove_states(self.pages,self.var,root)).grid(row=self.count+1, sticky=W, pady=4)
         Button(root, text='Quit', command=root.quit).grid(row=self.count+2, sticky=W, pady=4)
-    def remove_states(self,f,pages,var,root):
+    def remove_states(self,pages,var,root):
         self.pages= [ elem for elem in pages if var[elem].get()!= 0]
         root.quit()
     def getUpdatedPages(self):
         return self.pages
+    def select_all(self,allvar):
+        if allvar.get():
+            for item in self.pages:
+                v= self.var[item]
+                if v.get()==0:
+                    v.set(1)
+        else:
+            for item in self.pages:
+                v  = self.var[item]
+                if v.get():
+                    v.set(0)
 
 
 class WikiPush(object):
