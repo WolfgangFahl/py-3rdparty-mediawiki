@@ -17,6 +17,28 @@ from pathlib import Path
 import sys
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
+from tkinter import *
+from tkinter import ttk
+
+class App:
+    def __init__(self,pages):
+        self.pages= pages
+        self.var = dict()
+        self.count = 1
+    def createWindow(self, root):
+        print(self.pages)
+        for child in self.pages:
+            self.var[child]=IntVar()
+            chk = Checkbutton(root, text=child, variable=self.var[child]).grid(row=self.count,sticky= W)
+            self.count += 1
+        Button(root, text='Push', command=lambda : self.remove_states(self,self.pages,self.var,root)).grid(row=self.count+1, sticky=W, pady=4)
+        Button(root, text='Quit', command=root.quit).grid(row=self.count+2, sticky=W, pady=4)
+    def remove_states(self,f,pages,var,root):
+        self.pages= [ elem for elem in pages if var[elem].get()!= 0]
+        root.quit()
+    def getUpdatedPages(self):
+        return self.pages
+
 
 class WikiPush(object):
     '''
@@ -64,12 +86,12 @@ class WikiPush(object):
         smwClient=SMWClient(wiki.getSite())
         pageRecords=smwClient.query(askQuery)  
         if queryField is None:
-            return pageRecords.keys()
+            return list(pageRecords.keys())
         # use a Dict to remove duplicates
         pagesDict={}
         for pageRecord in pageRecords.values():
             pagesDict[pageRecord[queryField]]=True
-        return pagesDict.keys()
+        return list(pagesDict.keys())
     
     def nuke(self,pageTitles,force=False):
         '''
@@ -501,7 +523,12 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             if args.pages:
                 pages=args.pages
             elif args.query:
+                root = Tk()
                 pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField)
+                GUI = App(pages)
+                GUI.createWindow(root)
+                root.mainloop()
+                pages=GUI.getUpdatedPages()
             if pages is None:
                 raise Exception("no pages specified - you might want to use the -p or -q option")
             else:
