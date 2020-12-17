@@ -17,6 +17,52 @@ from pathlib import Path
 import sys
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+import sys
+page=[]
+app = QtWidgets.QApplication(sys.argv)
+class Widget(QtWidgets.QWidget):
+    def __init__(self, names,parent=None):
+        super(Widget, self).__init__(parent)
+        self.tableWidget = QtWidgets.QTableWidget(len(names), 1)
+
+        self.book_button = QtWidgets.QPushButton("Commit")
+        self.book_button.clicked.connect(self.book_clicked)
+
+        lay = QtWidgets.QVBoxLayout(self)
+        lay.addWidget(self.tableWidget)
+        lay.addWidget(self.book_button)
+
+        self.tableWidget.setHorizontalHeaderLabels("Files".split())
+        self.tableWidget.setVerticalHeaderLabels(names)
+
+        for i in range(self.tableWidget.rowCount()):
+            for j in range(self.tableWidget.columnCount()):
+                item = QtWidgets.QTableWidgetItem()
+                item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
+                item.setCheckState(QtCore.Qt.Unchecked)
+                self.tableWidget.setItem(i, j, item)
+
+    @QtCore.pyqtSlot()
+    def book_clicked(self):
+        items = []
+        global page
+        global app
+        for i in range(self.tableWidget.rowCount()):
+            for j in range(self.tableWidget.columnCount()):
+                item = self.tableWidget.item(i, j)
+                if item.checkState() == QtCore.Qt.Checked:
+                    items.append(item)
+
+        for it in items:
+            r = it.row()
+            c = it.column()
+            v, h = self.tableWidget.horizontalHeaderItem(c).text(), self.tableWidget.verticalHeaderItem(r).text()
+            page.append(h)
+            print(page)
+        app.instance().quit()
+
 
 class WikiPush(object):
     '''
@@ -64,12 +110,12 @@ class WikiPush(object):
         smwClient=SMWClient(wiki.getSite())
         pageRecords=smwClient.query(askQuery)  
         if queryField is None:
-            return pageRecords.keys()
+            return list(pageRecords.keys())
         # use a Dict to remove duplicates
         pagesDict={}
         for pageRecord in pageRecords.values():
             pagesDict[pageRecord[queryField]]=True
-        return pagesDict.keys()
+        return list(pagesDict.keys())
     
     def nuke(self,pageTitles,force=False):
         '''
@@ -502,6 +548,16 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 pages=args.pages
             elif args.query:
                 pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField)
+                print(pages)
+                
+
+
+                w = Widget(pages)
+                w.show()
+                a=(app.exec_())
+                pages=page
+                
+
             if pages is None:
                 raise Exception("no pages specified - you might want to use the -p or -q option")
             else:
@@ -532,3 +588,4 @@ if __name__ == "__main__":
     if DEBUG:
         sys.argv.append("-d")
     sys.exit(mainPush())
+    
