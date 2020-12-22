@@ -9,6 +9,7 @@ import getpass
 import wikibot
 from wikibot.wikipush import WikiPush
 
+
 class TestWikiPush(unittest.TestCase):
     '''
     test pushing pages including images
@@ -33,7 +34,6 @@ class TestWikiPush(unittest.TestCase):
         wikipush=WikiPush("or",None)
         pages=wikipush.query(askQuery,showProgress=False,limit=10)
         self.assertEqual(10,len(pages))
-        
     
     def testIssue29(self):
         '''
