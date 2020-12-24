@@ -150,7 +150,7 @@ class TestSMW(unittest.TestCase):
                 expectedRecord=expectedRecords[i]
                 recordkey,record=resultlist[i];
                 for key in expectedRecord.keys():
-                    self.assertEquals(expectedRecord[key],record[key]) 
+                    self.assertEqual(expectedRecord[key],record[key]) 
         
     def testSMWAsk(self):
         """ test getting the unserialized json result of an ask query"""
