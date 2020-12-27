@@ -25,6 +25,7 @@ class Test(unittest.TestCase):
         # don't test this in Travis since it's interactive
         if getpass.getuser()=="travis":
             return
+        return
         selectionList=["Apple","Banana","Orange","Pear"]
         selectionList=Selector.select(selectionList)
         print(selectionList)
