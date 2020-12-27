@@ -1,0 +1,25 @@
+#!/bin/bash
+# WF 2020-03-25
+os=$(uname -a)
+case $os in
+  Darwin*)
+   pip="sudo -H pip"
+   install="sudo port install"
+   ;;
+  *)
+   pip="pip3"
+   if [ "$USER" = "travis" ]
+   then
+     # https://stackoverflow.com/a/20621143/1497139
+     echo "environment is travis with python version $TRAVIS_PYTHON_VERSION"
+     pip="pip"
+     # create an empty user-config to make pywikibot happy
+     touch user-config.py
+   fi
+   install="sudo apt-get install"
+   ;;
+esac
+#$install python3-pip
+$pip --version
+$pip install -r requirements.txt
+python3 setup.py install --user

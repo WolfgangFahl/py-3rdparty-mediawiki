@@ -1,0 +1,16 @@
+#!/bin/bash
+# WF 2020-01-31
+checkinstalled() {
+  local l_cmd="$1"
+  which $l_cmd > /dev/null
+  if [ $? -ne 0 ]
+  then
+    echo "$l_cmd need to be installed" 1>&2
+    exit 1
+  fi
+}
+checkinstalled  sphinx-apidoc
+sphinx-apidoc -f -o docs/source . wikibot/crypt wikibot/wikibot wikibot/smw
+cd docs
+make clean html
+open build/html/index.html
