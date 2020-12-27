@@ -44,6 +44,14 @@ tests.test\_WikiUser module
    :undoc-members:
    :show-inheritance:
 
+tests.test\_duckinterface module
+--------------------------------
+
+.. automodule:: tests.test_duckinterface
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.test\_wikibot module
 --------------------------
 
