@@ -20,6 +20,14 @@ tests.test\_SMWApi module
    :undoc-members:
    :show-inheritance:
 
+tests.test\_Selector module
+---------------------------
+
+.. automodule:: tests.test_Selector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.test\_WikiPush module
 ---------------------------
 

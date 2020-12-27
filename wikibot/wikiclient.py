@@ -48,6 +48,33 @@ class WikiClient(Wiki):
                 print("login failed: %s" % str(ex))
             return False
         
+    def getWikiMarkup(self,pageTitle):
+        '''
+        get the wiki markup code (text) for the given page Title
+        
+        Args:
+            pageTitle(str): the title of the page to retrieve
+            
+        Returns:
+            str: the wiki markup code for the page
+        '''
+        page=self.getPage(pageTitle)
+        markup=page.text()
+        return markup
+    
+    def getHtml(self,pageTitle):
+        '''
+        get the HTML code for the given page Title
+        
+        Args:
+            pageTitle(str): the title of the page to retrieve
+        '''
+        api=self.getSite().api("parse",page=pageTitle)
+        if not "parse" in api:
+            raise Exception("could not retrieve html for page %s" % pageTitle)
+        html=api["parse"]["text"]["*"]
+        return html        
+        
     def getPage(self,pageTitle):
         page=self.getSite().pages[pageTitle]
         return page
@@ -62,11 +89,6 @@ class WikiClient(Wiki):
         '''
         newPage=self.getPage(pageTitle)
         newPage.edit(pageContent,pageSummary)
-    
-    def __str__(self):
-        wu=self.wikiUser
-        text="%20s: %15s %s" % (wu.wikiId,wu.user,wu.url)    
-        return text
         
     @staticmethod
     def getClients():

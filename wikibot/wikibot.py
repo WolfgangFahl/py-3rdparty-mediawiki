@@ -108,9 +108,42 @@ class Family(family.Family):
             #self.site.login(password=self.wikiUser.getPassword())
             lm = LoginManager(password=self.wikiUser.getPassword(), site=self.site, user=self.wikiUser.user)
             lm.login()
+            
+    def getWikiMarkup(self,pageTitle):
+        '''
+        get the wiki markup code (text) for the given page Title
+        
+        Args:
+            pageTitle(str): the title of the page to retrieve
+            
+        Returns:
+            str: the wiki markup code for the page
+        '''
+        page=self.getPage(pageTitle)
+        markup=page.text
+        return markup
+            
+    def getHtml(self,pageTitle):
+        '''
+        get the HTML code for the given page Title
+        
+        Args:
+            pageTitle(str): the title of the page to retrieve
+            
+        Returns:
+            str: the rendered HTML code for the page
+        '''
+        page=self.getPage(pageTitle)
+        html=page._get_parsed_page()
+        return html
         
     def getPage(self,pageTitle):
-        ''' get the page with the given title'''
+        ''' get the page with the given title
+        Args:
+            pageTitle(str): the title of the page to retrieve
+        Returns:
+            Page: the wikibot page for the given pageTitle
+        '''
         page = pywikibot.Page(self.site, pageTitle)  
         return page             
     
@@ -119,8 +152,3 @@ class Family(family.Family):
         newPage=self.getPage(pageTitle)
         newPage.text=pageContent
         newPage.save(pageSummary)
-        
-    def __str__(self):
-        wu=self.wikiUser
-        text="%20s: %s %s" % (wu.wikiId,wu.url,wu.user)    
-        return text

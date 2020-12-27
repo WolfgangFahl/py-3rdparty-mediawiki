@@ -20,6 +20,14 @@ wikibot.mwTable module
    :undoc-members:
    :show-inheritance:
 
+wikibot.selector module
+-----------------------
+
+.. automodule:: wikibot.selector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wikibot.smw module
 ------------------
 

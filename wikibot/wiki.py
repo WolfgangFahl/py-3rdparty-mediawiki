@@ -19,3 +19,12 @@ class Wiki(object):
         self.wikiUser=wikiUser
         self.debug=debug
         
+    def __str__(self):
+        '''
+        return a string representation of myself
+        '''
+        wu=self.wikiUser
+        botType=type(self).__name__
+        text="%20s(%10s): %15s %s" % (wu.wikiId,botType,wu.user,wu.url)    
+        return text
+        
