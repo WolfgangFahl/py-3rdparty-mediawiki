@@ -4,6 +4,9 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 '''
+
+from wikibot.transferfiles import *
+
 from wikibot.wikiclient import WikiClient
 from mwclient.image import Image
 from wikibot.smw import SMWClient
@@ -17,51 +20,7 @@ from pathlib import Path
 import sys
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
-from PyQt5 import QtCore, QtGui, QtWidgets
 
-import sys
-page=[]
-app = QtWidgets.QApplication(sys.argv)
-class Widget(QtWidgets.QWidget):
-    def __init__(self, names,parent=None):
-        super(Widget, self).__init__(parent)
-        self.tableWidget = QtWidgets.QTableWidget(len(names), 1)
-
-        self.book_button = QtWidgets.QPushButton("Commit")
-        self.book_button.clicked.connect(self.book_clicked)
-
-        lay = QtWidgets.QVBoxLayout(self)
-        lay.addWidget(self.tableWidget)
-        lay.addWidget(self.book_button)
-
-        self.tableWidget.setHorizontalHeaderLabels("Files".split())
-        self.tableWidget.setVerticalHeaderLabels(names)
-
-        for i in range(self.tableWidget.rowCount()):
-            for j in range(self.tableWidget.columnCount()):
-                item = QtWidgets.QTableWidgetItem()
-                item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
-                item.setCheckState(QtCore.Qt.Unchecked)
-                self.tableWidget.setItem(i, j, item)
-
-    @QtCore.pyqtSlot()
-    def book_clicked(self):
-        items = []
-        global page
-        global app
-        for i in range(self.tableWidget.rowCount()):
-            for j in range(self.tableWidget.columnCount()):
-                item = self.tableWidget.item(i, j)
-                if item.checkState() == QtCore.Qt.Checked:
-                    items.append(item)
-
-        for it in items:
-            r = it.row()
-            c = it.column()
-            v, h = self.tableWidget.horizontalHeaderItem(c).text(), self.tableWidget.verticalHeaderItem(r).text()
-            page.append(h)
-            print(page)
-        app.instance().quit()
 
 
 class WikiPush(object):
@@ -523,7 +482,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
             parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
             parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
-        
+            parser.add_argument("-gui", "--transfer",dest="interface" ,help="Transfer files gui", action="store_true",required=False)
         if not mode=="wikibackup":
             parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
         # Process arguments
@@ -548,14 +507,20 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 pages=args.pages
             elif args.query:
                 pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField)
-                print(pages)
+
+                if args.interface:
+
+                    #This function call drawGui function from transferfiles.py.
+
+                    m_files,all_files =drawGui(pages)
+                    #all_files contain names of all files
+                    #m_files contain names of one or multiple selected files
+                    if not all_files:
+                        pages = [pages[idx] for idx in list(m_files)]
+                    else:
+                        pages=list(all_files)
                 
-
-
-                w = Widget(pages)
-                w.show()
-                a=(app.exec_())
-                pages=page
+                
                 
 
             if pages is None:
