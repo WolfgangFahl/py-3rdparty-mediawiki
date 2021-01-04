@@ -4,6 +4,7 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 '''
+from wikibot.selector import Selector
 from wikibot.wikiclient import WikiClient
 from mwclient.image import Image
 from wikibot.smw import SMWClient
@@ -75,7 +76,7 @@ class WikiPush(object):
             pagesDict[pageRecord[queryField]]=True
         return pagesDict.keys()
     
-    def nuke(self,pageTitles,force=False):
+    def nuke(self,pageTitles,force=False,viaUserInterface=False):
         '''
         delete the pages with the given page Titles
         
@@ -83,6 +84,7 @@ class WikiPush(object):
             pageTitles(list): a list of page titles to be transfered from the formWiki to the toWiki
             force(bool): True if pages should be actually deleted - dry run only listing pages is default
         '''
+        pageTitles = self.getUserSelection(viaUserInterface, pageTitles, "Nuke", "Nuke Selection", "Select the pages that should be nuked.")
         total=len(pageTitles)
         self.log("deleting %d pages in %s (%s)" % (total,self.toWikiId,"forced" if force else "dry run"))
         for i,pageTitle in enumerate(pageTitles):
@@ -131,14 +133,16 @@ class WikiPush(object):
         return modify
 
                 
-    def edit(self,pageTitles,modify=None,context=1,force=False):
+    def edit(self,pageTitles,modify=None,context=1,force=False,viaUserInterface=False):
         '''
         edit the pages with the given page Titles
         
         Args:
             pageTitles(list): a list of page titles to be transfered from the formWiki to the toWiki
             force(bool): True if pages should be actually deleted - dry run only listing pages is default
+            viaUserInterface(bool): True if multiple pages should be selected via interactive GUI
         '''
+        pageTitles = self.getUserSelection(viaUserInterface, pageTitles, "Edit", "Edit Selection", "Select the pages that should be edited.")
         if modify is None:
             raise Exception("wikipush edit needs a modify function!")
         total=len(pageTitles)
@@ -166,19 +170,21 @@ class WikiPush(object):
                 msg=str(ex)
                 self.log("❌:%s" % msg )            
                 
-    def upload(self,files,force=False):
+    def upload(self,files,force=False,viaUserInterface=False):
         '''
         push the given files
         Args:
             files(list): a list of filenames to be transfered to the toWiki
             force(bool): True if images should be overwritten if they exist
+            viaUserInterface(bool): True if multiple pages should be selected via interactive GUI
         '''
+        files = self.getUserSelection(viaUserInterface, files, "Upload", "Upload Selection", "Select the files that should be uploaded.")
         total=len(files)
         self.log("uploading %d files to %s" % (total,self.toWikiId))
         for i,file in enumerate(files):
             try:
                 self.log("%d/%d (%4.0f%%): uploading %s ..." % (i+1,total,(i+1)/total*100,file), end='')
-                description="uploaded by wikiupload" 
+                description="uploaded by wikiupload"
                 filename=os.path.basename(file)
                 self.uploadImage(file, filename, description, force)
             except Exception as ex:
@@ -234,16 +240,18 @@ class WikiPush(object):
             except Exception as ex:
                 self.handleException(ex)
         
-    def push(self,pageTitles,force=False,ignore=False,withImages=False):
+    def push(self,pageTitles,force=False,ignore=False,withImages=False,viaUserInterface=False):
         '''
         push the given page titles
         
         Args:
             pageTitles(list): a list of page titles to be transfered from the formWiki to the toWiki
             force(bool): True if pages should be overwritten if they exist
-            ignore(bool): True if warning for images should be ignored (e.g if they exist)
+            ignore(bool): True if warning for images should be ignored (e.g if they exist)-
             withImages(bool): True if the image on a page should also be copied
+            viaUserInterface(bool): True if multiple pages should be selected via interactive GUI
         '''
+        pageTitles = self.getUserSelection(viaUserInterface, pageTitles, "Push", "Push Selection", "Select all pages that should be pushed.")
         total=len(pageTitles)
         self.log("copying %d pages from %s to %s" % (total,self.fromWikiId,self.toWikiId))
         for i,pageTitle in enumerate(pageTitles):
@@ -402,7 +410,24 @@ class WikiPush(object):
                 for item in warningsDict.items():
                     warnings.append(str(item))
             self.handleAPIWarnings(warnings,ignoreExists)
-       
+
+    def getUserSelection(self, viaUserInterface, pages, action, title, instruction):
+        """
+
+        Args:
+            viaUserInterface(bool)
+            pages(list):
+            action(str):
+            title(str): title of the created window
+            instruction(str): Instructions for the user (consequence of the selection)
+        Returns:
+            If viaUserInterface is True and more than one page is given a user selected subset of the given pages is
+            returned. Otherwise pages is returned.
+        """
+        if viaUserInterface and len(pages) > 1:
+            return Selector.select(pages, action, title, instruction)
+        else:
+            return pages
 
 __version__ = "0.1.15"
 __date__ = '2020-10-31'
@@ -461,21 +486,25 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to overwrite existing pages")
             parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
+            parser.add_argument("-ui", "--userInterface", dest="viaUserInterface", action='store_true', help="multipage selection via interactive user interface")
         elif mode=="wikibackup": 
             parser.add_argument("-g", "--git", dest="git", action='store_true', help="use git for version control")
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
         elif mode=="wikinuke":
-            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to delete pages - default is 'dry' run only listing pages")            
+            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to delete pages - default is 'dry' run only listing pages")
+            parser.add_argument("-ui", "--userInterface", dest="viaUserInterface", action='store_true', help="multipage selection via interactive user interface")
         elif mode=="wikiedit":
             parser.add_argument("--search", dest="search", help="search pattern", required=True)
             parser.add_argument("--replace", dest="replace", help="replace pattern", required=True)
             parser.add_argument("--context", dest="context",type=int, help="number of context lines to show in dry run diff display",default=1)
-            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")            
+            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")
+            parser.add_argument("-ui", "--userInterface", dest="viaUserInterface", action='store_true', help="multipage selection via interactive user interface")
         elif mode=="wikiupload":
             parser.add_argument("--files", nargs='+', help="list of files to be uploaded", required=True)
-            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")            
+            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")
+            parser.add_argument("-ui", "--userInterface", dest="viaUserInterface", action='store_true', help="multipage selection via interactive user interface")
             pass
         if mode in  ["wikipush","wikiedit","wikinuke","wikibackup"]: 
             parser.add_argument("--limit",dest="limit",type=int,help="limit for query")
@@ -501,7 +530,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             wikipush=WikiPush(None,args.target,debug=args.debug)
             queryWiki=wikipush.toWiki
         if mode=="wikiupload":
-            wikipush.upload(args.files,args.force)
+            wikipush.upload(args.files,args.force,viaUserInterface=args.viaUserInterface)
         else:    
             pages=None
             if args.pages:
@@ -512,14 +541,14 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 raise Exception("no pages specified - you might want to use the -p or -q option")
             else:
                 if mode=="wikipush":
-                    wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
+                    wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages,viaUserInterface=args.viaUserInterface)
                 elif mode=="wikibackup":
                     wikipush.backup(pages,git=args.git,withImages=args.withImages)    
                 elif mode=='wikinuke':
-                    wikipush.nuke(pages,force=args.force)
+                    wikipush.nuke(pages,force=args.force,viaUserInterface=args.viaUserInterface)
                 elif mode=='wikiedit':
                     modify=WikiPush.getModify(args.search,args.replace)
-                    wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
+                    wikipush.edit(pages,modify=modify,context=args.context,force=args.force,viaUserInterface=args.viaUserInterface)
                 else:
                     raise Exception("undefined wikipush mode %s" % mode)
         
