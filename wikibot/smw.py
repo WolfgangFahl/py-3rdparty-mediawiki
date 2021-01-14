@@ -146,6 +146,7 @@ class SMW(object):
         self.site=site
         self.prefix=prefix
         self.showProgress=showProgress
+        self.THRESHOLD_LIMIT = 1000   # Hard limit for the result size (paging the query)
     
     def deserialize(self,rawresult):
         """ deserialize the given rawresult according to 
@@ -234,6 +235,9 @@ class SMWClient(SMW):
 
         API doc: https://semantic-mediawiki.org/wiki/Ask_API
 
+        The query is devided into multiple subqueries if the results of the query exeed the defined threshold.
+        If this happens the query is executed multiple times to retrieve all results without passing the threshold.
+
         Returns:
             Generator for retrieving all search results, with each answer as a dictionary.
             If the query is invalid, an APIError is raised. A valid query with zero
@@ -254,6 +258,7 @@ class SMWClient(SMW):
         offset = 0
         done=False
         count=0
+
         while not done:
             count+=1
             if self.showProgress:
@@ -262,7 +267,9 @@ class SMWClient(SMW):
                 
             queryParam=u'{query}|offset={offset}'.format(query=query,offset=offset)
             if limit is not None:
-                queryParam+="|limit={limit}".format(limit=limit)
+                queryParam+="|limit={limit}".format(limit=min(self.THRESHOLD_LIMIT, limit))
+            else:
+                queryParam+= f"|limit={self.THRESHOLD_LIMIT}"
             results = self.site.raw_api('ask', query=queryParam, http_method='GET', **kwargs)
             self.site.handle_api_result(results)  # raises APIError on error
             continueOffset = results.get('query-continue-offset')
@@ -274,6 +281,13 @@ class SMWClient(SMW):
                 if continueOffset<offset:
                     done=True
             offset=continueOffset
+            resultSize = len(self.deserialize(results))   # ToDo: Improve efficency by directly accessing the count attribute of result
+            if limit is not None:
+                limit -= resultSize
+                if limit == 0 :
+                    done=True
+            if resultSize < self.THRESHOLD_LIMIT:
+                done=True
             yield results
     
     def rawquery(self,askQuery,title=None,limit=None):
