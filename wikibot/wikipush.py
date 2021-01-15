@@ -514,7 +514,10 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 raise Exception("no pages specified - you might want to use the -p or -q option")
             else:
                 if args.ui:
-                    pages = Selector.select(pages)
+                    pages = Selector.select(pages, action=mode.lower().lstrip("wiki")[0].upper() + mode.lstrip("wiki")[1:],
+                                            description='GUI program for the mode ' + mode,title=mode)
+                    if pages == 'Q': #If GUI window is closed, end the program
+                        sys.exit(0)
                 if mode=="wikipush":
                     wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
                 elif mode=="wikibackup":
