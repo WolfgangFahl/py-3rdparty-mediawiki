@@ -34,6 +34,9 @@ class TestSelector(unittest.TestCase):
         # don't test this in Travis since it's interactive
         if getpass.getuser() == "travis":
             return
+        
+        # switch of interactive tests by default
+        return
 
         self.LOGGER.info("Starting interactive GUI test for the selector interface. Please follow the upcoming "
                          "instructions in the GUI to successfully complete the test.")
