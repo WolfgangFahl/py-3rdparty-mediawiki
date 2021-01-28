@@ -261,6 +261,43 @@ class TestSMW(unittest.TestCase):
                 #print(record.keys())
                 self.assertTrue(prop in record.keys())
 
+    def testArgumentValueExtraction(self):
+        """ test if the argument value is correctly extracted from a given query"""
+        # Test extraction
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|limit=12"), "12",
+                         "Unable to extract the argument")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|LIMIT=12"), "12",
+                         "Unable to extract the argument written as 'LIMIT' (Extraction should not be case sensitive)")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|LiMiT=12"), "12",
+                         "Unable to extract the argument written as 'LiMiT' (Extraction should not be case sensitive)")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]] | limit = 12"), "12",
+                         "Unable to extract the argument")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|  limit=  12"), "12",
+                         "Unable to extract the argument")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|limit   =12"), "12",
+                         "Unable to extract the argument")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[arg = 1]]|arg=12"), "12",
+                         "Incorrect extraction of arg")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[Category:Person]]|offset=12 | arg=7 | limit=5"),
+                         "7", "Unable to detect arg if other arguments ar present")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[Category:Person]]|arg=12 | arg=7 | limit=5"),
+                         "7", "Unable to detect last occurring argument arg correctly")
+        # Test handling of invalid input
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[Category:Person]]"), None,
+                         "Incorrect response to query without the argument. None should be returned")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery(None, "[[Category:Person]]"), None,
+                         "Incorrect response to None as argument. None should be returned")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("", "[[Category:Person]]"), None,
+                         "Incorrect response to argument being an empty string. None should be returned")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("args", "[[args=1]]"), None,
+                         "Argument should not be detected inside the page selection condition.")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", ""), None, "Incorrect response for empty query")
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", None), None,
+                         "Missing error handling for None as query input")
+        # Test if decimal numbers as value lead to None (Only integers should be extracted)
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[Category:Person]]|arg=12.5"), None,
+                         "Decimal number was extracted as correct value. Only integers should be extracted.")
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSMWApi']
     unittest.main()
