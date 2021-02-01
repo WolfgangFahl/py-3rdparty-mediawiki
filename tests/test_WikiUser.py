@@ -31,10 +31,13 @@ class TestWikiUser(unittest.TestCase):
             return
         wikiUsers=WikiUser.getWikiUsers()
         for wikiUser in wikiUsers.values():
-            print(wikiUser)
+            if self.debug:
+                print(wikiUser)
             
         testUser=WikiUser.ofWikiId("test")
-        print(testUser)
+        if self.debug:
+            print(testUser)
+        self.assertEqual("http://test.bitplan.com",testUser.getWikiUrl())
         pass
     
     @staticmethod
