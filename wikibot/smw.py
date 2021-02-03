@@ -358,8 +358,8 @@ class SMWClient(SMW):
         try:
             retrieveTimestamp = lambda res: int(next(iter(res.get('query').get('results').items()))[1]
                                                 .get('printouts').get(self.QUERY_SPLITUP_ID)[0].get("timestamp"))
-            start = datetime.fromtimestamp(retrieveTimestamp(resultsStart))
-            end = datetime.fromtimestamp(retrieveTimestamp(resultsEnd))
+            start = datetime.utcfromtimestamp(retrieveTimestamp(resultsStart))
+            end = datetime.utcfromtimestamp(retrieveTimestamp(resultsEnd))
             return (start, end)
         except Exception as e:
             print(e)
