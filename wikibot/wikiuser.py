@@ -30,6 +30,13 @@ class WikiUser(object):
         c=Crypt(self.cypher,20,self.salt)
         return c.decrypt(self.secret)
     
+    def getWikiUrl(self):
+        '''
+        return the full url of this wiki
+        '''
+        url="%s%s" % (self.url,self.scriptPath)
+        return url
+    
     def interactiveSave(self,yes,filePath=None):
         '''
         save me

@@ -1,6 +1,5 @@
 '''
 Created on 2020-12-20
-
 @author: wf
 '''
 import sys
@@ -35,17 +34,20 @@ class TestSelector(unittest.TestCase):
         # don't test this in Travis since it's interactive
         if getpass.getuser() == "travis":
             return
+        
+        # switch of interactive tests by default
+        return
 
         self.LOGGER.info("Starting interactive GUI test for the selector interface. Please follow the upcoming "
                          "instructions in the GUI to successfully complete the test.")
         selectionList = ["Apple", "Banana", "Orange", "Pear"]
         self.LOGGER.info("Testing Quit button")
-        self.assertTrue(len(Selector.select(selectionList, description="Click on the Quit button")) == 0,
+        self.assertTrue(Selector.select(selectionList, description="Click on the Quit button") == 'Q',
                         msg="Returned list should be empty after quiting")
 
         self.LOGGER.info("Testing window close button")
-        self.assertTrue(len(Selector.select(selectionList, description="Click on the window close button (The X in "
-                                                                       "the right corner)")) == 0,
+        self.assertTrue(Selector.select(selectionList, description="Click on the window close button (The X in "
+                                                                       "the right corner)") == 'Q',
                         msg="Returned list should be empty after closing the window")
 
         self.LOGGER.info("Testing selection of one item")
@@ -75,7 +77,7 @@ class TestSelector(unittest.TestCase):
 
         self.LOGGER.info("Testing handling of large amount of items")
         items = []
-        amount = 10
+        amount = 10000
         for i in range(amount):
             items.append("item_" + str(i))
         self.assertTrue(len(Selector.select(items, description="Select all items.")) == amount, msg="Not all items were selected")

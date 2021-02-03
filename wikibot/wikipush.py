@@ -512,6 +512,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
             parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
             parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
+            parser.add_argument("-ui", "--withGUI", dest="ui", help="Pop up GUI for selection", action="store_true",required=False)
         
         if not mode=="wikibackup":
             parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
@@ -540,6 +541,11 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             if pages is None:
                 raise Exception("no pages specified - you might want to use the -p or -q option")
             else:
+                if args.ui:
+                    pages = Selector.select(pages, action=mode.lower().lstrip("wiki")[0].upper() + mode.lstrip("wiki")[1:],
+                                            description='GUI program for the mode ' + mode,title=mode)
+                    if pages == 'Q': #If GUI window is closed, end the program
+                        sys.exit(0)
                 if mode=="wikipush":
                     wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages,viaUserInterface=args.viaUserInterface)
                 elif mode=="wikibackup":
