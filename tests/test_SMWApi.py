@@ -325,20 +325,19 @@ class TestSMW(unittest.TestCase):
         def _askForAllResults_mock_sideEffect(query,limit,kwargs):
             for i in range(1, DIVISION_STEPS+1):
                 day = lambda n: n if n>=10 else f"0{n}"
-                expectedQuery = QUERY+ f"|[[Modification date:: >2020-01-{day(i)} 00:00:00]]|[[Modification date:: " \
-                                       f"<2020-01-{day(i+1)} 00:00:00]] "
+                expectedQuery = QUERY+ f"|[[Modification date:: >=2020-01-{day(i)}T00:00:00]]|[[Modification date:: " \
+                                       f"<=2020-01-{day(i+1)}T00:00:00]]"
                 if query == expectedQuery:
                     return [RESULT_N(i)]
 
-        with patch("wikibot.smw.SMWClient.getIntegerUserInput") as getIntegerUserInput_mock, \
-                patch("wikibot.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
+        with patch("wikibot.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
                 patch("wikibot.smw.SMWClient.getBoundariesOfQuery") as getBoundariesOfQuery:
-            getIntegerUserInput_mock.return_value = DIVISION_STEPS
             getBoundariesOfQuery.return_value = (datetime.strptime("01/01/2020 00:00:00", '%d/%m/%Y %H:%M:%S'),
                                                  datetime.strptime("11/01/2020 00:00:00", '%d/%m/%Y %H:%M:%S'))
             askForAllResults_mock.side_effect = _askForAllResults_mock_sideEffect
             for smw in self.getSMWs():
                 if isinstance(smw, SMWClient):
+                    smw.queryDivision = DIVISION_STEPS
                     results = smw.askPartitionQuery(QUERY)
                     match = 0
                     for res in results:
@@ -378,27 +377,28 @@ class TestSMW(unittest.TestCase):
         for smw in self.getSMWs():
             if isinstance(smw, SMWClient):
                 with patch("mwclient.client.Site.raw_api") as raw_api_mock:
+                    # Test if the limit is detected and the partial result returned correctly
                     raw_api_mock.side_effect = _raw_api_side_effect_with_oversized_result
-                    detected_oversized_result = True
-                    try:
+                    self.assertRaises(QueryResultSizeExceedException, smw.askForAllResults, QUERY)
+                    with self.assertRaises(QueryResultSizeExceedException) as e:
                         smw.askForAllResults(QUERY)
-                    except QueryResultSizeExceedException as e:
-                        detected_oversized_result = True
-                    self.assertTrue(detected_oversized_result)
-
-                    # change mockup results
+                    num_res=0
+                    for res in e.exception.getResults():
+                        r = res.get("query").get("results")
+                        num_res += len(r)
+                    self.assertEqual(MAX, num_res)
+                    # Test handling of normal query (result within the limit)
                     raw_api_mock.side_effect = _raw_api_side_effect_without_oversized_result
                     results = smw.askForAllResults(QUERY)
                     num_res = 0
                     for res in results:
                         r = res.get("query").get("results")
                         num_res += len(r)
-                    self.assertEqual(num_res, MAX)
+                    self.assertEqual(MAX, num_res)
 
-    def testAutomaticSwitchToQueryDivision(self):
+    def testSwitchToQueryDivision(self):
         """
-        Test if the query strategy switches to query division if the function 'askForAllResults' raises a
-        QueryResultSizeExceedException Exception.
+        Test if the query strategy switches to query division if the attribute 'queryDivision' is greater one
         """
         QUERY = "[[Modification date::+]]"
         RESULT = TestSMW.result_of(1)
@@ -408,13 +408,24 @@ class TestSMW(unittest.TestCase):
 
         for smw in self.getSMWs():
             if isinstance(smw, SMWClient):
+                # Test default case
                 with patch("wikibot.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
                         patch("wikibot.smw.SMWClient.askPartitionQuery") as askPartitionQuery_mock:
-                    askForAllResults_mock.side_effect = askForAllResults_mock_side_effect
-                    askPartitionQuery_mock.return_value = [RESULT]
+                    askForAllResults_mock.return_value = [RESULT]
+                    askPartitionQuery_mock.return_value = None
                     result = smw.ask(QUERY)
                     self.assertEqual(next(result), RESULT)
                     self.assertEqual(askForAllResults_mock.call_count, 1)
+                    self.assertEqual(askPartitionQuery_mock.call_count, 0)
+                # Test if query division is used if 'queryDivision' attribute is set above 1
+                smw.queryDivision = 10
+                with patch("wikibot.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
+                        patch("wikibot.smw.SMWClient.askPartitionQuery") as askPartitionQuery_mock:
+                    askForAllResults_mock.return_value = None
+                    askPartitionQuery_mock.return_value = [RESULT]
+                    result = smw.ask(QUERY)
+                    self.assertEqual(next(result), RESULT)
+                    self.assertEqual(askForAllResults_mock.call_count, 0)
                     self.assertEqual(askPartitionQuery_mock.call_count, 1)
 
     @staticmethod
