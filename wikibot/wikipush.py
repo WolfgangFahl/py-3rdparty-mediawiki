@@ -51,7 +51,7 @@ class WikiPush(object):
         if self.verbose:
             print (msg,end=end)
      
-    def query(self,askQuery,wiki=None,queryField=None,limit=None,showProgress=False):
+    def query(self,askQuery,wiki=None,queryField=None,limit=None,showProgress=False, queryDivision=1):
         '''
         query the given wiki for pages matching the given askQuery
         
@@ -66,7 +66,7 @@ class WikiPush(object):
         '''
         if wiki is None:
             wiki=self.fromWiki
-        smwClient=SMWClient(wiki.getSite(),showProgress=showProgress)
+        smwClient=SMWClient(wiki.getSite(),showProgress=showProgress, queryDivision=queryDivision)
         pageRecords=smwClient.query(askQuery,limit=limit)  
         if queryField is None:
             return pageRecords.keys()
@@ -485,11 +485,15 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
             parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
             parser.add_argument("-ui", "--withGUI", dest="ui", help="Pop up GUI for selection", action="store_true",required=False)
+            parser.add_argument("-qd", "--queryDivision", dest="queryDivision", type=int, help="divide query into equidistant subintervals to limit the result size of the individual queries", required=False)
         
         if not mode=="wikibackup":
             parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
         # Process arguments
         args = parser.parse_args(argv)
+
+        if args.queryDivision < 1:
+            raise ValueError("queryDivision argument must be greater equal 1")
         
         if mode=="wikipush":
             wikipush=WikiPush(args.source,args.target,login=args.login,debug=args.debug)
@@ -509,7 +513,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             if args.pages:
                 pages=args.pages
             elif args.query:
-                pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField,limit=args.limit,showProgress=args.showProgress)
+                pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision)
             if pages is None:
                 raise Exception("no pages specified - you might want to use the -p or -q option")
             else:
