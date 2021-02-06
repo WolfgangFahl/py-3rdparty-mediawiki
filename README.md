@@ -1,5 +1,6 @@
 # py-3rdparty-mediawiki
 [![Join the chat at https://gitter.im/Mediawiki-Japi/community](https://badges.gitter.im/Mediawiki-Japi/community.svg)](https://gitter.im/Mediawiki-Japi/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![pypi](https://img.shields.io/pypi/pyversions/py-3rdparty-mediawiki)](https://pypi.org/project/py-3rdparty-mediawiki/)
 [![Travis (.org)](https://img.shields.io/travis/WolfgangFahl/py-3rdparty-mediawiki.svg)](https://travis-ci.org/WolfgangFahl/py-3rdparty-mediawiki)
 [![GitHub issues](https://img.shields.io/github/issues/WolfgangFahl/py-3rdparty-mediawiki.svg)](https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues)
 [![GitHub issues](https://img.shields.io/github/issues-closed/WolfgangFahl/py-3rdparty-mediawiki.svg)](https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/?q=is%3Aissue+is%3Aclosed)
