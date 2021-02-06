@@ -19,6 +19,12 @@ class TestWikiPush(unittest.TestCase):
         self.debug=False
         pass
 
+    def inPublicCI(self):
+        '''
+        are we running in a public Continuous Integration Environment?
+        '''
+        return getpass.getuser() in [ "travis", "runner" ];
+            
 
     def tearDown(self):
         pass
@@ -28,8 +34,7 @@ class TestWikiPush(unittest.TestCase):
         test the limit handling 
         '''
         # don't test this in Travis
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         askQuery="[[isA::Event]]"
         wikipush=WikiPush("or",None)
         pages=wikipush.query(askQuery,showProgress=False,limit=10)
@@ -40,8 +45,7 @@ class TestWikiPush(unittest.TestCase):
         makes sure query does not hang on large queries
         '''
         # don't test this in Travis
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         return # test takes 22 secs - don't activate if not necessary
         askQuery="[[isA::Event]]"
         wikipush=WikiPush("orcopy",None)
@@ -55,8 +59,7 @@ class TestWikiPush(unittest.TestCase):
         allow mass delete of pages
         '''
         # don't test this in Travis
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         wikipush=WikiPush(None,"test")
         pageTitles=['deleteMe1','deleteMe2','deleteMe3']
         for pageTitle in pageTitles:
@@ -72,8 +75,7 @@ class TestWikiPush(unittest.TestCase):
         '''
         return # don't test this nightly
         # don't test this in Travis
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         wikipush=WikiPush("master","test")
         wikipush.push(["File:index.png"], force=True, ignore=True, withImages=True)
         
@@ -84,8 +86,7 @@ class TestWikiPush(unittest.TestCase):
         add -qf / queryField option to allow to select other property than mainlabel
         '''
         # don't test this in Travis
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         wikipush=WikiPush("smwcopy","test")
         ask="""{{#ask:[[Has conference::+]]
  |mainlabel=Talk
@@ -108,8 +109,7 @@ class TestWikiPush(unittest.TestCase):
         '''
         test transferpages
         '''
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         ask="{{#ask: [[TransferPage page::+]][[TransferPage wiki::Master]]| mainlabel=-| ?TransferPage page = page| format=table|limit=300}}"
         wikipush=WikiPush("master","test")
         pages=wikipush.query(ask,queryField="page")
@@ -121,8 +121,7 @@ class TestWikiPush(unittest.TestCase):
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/10
         Query support for page selection
         '''
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         wp=WikiPush("smwcopy","test")
         pages=wp.query("[[Capital of::+]]")
         if self.debug:
@@ -132,8 +131,7 @@ class TestWikiPush(unittest.TestCase):
         
     def testWikiBackup(self):
         # don't test this in Travis
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         wp=WikiPush("smw")
         pageTitles=wp.query("[[Capital of::+]]")
         wp.backup(pageTitles)
@@ -151,8 +149,7 @@ class TestWikiPush(unittest.TestCase):
         test pushing a page from one wiki to another
         '''
         # don't test this in Travis
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         wp=WikiPush("wikipedia_org_test2","test")
         for force in [False,True]:
             for ignore in [False,True]:
@@ -177,8 +174,7 @@ class TestWikiPush(unittest.TestCase):
         check the image download
         '''
         # don't test this in Travis
-        if getpass.getuser()=="travis":
-            return
+        if self.inPublicCI(): return
         wp=WikiPush("wikipedia_org_test2","test")
         page=wp.fromWiki.getPage("PictureTestPage")
         images=list(page.images())

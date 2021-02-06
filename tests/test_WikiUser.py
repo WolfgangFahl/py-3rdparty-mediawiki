@@ -22,13 +22,19 @@ class TestWikiUser(unittest.TestCase):
 
     def tearDown(self):
         pass
+    
+    @staticmethod
+    def inPublicCI():
+        '''
+        are we running in a public Continuous Integration Environment?
+        '''
+        return getpass.getuser() in [ "travis", "runner" ];
 
     def testWikiUser(self):
         '''
         test the wiki user handling
         '''
-        if getpass.getuser()=="travis":
-            return
+        if TestWikiUser.inPublicCI(): return
         wikiUsers=WikiUser.getWikiUsers()
         for wikiUser in wikiUsers.values():
             if self.debug:
@@ -59,7 +65,7 @@ class TestWikiUser(unittest.TestCase):
                 raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
             else:
                 wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
-                if getpass.getuser()=="travis":
+                if TestWikiUser.inPublicCI():
                     wikiUser.save()
         else: 
             wikiUser=WikiUser.ofWikiId(wikiId,lenient=True)

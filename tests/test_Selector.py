@@ -31,8 +31,8 @@ class TestSelector(unittest.TestCase):
         The core components of the selector are define by https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/25
         Add Selection option for multi-file operations #25
         '''
-        # don't test this in Travis since it's interactive
-        if getpass.getuser() == "travis":
+        # don't test this in Travis or github actions since it's interactive
+        if getpass.getuser() in [ "travis", "runner" ]:
             return
         
         # switch of interactive tests by default
