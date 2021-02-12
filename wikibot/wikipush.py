@@ -405,7 +405,7 @@ class WikiPush(object):
             self.handleAPIWarnings(warnings,ignoreExists)
        
 
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 __date__ = '2020-10-31'
 __updated__ = '2020-02-12'
 DEBUG=False
@@ -485,7 +485,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
             parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
             parser.add_argument("-ui", "--withGUI", dest="ui", help="Pop up GUI for selection", action="store_true",required=False)
-            parser.add_argument("-qd", "--queryDivision", dest="queryDivision", type=int, help="divide query into equidistant subintervals to limit the result size of the individual queries", required=False)
+            parser.add_argument("-qd", "--queryDivision", default=1, dest="queryDivision", type=int, help="divide query into equidistant subintervals to limit the result size of the individual queries", required=False)
         
         if not mode=="wikibackup":
             parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
