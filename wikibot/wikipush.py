@@ -405,9 +405,9 @@ class WikiPush(object):
             self.handleAPIWarnings(warnings,ignoreExists)
        
 
-__version__ = "0.1.15"
+__version__ = "0.3.3"
 __date__ = '2020-10-31'
-__updated__ = '2020-12-05'
+__updated__ = '2020-02-12'
 DEBUG=False
 
 def mainNuke(argv=None):
