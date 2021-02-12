@@ -173,7 +173,7 @@ class TestSMW(unittest.TestCase):
         wikibot=TestWikiBot.getSMW_Wiki()
         if TestSMW.debug:
             print(wikibot.scriptPath)
-        self.assertEquals("/w",wikibot.scriptPath)
+        self.assertEqual("/w",wikibot.scriptPath)
         
     # issue https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/3
     # see https://www.semantic-mediawiki.org/wiki/User:WolfgangFahl/Workdocumentation_2020-06-01
