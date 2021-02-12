@@ -405,7 +405,7 @@ class WikiPush(object):
             self.handleAPIWarnings(warnings,ignoreExists)
        
 
-__version__ = "0.3.4"
+__version__ = "0.3.5"
 __date__ = '2020-10-31'
 __updated__ = '2020-02-12'
 DEBUG=False
