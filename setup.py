@@ -33,7 +33,7 @@ setup(
         'wikiedit = wikibot.wikipush:mainEdit',
         'wikinuke = wikibot.wikipush:mainNuke',
         'wikipush = wikibot.wikipush:mainPush',
-        'wikiquery = wikibot.wikipush.mainQuery',
+        'wikiquery = wikibot.wikipush:mainQuery',
         'wikiupload = wikibot.wikipush:mainUpload',
         'wikiuser = wikibot.wikiuser:main',
       ],

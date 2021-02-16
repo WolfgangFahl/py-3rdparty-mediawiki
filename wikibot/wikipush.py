@@ -509,7 +509,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("--files", nargs='+', help="list of files to be uploaded", required=True)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")            
             pass
-        if mode in  ["wikipush","wikiedit","wikinuke","wikibackup"]: 
+        if mode in  ["wikipush","wikiedit","wikinuke","wikibackup","wikiquery"]:
             parser.add_argument("--limit",dest="limit",type=int,help="limit for query")
             parser.add_argument("--progress",dest="showProgress",action='store_true',help="shows progress for query")
             parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
@@ -519,7 +519,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-ui", "--withGUI", dest="ui", help="Pop up GUI for selection", action="store_true",required=False)
             parser.add_argument("-qd", "--queryDivision", default=1, dest="queryDivision", type=int, help="divide query into equidistant subintervals to limit the result size of the individual queries", required=False)
         
-        if not mode=="wikibackup":
+        if not mode in ["wikibackup", "wikiquery"]:
             parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
         # Process arguments
         args = parser.parse_args(argv)
@@ -549,9 +549,9 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 pages=args.pages
             elif args.query or args.queryFile:
                 if args.query:
-                    query: args.query
+                    query = args.query
                 else:
-                    with open(args.queryfile, 'r') as queryFile:
+                    with open(args.queryFile, 'r') as queryFile:
                         query=queryFile.read()
                 if mode=="wikiquery":
                     wikipush.formatQueryResult(query,wiki=queryWiki,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision,outputFormat=args.format)    
@@ -564,7 +564,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 else:
                     raise Exception("no pages specified - you might want to use the -p, -q or --queryFile option")
             else:
-                if args.ui:
+                if args.ui and len(pages) > 0:
                     pages = Selector.select(pages, action=mode.lower().lstrip("wiki")[0].upper() + mode.lstrip("wiki")[1:],
                                             description='GUI program for the mode ' + mode,title=mode)
                     if pages == 'Q': #If GUI window is closed, end the program

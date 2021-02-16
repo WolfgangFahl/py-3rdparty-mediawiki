@@ -293,6 +293,9 @@ class SMWClient(SMW):
             results = self.askPartitionQuery(query, limit, kwargs)
         for res in results:
             yield res
+        if not results:
+            raise ValueError("Query results empty. For queries with no result it is expected that the query response "
+                             "metadata is returned.")
 
     def askPartitionQuery(self, query, limit=None, kwargs={}):
         """
@@ -411,8 +414,7 @@ class SMWClient(SMW):
                 if continueOffset < offset:
                     done = True
             offset = continueOffset
-            if results.get('query').get('results'):
-                res.append(results)
+            res.append(results)
         endShowProgress(self.showProgress, count)
         return res
     
