@@ -517,7 +517,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             if pages is None:
                 raise Exception("no pages specified - you might want to use the -p or -q option")
             else:
-                if args.ui:
+                if args.ui and len(pages) > 0:
                     pages = Selector.select(pages, action=mode.lower().lstrip("wiki")[0].upper() + mode.lstrip("wiki")[1:],
                                             description='GUI program for the mode ' + mode,title=mode)
                     if pages == 'Q': #If GUI window is closed, end the program
