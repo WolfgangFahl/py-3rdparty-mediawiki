@@ -50,7 +50,34 @@ class WikiPush(object):
     def log(self,msg,end='\n'):
         if self.verbose:
             print (msg,end=end)
+            
+    def formatQueryResult(self,askQuery,wiki=None,limit=None,showProgress=False,queryDivision=1,outputFormat='json'):
+        '''
+        format the query result for the given askQuery
+        '''
+        pageRecords=self.queryPages(askQuery, wiki, limit, showProgress, queryDivision)
+        print(outputFormat)
+        for pageRecord in pageRecords:
+            print(pageRecord)
      
+    def queryPages(self,askQuery,wiki=None,limit=None,showProgress=False, queryDivision=1):
+        '''
+        query the given wiki for pagerecords matching the given askQuery
+        
+        Args:
+            askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
+            wiki(wikibot): the wiki to query - use fromWiki if not specified
+            limit(int): the limit for the query (optional)
+            showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
+        Returns:
+            list: a list of pageRecords matching the given askQuery
+        '''
+        if wiki is None:
+            wiki=self.fromWiki
+        smwClient=SMWClient(wiki.getSite(),showProgress=showProgress, queryDivision=queryDivision)
+        pageRecords=smwClient.query(askQuery,limit=limit)  
+        return pageRecords
+    
     def query(self,askQuery,wiki=None,queryField=None,limit=None,showProgress=False, queryDivision=1):
         '''
         query the given wiki for pages matching the given askQuery
@@ -64,10 +91,7 @@ class WikiPush(object):
         Returns:
             list: a list of pageTitles matching the given askQuery
         '''
-        if wiki is None:
-            wiki=self.fromWiki
-        smwClient=SMWClient(wiki.getSite(),showProgress=showProgress, queryDivision=queryDivision)
-        pageRecords=smwClient.query(askQuery,limit=limit)  
+        pageRecords=self.queryPages(askQuery, wiki, limit, showProgress, queryDivision)
         if queryField is None:
             return pageRecords.keys()
         # use a Dict to remove duplicates
@@ -272,7 +296,7 @@ class WikiPush(object):
                 else:
                     self.log("❌")
             except Exception as ex:
-                self.log("❌:%s" % str(ex) )
+                self.log("❌:%s" % str(ex) )       
                 
     def ensureParentDirectoryExists(self,filePath):
         # for pages that have a "/" in the name:
@@ -405,9 +429,9 @@ class WikiPush(object):
             self.handleAPIWarnings(warnings,ignoreExists)
        
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 __date__ = '2020-10-31'
-__updated__ = '2020-02-12'
+__updated__ = '2020-02-16'
 DEBUG=False
 
 def mainNuke(argv=None):
@@ -418,6 +442,9 @@ def mainEdit(argv=None):
     
 def mainPush(argv=None):
     main(argv,mode='wikipush')
+    
+def mainQuery(argv=None):
+    main(argv,mode='wikiquery')
     
 def mainUpload(argv=None):
     main(argv,mode='wikiupload')
@@ -473,7 +500,11 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("--search", dest="search", help="search pattern", required=True)
             parser.add_argument("--replace", dest="replace", help="replace pattern", required=True)
             parser.add_argument("--context", dest="context",type=int, help="number of context lines to show in dry run diff display",default=1)
-            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")            
+            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")         
+        elif mode=="wikiquery":
+            parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
+            parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
+            parser.add_argument("--format", dest="format", default='json', help="format to use for query result csv,json,xml,ttl or wiki")         
         elif mode=="wikiupload":
             parser.add_argument("--files", nargs='+', help="list of files to be uploaded", required=True)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")            
@@ -482,6 +513,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("--limit",dest="limit",type=int,help="limit for query")
             parser.add_argument("--progress",dest="showProgress",action='store_true',help="shows progress for query")
             parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
+            parser.add_argument("--queryFile", dest="queryFile", help="file the query should be read from")
             parser.add_argument("-qf", "--queryField",dest="queryField",help="query result field which contains page")
             parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
             parser.add_argument("-ui", "--withGUI", dest="ui", help="Pop up GUI for selection", action="store_true",required=False)
@@ -501,6 +533,9 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
         elif mode=="wikibackup":
             wikipush=WikiPush(args.source,None,login=args.login,debug=args.debug)    
             queryWiki=wikipush.fromWiki
+        elif mode=="wikiquery":
+            wikipush=WikiPush(args.source,None,login=args.login,debug=args.debug)
+            queryWiki=wikipush.fromWiki
         elif mode=="wikiupload":
             wikipush=WikiPush(None,args.target,debug=args.debug)
         else:
@@ -512,10 +547,22 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             pages=None
             if args.pages:
                 pages=args.pages
-            elif args.query:
-                pages=wikipush.query(args.query,wiki=queryWiki,queryField=args.queryField,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision)
+            elif args.query or args.queryFile:
+                if args.query:
+                    query: args.query
+                else:
+                    with open(args.queryfile, 'r') as queryFile:
+                        query=queryFile.read()
+                if mode=="wikiquery":
+                    wikipush.formatQueryResult(query,wiki=queryWiki,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision,outputFormat=args.format)    
+                else:     
+                    pages=wikipush.query(query,wiki=queryWiki,queryField=args.queryField,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision)
             if pages is None:
-                raise Exception("no pages specified - you might want to use the -p or -q option")
+                if mode=="wikiquery":
+                    # we are finished
+                    pass
+                else:
+                    raise Exception("no pages specified - you might want to use the -p, -q or --queryFile option")
             else:
                 if args.ui:
                     pages = Selector.select(pages, action=mode.lower().lstrip("wiki")[0].upper() + mode.lstrip("wiki")[1:],
@@ -525,7 +572,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 if mode=="wikipush":
                     wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
                 elif mode=="wikibackup":
-                    wikipush.backup(pages,git=args.git,withImages=args.withImages)    
+                    wikipush.backup(pages,git=args.git,withImages=args.withImages)   
                 elif mode=='wikinuke':
                     wikipush.nuke(pages,force=args.force)
                 elif mode=='wikiedit':
