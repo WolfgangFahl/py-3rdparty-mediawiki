@@ -24,7 +24,6 @@ class TestWikiPush(unittest.TestCase):
         are we running in a public Continuous Integration Environment?
         '''
         return getpass.getuser() in [ "travis", "runner" ];
-            
 
     def tearDown(self):
         pass
