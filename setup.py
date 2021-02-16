@@ -10,7 +10,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='py-3rdparty-mediawiki',
-    version='0.3.4',
+    version='0.3.6',
 
     packages=['wikibot',],
     classifiers=[
@@ -33,6 +33,7 @@ setup(
         'wikiedit = wikibot.wikipush:mainEdit',
         'wikinuke = wikibot.wikipush:mainNuke',
         'wikipush = wikibot.wikipush:mainPush',
+        'wikiquery = wikibot.wikipush.mainQuery',
         'wikiupload = wikibot.wikipush:mainUpload',
         'wikiuser = wikibot.wikiuser:main',
       ],
