@@ -549,9 +549,9 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 pages=args.pages
             elif args.query or args.queryFile:
                 if args.query:
-                    query: args.query
+                    query = args.query
                 else:
-                    with open(args.queryfile, 'r') as queryFile:
+                    with open(args.queryFile, 'r') as queryFile:
                         query=queryFile.read()
                 if mode=="wikiquery":
                     wikipush.formatQueryResult(query,wiki=queryWiki,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision,outputFormat=args.format)    
