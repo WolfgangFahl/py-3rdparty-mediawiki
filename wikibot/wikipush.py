@@ -18,6 +18,7 @@ from pathlib import Path
 import sys
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
+import json
 
 class WikiPush(object):
     '''
@@ -53,13 +54,51 @@ class WikiPush(object):
             
     def formatQueryResult(self,askQuery,wiki=None,limit=None,showProgress=False,queryDivision=1,outputFormat='json'):
         '''
-        format the query result for the given askQuery
+        format the query result for the given askQuery.
+        Args:
+             askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
+            wiki(wikibot): the wiki to query - use fromWiki if not specified
+            limit(int): the limit for the query (optional)
+            showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
+            queryDivision(int): Defines the number of subintervals the query is divided into (must be greater equal 1)
+            outputFormat(str): output format of the query results - default format is json
+        Returns:
+            Query results in the requested outputFormat as string.
+            If the requested outputFormat is not supported None is returned.
         '''
         pageRecords=self.queryPages(askQuery, wiki, limit, showProgress, queryDivision)
-        print(outputFormat)
-        for pageRecord in pageRecords:
-            print(pageRecord)
-     
+        if outputFormat.lower() == "csv":
+            return self.convertToCSV(pageRecords)
+        elif outputFormat.lower() == "json":
+            return json.dumps(pageRecords)
+        else:
+            if self.debug:
+                print(f"Format {outputFormat} is not supported.")
+        return None
+
+    def convertToCSV(self, pageRecords, separator=";"):
+        """
+        Converts the given pageRecords into a str in csv format
+        ToDO: Currently does not support escaping of the separator and escaping of quotes
+        Args:
+            pageRecords: dict of dicts containing the printouts
+            separator(char):
+        Returns: str
+        """
+        res = ""
+        printedHeaders = False
+        for pageRecord in pageRecords.values():
+            if not printedHeaders:
+                for key in pageRecord.keys():
+                    res = f"{res}{key}{separator}"
+                res = f"{res[:-1]}\n"
+                printedHeaders = True
+            for printouts in pageRecord.values():
+                res = f"{res}{printouts}{separator}"
+            res = f"{res[:-1]}\n"   # remove last separator and end line
+        return res
+
+
     def queryPages(self,askQuery,wiki=None,limit=None,showProgress=False, queryDivision=1):
         '''
         query the given wiki for pagerecords matching the given askQuery
@@ -69,6 +108,7 @@ class WikiPush(object):
             wiki(wikibot): the wiki to query - use fromWiki if not specified
             limit(int): the limit for the query (optional)
             showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
+            queryDivision(int): Defines the number of subintervals the query is divided into (must be greater equal 1)
         Returns:
             list: a list of pageRecords matching the given askQuery
         '''
@@ -554,7 +594,11 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                     with open(args.queryFile, 'r') as queryFile:
                         query=queryFile.read()
                 if mode=="wikiquery":
-                    wikipush.formatQueryResult(query,wiki=queryWiki,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision,outputFormat=args.format)    
+                    formatedQueryResults = wikipush.formatQueryResult(query,wiki=queryWiki,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision,outputFormat=args.format)
+                    if formatedQueryResults:
+                        print(formatedQueryResults)
+                    else:
+                        print(f"Format {args.format} is not supported.")
                 else:     
                     pages=wikipush.query(query,wiki=queryWiki,queryField=args.queryField,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision)
             if pages is None:

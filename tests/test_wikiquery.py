@@ -35,6 +35,7 @@ class TestWikiQuery(unittest.TestCase):
         wikiClient=self.getWikiClient(wikiId)
         wikiPush=WikiPush(fromWikiId=wikiId)
         askQuery="""{{#ask: [[IsA::Event]][[Acronym::~ES*]][[start date::>2018]][[start date::<2019]]
+| mainlabel = Event
 | ?Title = title
 | ?Event in series = series
 | ?ordinal=ordinal
@@ -42,7 +43,11 @@ class TestWikiQuery(unittest.TestCase):
 |format=table
 }}"""   
         for outputFormat in ["csv","json","xml","ttl","wikidata"]:
-            wikiPush.formatQueryResult(askQuery, wikiClient,outputFormat=outputFormat)
+            formatedQueryResults = wikiPush.formatQueryResult(askQuery, wikiClient,outputFormat=outputFormat)
+            if formatedQueryResults:
+                print(formatedQueryResults)
+            else:
+                print(f"Format {outputFormat} is not supported.")
         
         pass
 
