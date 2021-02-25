@@ -35,6 +35,7 @@ setup(
         'wikipush = wikibot.wikipush:mainPush',
         'wikiquery = wikibot.wikipush:mainQuery',
         'wikiupload = wikibot.wikipush:mainUpload',
+        'wikirestore = wikibot.wikipush:mainRestore',
         'wikiuser = wikibot.wikiuser:main',
       ],
     },
