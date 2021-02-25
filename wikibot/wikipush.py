@@ -563,7 +563,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
         # Process arguments
         args = parser.parse_args(argv)
-        if args.queryDivision:
+        if hasattr(args,"queryDivision"):
             if args.queryDivision < 1:
                 raise ValueError("queryDivision argument must be greater equal 1")
         
