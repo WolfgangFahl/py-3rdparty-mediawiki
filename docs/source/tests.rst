@@ -68,6 +68,14 @@ tests.test\_wikiclient module
    :undoc-members:
    :show-inheritance:
 
+tests.test\_wikiquery module
+----------------------------
+
+.. automodule:: tests.test_wikiquery
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

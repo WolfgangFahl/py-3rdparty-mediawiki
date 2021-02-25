@@ -92,6 +92,14 @@ wikibot.wikipush module
    :undoc-members:
    :show-inheritance:
 
+wikibot.wikiquery module
+------------------------
+
+.. automodule:: wikibot.wikiquery
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wikibot.wikiupload module
 -------------------------
 
