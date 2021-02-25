@@ -568,6 +568,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
+            parser.add_argument("--backupPath", dest="backupPath", help="path where the backup should be stored", required=False)
         elif mode=="wikinuke":
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to delete pages - default is 'dry' run only listing pages")
         elif mode=="wikiedit":
@@ -660,7 +661,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 if mode=="wikipush":
                     wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
                 elif mode=="wikibackup":
-                    wikipush.backup(pages,git=args.git,withImages=args.withImages)   
+                    wikipush.backup(pages,git=args.git,withImages=args.withImages,backupPath=args.backupPath)
                 elif mode=='wikinuke':
                     wikipush.nuke(pages,force=args.force)
                 elif mode=='wikiedit':
