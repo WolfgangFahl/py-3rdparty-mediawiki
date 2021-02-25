@@ -203,6 +203,12 @@ class TestWikiPush(unittest.TestCase):
         wikibot.wikipush.mainEdit(argv)
         return
 
+    def testRestore(self):
+        return
+        # this actually edits data ... don't activate if you don't really want to do this
+        argv=["-s","smwcopy","-t","smwcopy","-q","[[modification date::+]]"]
+        wikibot.wikipush.mainRestore(argv)
+        return
     
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

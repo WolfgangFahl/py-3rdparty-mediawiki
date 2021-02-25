@@ -467,11 +467,42 @@ class WikiPush(object):
                 for item in warningsDict.items():
                     warnings.append(str(item))
             self.handleAPIWarnings(warnings,ignoreExists)
-       
 
-__version__ = "0.3.8"
+    def restore(self, pageTitles=None,backupPath=None):
+        """
+        restore given page titles from local backup
+        If no page titles are given the whole backup is restored.
+        Args:
+            pageTitles(list): a list of pageTitles to be restored to toWiki. If None -> full restore of backup
+            backupPath(str): path to backup location
+        """
+        if backupPath is None:
+            backupPath=self.getHomePath("wikibackup/%s" % self.toWikiId)
+        imageBackupPath = "%s/images" % backupPath
+        if pageTitles is None:
+            pageTitles = []
+            for path, subdirs, files in os.walk(backupPath):
+                for name in files:
+                    filename = os.path.join(path, name)[len(backupPath)+1:]
+                    if filename.endswith(".wiki"):
+                        pageTitles.append(filename[:-len(".wiki")])
+        total = len(pageTitles)
+        self.log("restoring %d pages from %s to %s" % (total, backupPath, self.toWikiId))
+        for i,pageTitle in enumerate(pageTitles):
+            try:
+                self.log("%d/%d (%4.0f%%): restore %s ..." % (i + 1, total, (i + 1) / total * 100, pageTitle),end='')
+                wikiFilePath = "%s/%s.wiki" % (backupPath, pageTitle)
+                with open(wikiFilePath, mode='r') as wikiFile:
+                    page_content = wikiFile.read()
+                    page = self.toWiki.getPage(pageTitle)
+                    page.edit(page_content, f"modified through wikirestore by {self.toWiki.wikiUser.user}")
+                self.log("✅")
+            except Exception as ex:
+                self.log("❌:%s" % str(ex) )
+
+__version__ = "0.3.9"
 __date__ = '2020-10-31'
-__updated__ = '2020-02-22'
+__updated__ = '2020-02-25'
 DEBUG=False
 
 def mainNuke(argv=None):
@@ -491,6 +522,9 @@ def mainUpload(argv=None):
 
 def mainBackup(argv=None):
     main(argv,mode='wikibackup')
+
+def mainRestore(argv=None):
+    main(argv,mode='wikirestore')
     
 def main(argv=None,mode='wikipush'): # IGNORE:C0111
     '''main program.'''
@@ -534,8 +568,9 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
+            parser.add_argument("--backupPath", dest="backupPath", help="path where the backup should be stored", required=False)
         elif mode=="wikinuke":
-            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to delete pages - default is 'dry' run only listing pages")            
+            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to delete pages - default is 'dry' run only listing pages")
         elif mode=="wikiedit":
             parser.add_argument("--search", dest="search", help="search pattern", required=True)
             parser.add_argument("--replace", dest="replace", help="replace pattern", required=True)
@@ -549,7 +584,11 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("--files", nargs='+', help="list of files to be uploaded", required=True)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")            
             pass
-        if mode in  ["wikipush","wikiedit","wikinuke","wikibackup","wikiquery"]:
+        elif mode=="wikirestore":
+            parser.add_argument("--backupPath", dest="backupPath", help="path the backup is stored", required=False)
+            parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=False)
+            parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
+        if mode in  ["wikipush","wikiedit","wikinuke","wikibackup","wikiquery","wikirestore"]:
             parser.add_argument("--limit",dest="limit",type=int,help="limit for query")
             parser.add_argument("--progress",dest="showProgress",action='store_true',help="shows progress for query")
             parser.add_argument("-q", "--query", dest="query", help="select pages with given SMW ask query", required=False)
@@ -578,6 +617,9 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             queryWiki=wikipush.fromWiki
         elif mode=="wikiupload":
             wikipush=WikiPush(None,args.target,debug=args.debug)
+        elif mode=="wikirestore":
+            wikipush=WikiPush(args.source,args.target,login=args.login,debug=args.debug)
+            queryWiki=wikipush.fromWiki
         else:
             wikipush=WikiPush(None,args.target,debug=args.debug)
             queryWiki=wikipush.toWiki
@@ -605,6 +647,9 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 if mode=="wikiquery":
                     # we are finished
                     pass
+                if mode=="wikirestore":
+                    if args.pages is None and args.queryFile is None and args.query is None:
+                        wikipush.restore(pageTitles=None,backupPath=args.backupPath)
                 else:
                     raise Exception("no pages specified - you might want to use the -p, -q or --queryFile option")
             else:
@@ -616,12 +661,14 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 if mode=="wikipush":
                     wikipush.push(pages,force=args.force,ignore=args.ignore,withImages=args.withImages)
                 elif mode=="wikibackup":
-                    wikipush.backup(pages,git=args.git,withImages=args.withImages)   
+                    wikipush.backup(pages,git=args.git,withImages=args.withImages,backupPath=args.backupPath)
                 elif mode=='wikinuke':
                     wikipush.nuke(pages,force=args.force)
                 elif mode=='wikiedit':
                     modify=WikiPush.getModify(args.search,args.replace)
                     wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
+                elif mode=="wikirestore":
+                    wikipush.restore(pages,backupPath=args.backupPath)
                 else:
                     raise Exception("undefined wikipush mode %s" % mode)
         
