@@ -246,6 +246,7 @@ class WikiPush(object):
                 description="uploaded by wikiupload" 
                 filename=os.path.basename(file)
                 self.uploadImage(file, filename, description, force)
+                self.log("✅")
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
                 
