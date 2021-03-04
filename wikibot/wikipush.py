@@ -469,7 +469,7 @@ class WikiPush(object):
                     warnings.append(str(item))
             self.handleAPIWarnings(warnings,ignoreExists)
 
-    def restore(self, pageTitles=None,backupPath=None):
+    def restore(self, pageTitles=None, backupPath=None, listFile=None, stdIn=False):
         """
         restore given page titles from local backup
         If no page titles are given the whole backup is restored.
@@ -477,16 +477,30 @@ class WikiPush(object):
             pageTitles(list): a list of pageTitles to be restored to toWiki. If None -> full restore of backup
             backupPath(str): path to backup location
         """
-        if backupPath is None:
-            backupPath=self.getHomePath("wikibackup/%s" % self.toWikiId)
-        imageBackupPath = "%s/images" % backupPath
-        if pageTitles is None:
+        if stdIn:
+            l = []
+            backupPath = os.path.dirname(pageTitles[0].strip())
+            pageTitlesfix= []
+            for i in pageTitles:
+                pageTitlesfix.append(os.path.basename(i.strip().replace('.wiki','')))
+            pageTitles = pageTitlesfix
+        elif listFile is not None:
+            f = open(listFile, 'r')
+            allx = f.readlines()
             pageTitles = []
-            for path, subdirs, files in os.walk(backupPath):
-                for name in files:
-                    filename = os.path.join(path, name)[len(backupPath)+1:]
-                    if filename.endswith(".wiki"):
-                        pageTitles.append(filename[:-len(".wiki")])
+            for i in allx:
+                pageTitles.append(os.path.basename(i.strip()).replace('.wiki',''))
+        else:
+            if backupPath is None:
+                backupPath=self.getHomePath("wikibackup/%s" % self.toWikiId)
+            imageBackupPath = "%s/images" % backupPath
+            if pageTitles is None:
+                pageTitles = []
+                for path, subdirs, files in os.walk(backupPath):
+                    for name in files:
+                        filename = os.path.join(path, name)[len(backupPath)+1:]
+                        if filename.endswith(".wiki"):
+                            pageTitles.append(filename[:-len(".wiki")])
         total = len(pageTitles)
         self.log("restoring %d pages from %s to %s" % (total, backupPath, self.toWikiId))
         for i,pageTitle in enumerate(pageTitles):
@@ -501,23 +515,23 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
 
-__version__ = "0.3.9"
+__version__ = "0.3.10"
 __date__ = '2020-10-31'
 __updated__ = '2020-02-25'
 DEBUG=False
 
 def mainNuke(argv=None):
     main(argv,mode='wikinuke')
-    
+
 def mainEdit(argv=None):
     main(argv,mode='wikiedit')
-    
+
 def mainPush(argv=None):
     main(argv,mode='wikipush')
-    
+
 def mainQuery(argv=None):
     main(argv,mode='wikiquery')
-    
+
 def mainUpload(argv=None):
     main(argv,mode='wikiupload')
 
@@ -526,20 +540,20 @@ def mainBackup(argv=None):
 
 def mainRestore(argv=None):
     main(argv,mode='wikirestore')
-    
+
 def main(argv=None,mode='wikipush'): # IGNORE:C0111
     '''main program.'''
 
     if argv is None:
         argv = sys.argv[1:]
-    
+
     program_name = mode
     program_version = "v%s" % __version__
     program_build_date = str(__updated__)
     program_version_message = '%%(prog)s %s (%s)' % (program_version, program_build_date)
     program_shortdesc = "wikipush"
     user_name="Wolfgang Fahl"
-    
+
     program_license = '''%s
 
   Created by %s on %s.
@@ -557,14 +571,14 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
         # Setup argument parser
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument("-d", "--debug", dest="debug",   action="store_true", help="set debug level [default: %(default)s]")
-        parser.add_argument('-V', '--version', action='version', version=program_version_message)       
+        parser.add_argument('-V', '--version', action='version', version=program_version_message)
         if mode=="wikipush":
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to overwrite existing pages")
             parser.add_argument("-i", "--ignore", dest="ignore", action='store_true', help="ignore upload warnings e.g. duplicate images")
             parser.add_argument("-wi", "--withImages", dest="withImages", action='store_true', help="copy images on the given pages")
-        elif mode=="wikibackup": 
+        elif mode=="wikibackup":
             parser.add_argument("-g", "--git", dest="git", action='store_true', help="use git for version control")
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
@@ -576,19 +590,21 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("--search", dest="search", help="search pattern", required=True)
             parser.add_argument("--replace", dest="replace", help="replace pattern", required=True)
             parser.add_argument("--context", dest="context",type=int, help="number of context lines to show in dry run diff display",default=1)
-            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")         
+            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")
         elif mode=="wikiquery":
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
-            parser.add_argument("--format", dest="format", default='json', help="format to use for query result csv,json,xml,ttl or wiki")         
+            parser.add_argument("--format", dest="format", default='json', help="format to use for query result csv,json,xml,ttl or wiki")
         elif mode=="wikiupload":
             parser.add_argument("--files", nargs='+', help="list of files to be uploaded", required=True)
-            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")            
+            parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")
             pass
         elif mode=="wikirestore":
+            parser.add_argument("--listFile", dest="listFile", help="List of pages to restore", required=False)
             parser.add_argument("--backupPath", dest="backupPath", help="path the backup is stored", required=False)
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=False)
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
+            parser.add_argument('-stdinp', dest="stdinp", action='store_true',help='Use the input from STD IN using pipes')
         if mode in  ["wikipush","wikiedit","wikinuke","wikibackup","wikiquery","wikirestore"]:
             parser.add_argument("--limit",dest="limit",type=int,help="limit for query")
             parser.add_argument("--progress",dest="showProgress",action='store_true',help="shows progress for query")
@@ -598,20 +614,20 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
             parser.add_argument("-ui", "--withGUI", dest="ui", help="Pop up GUI for selection", action="store_true",required=False)
             parser.add_argument("-qd", "--queryDivision", default=1, dest="queryDivision", type=int, help="divide query into equidistant subintervals to limit the result size of the individual queries", required=False)
-        
+
         if not mode in ["wikibackup", "wikiquery"]:
-            parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)    
+            parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)
         # Process arguments
         args = parser.parse_args(argv)
         if hasattr(args,"queryDivision"):
             if args.queryDivision < 1:
                 raise ValueError("queryDivision argument must be greater equal 1")
-        
+
         if mode=="wikipush":
             wikipush=WikiPush(args.source,args.target,login=args.login,debug=args.debug)
             queryWiki=wikipush.fromWiki
         elif mode=="wikibackup":
-            wikipush=WikiPush(args.source,None,login=args.login,debug=args.debug)    
+            wikipush=WikiPush(args.source,None,login=args.login,debug=args.debug)
             queryWiki=wikipush.fromWiki
         elif mode=="wikiquery":
             wikipush=WikiPush(args.source,None,login=args.login,debug=args.debug)
@@ -626,10 +642,13 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             queryWiki=wikipush.toWiki
         if mode=="wikiupload":
             wikipush.upload(args.files,args.force)
-        else:    
+        else:
             pages=None
             if args.pages:
-                pages=args.pages
+                pages = args.pages
+            elif hasattr(args,"stdinp"):
+                if args.stdinp:
+                    pages = sys.stdin.readlines()
             elif args.query or args.queryFile:
                 if args.query:
                     query = args.query
@@ -642,7 +661,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                         print(formatedQueryResults)
                     else:
                         print(f"Format {args.format} is not supported.")
-                else:     
+                else:
                     pages=wikipush.query(query,wiki=queryWiki,queryField=args.queryField,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision)
             if pages is None:
                 if mode=="wikiquery":
@@ -650,7 +669,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                     pass
                 if mode=="wikirestore":
                     if args.pages is None and args.queryFile is None and args.query is None:
-                        wikipush.restore(pageTitles=None,backupPath=args.backupPath)
+                        wikipush.restore(pageTitles=None,backupPath=args.backupPath,listFile=args.listFile)
                 else:
                     raise Exception("no pages specified - you might want to use the -p, -q or --queryFile option")
             else:
@@ -669,7 +688,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                     modify=WikiPush.getModify(args.search,args.replace)
                     wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
                 elif mode=="wikirestore":
-                    wikipush.restore(pages,backupPath=args.backupPath)
+                    wikipush.restore(pages,backupPath=args.backupPath,stdIn=args.stdinp)
                 else:
                     raise Exception("undefined wikipush mode %s" % mode)
         
