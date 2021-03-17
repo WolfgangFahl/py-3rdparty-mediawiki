@@ -73,7 +73,7 @@ class WikiPush(object):
             res = []
             for page in pageRecords.values():
                 res.append(page)
-            res_json = json.dumps(res)
+            res_json = json.dumps({"data": res}, default=str)
             return res_json
         else:
             if self.debug:
