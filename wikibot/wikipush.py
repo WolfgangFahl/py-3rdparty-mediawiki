@@ -70,7 +70,11 @@ class WikiPush(object):
         if outputFormat.lower() == "csv":
             return self.convertToCSV(pageRecords)
         elif outputFormat.lower() == "json":
-            return json.dumps(pageRecords)
+            res = []
+            for page in pageRecords.values():
+                res.append(page)
+            res_json = json.dumps(res)
+            return res_json
         else:
             if self.debug:
                 print(f"Format {outputFormat} is not supported.")
