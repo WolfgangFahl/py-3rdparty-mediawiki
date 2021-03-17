@@ -376,10 +376,14 @@ class WikiPush(object):
         '''        
         for image in imageList:
             try:
-                self.log("%scopying image %s ..." % (delim,image.name), end='')  
+                self.log("%scopying image %s ..." % (delim,image.name), end='')
                 imagePath,filename=self.downloadImage(image);
-                description=image.imageinfo['comment'] 
-                self.uploadImage(imagePath,filename,description,ignore)
+                description=image.imageinfo['comment']
+                try:
+                    self.uploadImage(imagePath,filename,description,ignore)
+                    self.log("✅")
+                except Exception as ex:
+                    self.handleAPIWarnings(ex.args[0],ignoreExists=ignore)
                 if self.debug:
                     print(image.imageinfo)
             except Exception as ex:
@@ -411,7 +415,7 @@ class WikiPush(object):
         if warnings:
             for warning in warnings:
                 msg+="%s\n" % str(warning)
-        self.handleWarning(msg,ignoreExists)
+        self.handleWarning(msg,ignoreExists=ignoreExists)
         
     def handleWarning(self,msg,marker="⚠️",ignoreExists=False):
         '''
@@ -471,7 +475,8 @@ class WikiPush(object):
                 warnings=[]
                 for item in warningsDict.items():
                     warnings.append(str(item))
-            self.handleAPIWarnings(warnings,ignoreExists)
+            if warnings:
+                raise Exception(warnings)
 
     def restore(self, pageTitles=None, backupPath=None, listFile=None, stdIn=False):
         """
