@@ -524,9 +524,9 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
 
-__version__ = "0.3.11"
+__version__ = "0.3.12"
 __date__ = '2020-10-31'
-__updated__ = '2020-02-25'
+__updated__ = '2020-03-17'
 DEBUG=False
 
 def mainNuke(argv=None):
