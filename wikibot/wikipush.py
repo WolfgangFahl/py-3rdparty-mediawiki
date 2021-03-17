@@ -671,7 +671,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 if mode=="wikiquery":
                     # we are finished
                     pass
-                if mode=="wikirestore":
+                elif mode=="wikirestore":
                     if args.pages is None and args.queryFile is None and args.query is None:
                         wikipush.restore(pageTitles=None,backupPath=args.backupPath,listFile=args.listFile)
                 else:
