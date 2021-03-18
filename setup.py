@@ -23,6 +23,7 @@ setup(
 
     install_requires=[
       'gitpython',
+      'jinja2',
       'pywikibot',
       'pycrypto',
       'mwclient',
