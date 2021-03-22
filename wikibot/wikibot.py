@@ -7,6 +7,8 @@ import sys
 from urllib.parse import urlparse
 try:
     import pywikibot
+    from pywikibot import config2
+    from pywikibot.data.api import LoginManager
 except Exception as ex:
     # ignore pywikibot setup problems?
     print("pywikibot config issue see https://phabricator.wikimedia.org/T278076")
@@ -15,8 +17,6 @@ except Exception as ex:
 import re
 from os.path import isfile 
 from wikibot.wikiuser import WikiUser
-from pywikibot import config2
-from pywikibot.data.api import LoginManager
 from wikibot.wiki import Wiki
 
 class WikiBot(Wiki):
