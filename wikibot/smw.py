@@ -3,8 +3,8 @@ Created on 2020-05-29
 
 @author: wf
 '''
-from pywikibot.data.api import Request
 import re
+import sys
 from datetime import datetime
 from urllib.parse import unquote
 
@@ -467,6 +467,9 @@ class SMWBot(SMW):
             parameters(list): the parameters to use for the SMW API request
         Returns:
             dict: the submit result"""
+        if not "Request" in sys.modules:
+            from pywikibot.data.api import Request
+                
         request=Request(site=self.site,parameters=parameters)
         return request.submit()    
     
