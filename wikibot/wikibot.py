@@ -3,8 +3,15 @@ Created on 2020-03-24
 
 @author: wf
 '''
+import sys
 from urllib.parse import urlparse
-import pywikibot
+try:
+    import pywikibot
+except Exception as ex:
+    # ignore pywikibot setup problems?
+    print("pywikibot config issue see https://phabricator.wikimedia.org/T278076")
+    print("%s" % str(ex), file=sys.stderr) 
+    pass
 import re
 from os.path import isfile 
 from wikibot.wikiuser import WikiUser
