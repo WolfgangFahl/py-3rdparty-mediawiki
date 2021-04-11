@@ -13,6 +13,7 @@ class TestWikiQuery(unittest.TestCase):
     tests for https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/56
     '''
     def setUp(self):
+        self.debug=True
         pass
 
 
@@ -34,10 +35,12 @@ class TestWikiQuery(unittest.TestCase):
         wikiId='or'
         wikiClient=self.getWikiClient(wikiId)
         wikiPush=WikiPush(fromWikiId=wikiId)
-        askQuery="""{{#ask: [[IsA::Event]][[Acronym::~ES*]][[start date::>2018]][[start date::<2019]]
+        askQuery="""{{#ask: [[IsA::Event]][[Ordinal::>2]][[start date::>2018]][[start date::<2019]]
 | mainlabel = Event
 | ?Title = title
 | ?Event in series = series
+| ?_CDAT=creation date
+| ?_MDAT=modification date
 | ?ordinal=ordinal
 | ?Homepage = homepage
 |format=table
@@ -45,10 +48,11 @@ class TestWikiQuery(unittest.TestCase):
         for outputFormat in ["csv","json","xml","ttl","wikidata"]:
             formatedQueryResults = wikiPush.formatQueryResult(askQuery, wikiClient,outputFormat=outputFormat)
             if formatedQueryResults:
-                print(formatedQueryResults)
+                if self.debug:
+                    print(formatedQueryResults)
             else:
-                print(f"Format {outputFormat} is not supported.")
-        
+                if self.debug:
+                    print(f"Format {outputFormat} is not supported.")
         pass
 
 
