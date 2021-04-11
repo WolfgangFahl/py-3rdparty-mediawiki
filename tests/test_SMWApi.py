@@ -69,23 +69,25 @@ class TestSMW(unittest.TestCase):
     def testGetEvents(self):
         ''' text for issue #6 https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/6 '''    
         limit=20
-        ask="""{{#ask: [[Acronym::+]]
+        ask="""{{#ask: [[Acronym::+]][[Ordinal::>5]]
     |mainlabel=Event
     | ?Acronym = acronym
     | ?Has location city = city
+    | ?Ordinal=ordinal
     | ?_CDAT=creation date
     | ?_MDAT=modification date
     | limit=%d
     |format=table
     }}
     """ % limit
+        #self.debug=True
         for smw in self.getSMWs("or"):
             result=smw.query(ask,limit=limit)
             if self.debug:
                 print (len(result))
                 print (result)  
             self.assertEqual(limit,len(result))    
-            fields=['Event','acronym','city','creation_date','modification_date']
+            fields=['Event','acronym','city','ordinal','creation_date','modification_date']
             for record in result.values():
                 for field in fields:
                     self.assertTrue(field in record)
