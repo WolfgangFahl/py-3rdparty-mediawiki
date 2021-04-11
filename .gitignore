@@ -129,3 +129,8 @@ dmypy.json
 .pyre/
 # Mac
 .DS_Store
+#  python 3 stuff
+apicache-py3
+# pywikibot mess 
+pywikibot.lwp
+throttle.ctrl
