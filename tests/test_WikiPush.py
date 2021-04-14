@@ -28,9 +28,37 @@ class TestWikiPush(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def testLimitInQuery(self):
+        '''
+        test if limits defined inside of the query work properly and can be overwritten by the argument definition
+        :return:
+        '''
+        if self.inPublicCI(): return
+        wp = WikiPush("smwcopy")
+        pageTitles = wp.query("[[modification date::+]]", limit=3)
+        self.assertTrue(len(pageTitles) == 3)
+        pageTitlesInlineLimit = wp.query("[[modification date::+]]|limit=3")
+        self.assertTrue(len(pageTitlesInlineLimit) == 3)
+        pageTitlesOverwritten = wp.query("[[modification date::+]]|limit=3", limit=2,)
+        self.assertTrue(len(pageTitlesOverwritten) == 2)
+
+    def testIssue66(self):
+        '''
+        test wikibackup behavior if it has nothing to backup
+        https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/66
+        '''
+        if self.inPublicCI(): return
+        try:
+            wp = WikiPush("smwcopy")
+            pageTitles = wp.query("[[modification date::+]]", limit=0, queryDivision=10)
+            wp.backup(pageTitles)
+        except AttributeError as e:
+            self.fail("Empty query result should not lead to an error")
+
+
     def testIssue65(self):
         '''
-        test wikibackup for non existent wikiId
+        test WikiPush initialization for non existent wikiIdorth
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/65
         '''
         if self.inPublicCI(): return

@@ -234,7 +234,7 @@ class SMW(object):
         args = re.compile(SMW.argumentRegex(argument), re.IGNORECASE).findall(query)
         if not args:
             return None
-        return re.compile("[0-9]+").search(args[-1]).group()
+        return int(re.compile("[0-9]+").search(args[-1]).group())
 
 
 class SMWClient(SMW):
@@ -309,7 +309,6 @@ class SMWClient(SMW):
             All results of the given query.
         """
         (start, end) = self.getBoundariesOfQuery(query, kwargs)
-        print(f"Start: {start}, End: {end}")
         numIntervals = self.queryDivision
         calcIntervalBound = lambda start, n: (start + n * lenSubinterval).replace(microsecond=0)
         calcLimit = lambda limit, numRes: None if limit is None else limit - numResults
@@ -337,6 +336,11 @@ class SMWClient(SMW):
                         for res in e.getResults():
                             results.append(res)
                     numResults = 0
+                    break
+                if limit is not None and limit <= numResults:
+                    if self.showProgress:
+                        print(f"Defined limit of {limit} reached - ending querying")
+                    done = True
                     break
             done=True
         return results
