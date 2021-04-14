@@ -52,7 +52,7 @@ class WikiPush(object):
         if self.verbose:
             print (msg,end=end)
             
-    def formatQueryResult(self,askQuery,wiki=None,limit=None,showProgress=False,queryDivision=1,outputFormat='json'):
+    def formatQueryResult(self,askQuery,wiki=None,limit=None,showProgress=False,queryDivision=1,outputFormat='lod', entityName="data"):
         '''
         format the query result for the given askQuery.
         Args:
@@ -61,7 +61,7 @@ class WikiPush(object):
             limit(int): the limit for the query (optional)
             showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
             queryDivision(int): Defines the number of subintervals the query is divided into (must be greater equal 1)
-            outputFormat(str): output format of the query results - default format is json
+            outputFormat(str): output format of the query results - default format is lod
         Returns:
             Query results in the requested outputFormat as string.
             If the requested outputFormat is not supported None is returned.
@@ -73,8 +73,10 @@ class WikiPush(object):
             res = []
             for page in pageRecords.values():
                 res.append(page)
-            res_json = json.dumps({"data": res}, default=str)
+            res_json = json.dumps({entityName: res}, default=str, indent=3)
             return res_json
+        elif outputFormat.lower() == "lod":
+            return [pageRecord for pageRecord in pageRecords.values()]
         else:
             if self.debug:
                 print(f"Format {outputFormat} is not supported.")
@@ -524,9 +526,9 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 __date__ = '2020-10-31'
-__updated__ = '2021-03-22'
+__updated__ = '2021-04-11'
 DEBUG=False
 
 def mainNuke(argv=None):
@@ -604,6 +606,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
             parser.add_argument("--format", dest="format", default='json', help="format to use for query result csv,json,xml,ttl or wiki")
+            parser.add_argument("--entityName", dest="entityName", default='data', help="name of the entites that are queried - only needed for some output formats - default is 'data'")
         elif mode=="wikiupload":
             parser.add_argument("--files", nargs='+', help="list of files to be uploaded", required=True)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to (re)upload existing files - default is false")
@@ -665,7 +668,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                     with open(args.queryFile, 'r') as queryFile:
                         query=queryFile.read()
                 if mode=="wikiquery":
-                    formatedQueryResults = wikipush.formatQueryResult(query,wiki=queryWiki,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision,outputFormat=args.format)
+                    formatedQueryResults = wikipush.formatQueryResult(query,wiki=queryWiki,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision,outputFormat=args.format, entityName=args.entityName)
                     if formatedQueryResults:
                         print(formatedQueryResults)
                     else:
