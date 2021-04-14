@@ -1,0 +1,131 @@
+#!/bin/bash
+# WF 2021-03-06
+# nightly wiki backup 
+
+#ansi colors
+#http://www.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
+blue='\033[0;34m'
+red='\033[0;31m'
+green='\033[0;32m' # '\e[1;32m' is too bright for white bg.
+endColor='\033[0m'
+
+#
+# a colored message
+#   params:
+#     1: l_color - the color of the message
+#     2: l_msg - the message to display
+#
+color_msg() {
+  local l_color="$1"
+  local l_msg="$2"
+  echo -e "${l_color}$l_msg${endColor}"
+}
+
+#
+# error
+#
+#   show an error message and exit
+#
+#   params:
+#     1: l_msg - the message to display
+error() {
+  local l_msg="$1"
+  # use ansi red for error
+  color_msg $red "Error: $l_msg" 1>&2
+  exit 1
+}
+
+#
+# show the usage
+#
+usage() {
+  echo "usage: $0 [-h|--help] [--days days] -t|--target wiki"
+  echo "  -h|--help: show this usage"
+  echo "  --days: how many days back to cover"
+  echo "  -t|--target: target wiki"
+}
+
+#
+# initial backup
+#
+initialBackup() {
+  local l_wiki="$1"
+  wikibackup -l -s $l_wiki --progress -q "[[Modification date::+]]" -qd 10
+}
+
+#
+# daily backup
+#
+dailyBackup() {
+  local l_wiki="$1"
+  local l_daysAgo="$2"
+  local l_yesterday=$(date -d "$l_daysAgo days ago" '+%Y-%m-%d')
+  wikibackup -l -s $l_wiki --progress -q "[[Modification date::>$l_yesterday]]" -qd 10
+}
+
+wiki=""
+zip=""
+days="2"
+# commandline option
+while [ "$1" != "" ]
+do
+  option=$1
+  shift
+  case $option in
+    -h|--help)
+      usage
+      ;;
+    --days)
+      if [ $# -lt 1 ]
+      then
+        usage
+      fi
+      days=$1
+      shift
+      ;;
+    -t|--target)
+      if [ $# -lt 1 ]
+      then
+        usage
+      fi
+      wiki=$1
+      shift
+      ;;
+    -z|--zip)
+      if [ $# -lt 1 ]
+      then
+        usage
+      fi
+      zip=$1
+      shift
+      ;;
+     *)
+       error "invalid option $option"
+       ;;
+  esac
+done
+
+# target wiki is mandatory
+if [ "$wiki" = "" ]
+then
+  usage
+  exit
+fi
+
+wikibackupdir=$HOME/wikibackup
+# check the backup directory
+if [ ! -d $wikibackupdir/$wiki ]
+then
+  color_msg $blue "starting initial wiki backup for $wiki ..."
+  initialBackup $wiki
+  color_msg $green "initial wiki backup for $wiki done"
+else
+  color_msg $blue "starting daily wiki backup for $wiki ..."
+  dailyBackup $wiki $days 
+fi
+if [ "$zip" != "" ]
+then
+  color_msg  $blue "zipping wikibackup for $wiki to $zip ..."
+  cd $wikibackupdir
+  tar cvfz $zip $wiki
+fi
