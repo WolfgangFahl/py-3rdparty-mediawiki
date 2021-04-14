@@ -73,7 +73,10 @@ class WikiUser(object):
     @staticmethod
     def ofWikiId(wikiId,lenient=False):
         path=WikiUser.iniFilePath(wikiId)
-        config=WikiUser.readPropertyFile(path)
+        try:
+            config=WikiUser.readPropertyFile(path)
+        except FileNotFoundError as e:
+            raise FileNotFoundError('the wiki with the wikiID "%s" does not have a corresponding configuration file ... you might want to create one with the wikiuser command' % (wikiId))
         wikiUser=WikiUser.ofDict(config,lenient=lenient)
         return wikiUser
     

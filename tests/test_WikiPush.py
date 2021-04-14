@@ -27,6 +27,19 @@ class TestWikiPush(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    def testIssue65(self):
+        '''
+        test wikibackup for non existent wikiId
+        https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/65
+        '''
+        if self.inPublicCI(): return
+        try:
+            wp=WikiPush("invalidWikiId")
+        except FileNotFoundError as e:
+            self.assertIsInstance(e, FileNotFoundError)
+            expectedMessage = 'the wiki with the wikiID "invalidWikiId" does not have a corresponding configuration file ... you might want to create one with the wikiuser command'
+            self.assertEqual(expectedMessage, str(e))
     
     def testIssue11(self):
         '''
