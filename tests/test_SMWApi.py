@@ -267,24 +267,26 @@ class TestSMW(unittest.TestCase):
     def testArgumentValueExtraction(self):
         """ test if the argument value is correctly extracted from a given query"""
         # Test extraction
-        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|limit=12"), "12",
+        expected=12
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|limit=12"),expected,
                          "Unable to extract the argument")
-        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|LIMIT=12"), "12",
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|LIMIT=12"), expected,
                          "Unable to extract the argument written as 'LIMIT' (Extraction should not be case sensitive)")
-        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|LiMiT=12"), "12",
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|LiMiT=12"), expected,
                          "Unable to extract the argument written as 'LiMiT' (Extraction should not be case sensitive)")
-        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]] | limit = 12"), "12",
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]] | limit = 12"), expected,
                          "Unable to extract the argument")
-        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|  limit=  12"), "12",
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|  limit=  12"), expected,
                          "Unable to extract the argument")
-        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|limit   =12"), "12",
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("limit", "[[Category:Person]]|limit   =12"), expected,
                          "Unable to extract the argument")
-        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[arg = 1]]|arg=12"), "12",
+        self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[arg = 1]]|arg=12"), expected,
                          "Incorrect extraction of arg")
+        expected=7
         self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[Category:Person]]|offset=12 | arg=7 | limit=5"),
-                         "7", "Unable to detect arg if other arguments ar present")
+                         expected, "Unable to detect arg if other arguments are present")
         self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[Category:Person]]|arg=12 | arg=7 | limit=5"),
-                         "7", "Unable to detect last occurring argument arg correctly")
+                         expected, "Unable to detect last occurring argument arg correctly")
         # Test handling of invalid input
         self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[Category:Person]]"), None,
                          "Incorrect response to query without the argument. None should be returned")
