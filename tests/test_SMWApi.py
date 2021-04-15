@@ -335,7 +335,7 @@ class TestSMW(unittest.TestCase):
         with patch("wikibot.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
                 patch("wikibot.smw.SMWClient.getBoundariesOfQuery") as getBoundariesOfQuery:
             getBoundariesOfQuery.return_value = (datetime.strptime("01/01/2020 00:00:00", '%d/%m/%Y %H:%M:%S'),
-                                                 datetime.strptime("11/01/2020 00:00:00", '%d/%m/%Y %H:%M:%S'))
+                                                 datetime.strptime("11/01/2020 00:00:00", '%d/%m/%Y %H:%M:%S'),None)
             askForAllResults_mock.side_effect = _askForAllResults_mock_sideEffect
             for smw in self.getSMWs():
                 if isinstance(smw, SMWClient):
