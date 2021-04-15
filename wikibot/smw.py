@@ -156,7 +156,14 @@ class SMW(object):
     def deserialize(self,rawresult):
         """ deserialize the given rawresult according to 
         https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
+        
+        Args:
+            rawresult(dict): contains printrequests and results which need to be merged
+            
+        Returns:
+            list: list of dicts with results
         """
+        resultDict={}
         if not 'query' in rawresult:
             raise Exception("invalid query result - 'query' missing")
         query=rawresult['query']
@@ -170,7 +177,7 @@ class SMW(object):
         for record in printrequests:
             pr=PrintRequest(self,record)
             prdict[pr.label]=pr
-        resultDict={}
+        
         if results:
             for key in results.keys():
                 record=results[key]
@@ -256,7 +263,7 @@ class SMWClient(SMW):
         
         return results
     
-    def ask(self, query, title=None, limit=None):
+    def ask(self, query:str, title:str=None, limit:int=None):
         """
         Ask a query against Semantic MediaWiki.
 
@@ -265,6 +272,13 @@ class SMWClient(SMW):
         The query is devided into multiple subqueries if the results of the query exeed the defined threshold.
         If this happens the query is executed multiple times to retrieve all results without passing the threshold.
 
+
+        Args:
+            query(str): SMW ask query to be executed
+            title(str): title of query (optional)
+            limit(int): the maximum number of results to be returned - 
+                please note that SMW configuration will also limit results on the server side
+        
         Returns:
             Generator for retrieving all search results, with each answer as a dictionary.
             If the query is invalid, an APIError is raised. A valid query with zero
@@ -278,9 +292,9 @@ class SMWClient(SMW):
             >>>         print(title)
             >>>         print(data)
         """
-        kwargs = {}
-        if title is None:
-            kwargs['title'] = title
+        #kwargs = {}
+        #if title is None:
+        #    kwargs['title'] = title
 
         if limit is None:
             # if limit is not defined (via cmd-line), check if defined in query
@@ -288,19 +302,16 @@ class SMWClient(SMW):
         results = None
         if self.queryDivision == 1:
             try:
-                results = self.askForAllResults(query, limit, kwargs)
+                results = self.askForAllResults(query, limit)
             except QueryResultSizeExceedException as e:
                 print(e)
                 results = e.getResults()
         else:
-            results = self.askPartitionQuery(query, limit, kwargs)
+            results = self.askPartitionQuery(query, limit)
         for res in results:
             yield res
-        if not results:
-            raise ValueError("Query results empty. For queries with no result it is expected that the query response "
-                             "metadata is returned.")
 
-    def askPartitionQuery(self, query, limit=None, kwargs={}):
+    def askPartitionQuery(self, query, limit=None):
         """
         Splits the query into multiple subqueries by determining the 'modification date' interval in which all results
         lie. This interval is then divided into subintervals. The number of subintervals is defined by the user via
@@ -311,76 +322,92 @@ class SMWClient(SMW):
         Returns:
             All results of the given query.
         """
-        (start, end, ex) = self.getBoundariesOfQuery(query, kwargs)
+        (start, end) = self.getBoundariesOfQuery(query)
         results = []
-        if ex is not None:
-            print(f"Error when getting boundaries of query: {str(ex)}")
-        else:
-            if self.showProgress:
-                print(f"Start: {start}, End: {end}", file=sys.stderr, flush=True)
-            numIntervals = self.queryDivision
-            calcIntervalBound = lambda start, n: (start + n * lenSubinterval).replace(microsecond=0)
-            calcLimit = lambda limit, numRes: None if limit is None else limit - numResults
-            done = False
-            numResults = 0
-            while not done:
-                lenSubinterval = (end - start) / numIntervals
-                for n in range(numIntervals):
+        if self.showProgress:
+            print(f"Start: {start}, End: {end}", file=sys.stderr, flush=True)
+        numIntervals = self.queryDivision
+        calcIntervalBound = lambda start, n: (start + n * lenSubinterval).replace(microsecond=0)
+        calcLimit = lambda limit, numRes: None if limit is None else limit - numResults
+        done = False
+        numResults = 0
+        while not done:
+            lenSubinterval = (end - start) / numIntervals
+            for n in range(numIntervals):
+                if self.showProgress:
+                    print(f"Query {n+1}/{numIntervals}:")
+                tempLowerBound = calcIntervalBound(start,n)
+                tempUpperBound = calcIntervalBound(start,n+1) if (n+1 < numIntervals) else end
+                queryParam = f"{query}|[[{self.QUERY_SPLITUP_ID}:: >={tempLowerBound.isoformat()}]]|[[{self.QUERY_SPLITUP_ID}:: <={tempUpperBound.isoformat()}]]"
+                try:
+                    tempRes = self.askForAllResults(queryParam, calcLimit(limit, numResults))
+                    if tempRes is not None:
+                        for res in tempRes:
+                            results.append(res)
+                            numResults += int(res.get("query").get("meta").get("count"))
+                except QueryResultSizeExceedException as e:
+                    # Too many results for current subinterval n -> print error and return the results upto this point
+                    print(e)
+                    if e.getResults():
+                        for res in e.getResults():
+                            results.append(res)
+                    numResults = 0
+                    break
+                if limit is not None and limit <= numResults:
                     if self.showProgress:
-                        print(f"Query {n+1}/{numIntervals}:")
-                    tempLowerBound = calcIntervalBound(start,n)
-                    tempUpperBound = calcIntervalBound(start,n+1) if (n+1 < numIntervals) else end
-                    queryParam = f"{query}|[[{self.QUERY_SPLITUP_ID}:: >={tempLowerBound.isoformat()}]]|[[{self.QUERY_SPLITUP_ID}:: <={tempUpperBound.isoformat()}]]"
-                    try:
-                        tempRes = self.askForAllResults(queryParam, calcLimit(limit, numResults), kwargs)
-                        if tempRes is not None:
-                            for res in tempRes:
-                                results.append(res)
-                                numResults += int(res.get("query").get("meta").get("count"))
-                    except QueryResultSizeExceedException as e:
-                        # Too many results for current subinterval n -> print error and return the results upto this point
-                        print(e)
-                        if e.getResults():
-                            for res in e.getResults():
-                                results.append(res)
-                        numResults = 0
-                        break
-                    if limit is not None and limit <= numResults:
-                        if self.showProgress:
-                            print(f"Defined limit of {limit} reached - ending querying")
-                        done = True
-                        break
-                done=True
+                        print(f"Defined limit of {limit} reached - ending querying")
+                    done = True
+                    break
+            done=True
         return results
 
-    def getBoundariesOfQuery(self, query, kwargs={}):
+    
+    def retrieveTimeStamp(self,res):
+        '''
+           Args:
+               res: SemanticMediaWiki specific dict structure
+        
+        '''
+        timeStamp=None
+        if 'query' in res:
+            queryres=res['query']
+            if 'results' in queryres:
+                results=queryres['results']
+                #  OrderedDict: 
+                #     OrderedDict([
+                #   ('Property:Foaf:knows', 
+                #      rderedDict([('printouts', OrderedDict([('Modification date', [OrderedDict([('timestamp', '1606585236'), ('raw', '1/2020/11/28/17/40/36/0')])])])), ('fulltext', 'Property:Foaf:knows'), ('fullurl', 'http:///smw.bitplan.com/index.php/Property:Foaf:knows'), ('namespace', 102), ('exists', '1'), ('displaytitle', '')]))]) 
+                printouts=next(iter(results.items()))[1].get('printouts')
+                timeStampStr=printouts.get(self.QUERY_SPLITUP_ID)[0].get("timestamp")
+                timeStamp=int(timeStampStr)
+        return timeStamp
+    
+    def getTimeStampBoundary(self,queryparam,order):
+        '''
+        query according to a DATE e.g. MODIFICATION_DATE in the given order
+        '''
+        queryparamBoundary = f"{queryparam}|order={order}"
+        resultsBoundary = self.site.raw_api('ask', query=queryparamBoundary, http_method='GET')
+        self.site.handle_api_result(resultsBoundary)
+       
+        date = datetime.utcfromtimestamp(self.retrieveTimeStamp(resultsBoundary))
+        return date
+
+    def getBoundariesOfQuery(self, query):
         """
         Retrieves the time interval, lower and upper bound, based on the modification date in which the results of the
         given query lie.
         Args:
             query(string): the SMW inline query to be send via api
         Returns:
-            (Datetime, Datetime, Exception): Returns the time interval (based on modification date) in which all results of the
-            query lie if the Exception is not None the interval is None,None.
+            (Datetime, Datetime): Returns the time interval (based on modification date) in which all results of the
+            query lie potentially the start end end might be None if an error occured or the input is invalid
         """
         queryparam = f"{query}|?{self.QUERY_SPLITUP_ID}|sort={self.QUERY_SPLITUP_ID}|limit=1"
-        queryparamStart = f"{queryparam}|order=asc"
-        queryparamEnd = f"{queryparam}|order=desc"
-        resultsStart = self.site.raw_api('ask', query=queryparamStart, http_method='GET', **kwargs)
-        resultsEnd = self.site.raw_api('ask', query=queryparamEnd, http_method='GET', **kwargs)
-        self.site.handle_api_result(resultsStart)
-        self.site.handle_api_result(resultsEnd)
-        try:
-            retrieveTimestamp = lambda res: int(next(iter(res.get('query').get('results').items()))[1]
-                                                .get('printouts').get(self.QUERY_SPLITUP_ID)[0].get("timestamp"))
-            start = datetime.utcfromtimestamp(retrieveTimestamp(resultsStart))
-            end = datetime.utcfromtimestamp(retrieveTimestamp(resultsEnd))
-            return (start, end, None)
-        except Exception as e:
-            if self.debug:
-                print(str(e))
-            return (None, None, e)
-
+        start=self.getTimeStampBoundary(queryparam,'asc')
+        end=self.getTimeStampBoundary(queryparam,'desc')
+        return (start,end)
+    
     def askForAllResults(self, query, limit=None, kwargs={}):
         """
         Executes the query until all results are received of the given limit is reached.
@@ -432,6 +459,7 @@ class SMWClient(SMW):
     def rawquery(self,askQuery,title=None,limit=None):
         '''
         run the given askQuery and return the raw result
+        
         Args:
             askQuery(string): the SMW inline query to be send via api
             title(string): the title (if any)
@@ -451,9 +479,18 @@ class SMWClient(SMW):
                 results.update(singleResults)
         return result
         
-    def query(self,askQuery,title=None,limit=None):
+    def query(self,askQuery:str,title:str=None,limit:int=None):
         '''
         run query and return list of Dicts
+        
+        Args:
+            askQuery(string): the SMW inline query to be send via api
+            title(string): the title (if any)
+            limit(int): the maximum number of records to be retrieved (if any)
+            
+        Return:
+            list: List of Dicts
+            
         '''
         rawresult=self.rawquery(askQuery, title, limit)
         lod=self.deserialize(rawresult)
