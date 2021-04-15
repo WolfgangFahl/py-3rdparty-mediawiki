@@ -137,18 +137,21 @@ class SMW(object):
     :ivar site: the pywikibot site to use for requests
     :ivar prefix: the path prefix for this site e.g. /wiki/
     '''
-    def __init__(self, site=None,prefix="/",showProgress=False, queryDivision=1):
+    def __init__(self, site=None,prefix="/",showProgress=False, queryDivision=1,debug=False):
         '''
         Constructor
         Args:
             site: the site to use (optional)
+            showProgess(bool): if progress should be shown
             queryDivision(int): Defines the number of subintervals the query is divided into (must be greater equal 1)
+            debug(bool): if debugging should be activated - default: False
         '''
         self.site=site
         self.prefix=prefix
         self.showProgress=showProgress
         self.queryDivision=queryDivision
         self.QUERY_SPLITUP_ID = "Modification date"
+        self.debug=debug
     
     def deserialize(self,rawresult):
         """ deserialize the given rawresult according to 
