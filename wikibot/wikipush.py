@@ -104,7 +104,6 @@ class WikiPush(object):
             res = f"{res[:-1]}\n"   # remove last separator and end line
         return res
 
-
     def queryPages(self,askQuery,wiki=None,limit=None,showProgress=False, queryDivision=1):
         '''
         query the given wiki for pagerecords matching the given askQuery

@@ -308,41 +308,46 @@ class SMWClient(SMW):
         Returns:
             All results of the given query.
         """
-        (start, end) = self.getBoundariesOfQuery(query, kwargs)
-        numIntervals = self.queryDivision
-        calcIntervalBound = lambda start, n: (start + n * lenSubinterval).replace(microsecond=0)
-        calcLimit = lambda limit, numRes: None if limit is None else limit - numResults
-        done = False
-        numResults = 0
+        (start, end, ex) = self.getBoundariesOfQuery(query, kwargs)
         results = []
-        while not done:
-            lenSubinterval = (end - start) / numIntervals
-            for n in range(numIntervals):
-                if self.showProgress:
-                    print(f"Query {n+1}/{numIntervals}:")
-                tempLowerBound = calcIntervalBound(start,n)
-                tempUpperBound = calcIntervalBound(start,n+1) if (n+1 < numIntervals) else end
-                queryParam = f"{query}|[[{self.QUERY_SPLITUP_ID}:: >={tempLowerBound.isoformat()}]]|[[{self.QUERY_SPLITUP_ID}:: <={tempUpperBound.isoformat()}]]"
-                try:
-                    tempRes = self.askForAllResults(queryParam, calcLimit(limit, numResults), kwargs)
-                    if tempRes is not None:
-                        for res in tempRes:
-                            results.append(res)
-                            numResults += int(res.get("query").get("meta").get("count"))
-                except QueryResultSizeExceedException as e:
-                    # Too many results for current subinterval n -> print error and return the results upto this point
-                    print(e)
-                    if e.getResults():
-                        for res in e.getResults():
-                            results.append(res)
-                    numResults = 0
-                    break
-                if limit is not None and limit <= numResults:
+        if ex is not None:
+            print(f"Error when getting boundaries of query: {str(ex)}")
+        else:
+            if self.showProgress:
+                print(f"Start: {start}, End: {end}")
+            numIntervals = self.queryDivision
+            calcIntervalBound = lambda start, n: (start + n * lenSubinterval).replace(microsecond=0)
+            calcLimit = lambda limit, numRes: None if limit is None else limit - numResults
+            done = False
+            numResults = 0
+            while not done:
+                lenSubinterval = (end - start) / numIntervals
+                for n in range(numIntervals):
                     if self.showProgress:
-                        print(f"Defined limit of {limit} reached - ending querying")
-                    done = True
-                    break
-            done=True
+                        print(f"Query {n+1}/{numIntervals}:")
+                    tempLowerBound = calcIntervalBound(start,n)
+                    tempUpperBound = calcIntervalBound(start,n+1) if (n+1 < numIntervals) else end
+                    queryParam = f"{query}|[[{self.QUERY_SPLITUP_ID}:: >={tempLowerBound.isoformat()}]]|[[{self.QUERY_SPLITUP_ID}:: <={tempUpperBound.isoformat()}]]"
+                    try:
+                        tempRes = self.askForAllResults(queryParam, calcLimit(limit, numResults), kwargs)
+                        if tempRes is not None:
+                            for res in tempRes:
+                                results.append(res)
+                                numResults += int(res.get("query").get("meta").get("count"))
+                    except QueryResultSizeExceedException as e:
+                        # Too many results for current subinterval n -> print error and return the results upto this point
+                        print(e)
+                        if e.getResults():
+                            for res in e.getResults():
+                                results.append(res)
+                        numResults = 0
+                        break
+                    if limit is not None and limit <= numResults:
+                        if self.showProgress:
+                            print(f"Defined limit of {limit} reached - ending querying")
+                        done = True
+                        break
+                done=True
         return results
 
     def getBoundariesOfQuery(self, query, kwargs={}):
@@ -352,8 +357,8 @@ class SMWClient(SMW):
         Args:
             query(string): the SMW inline query to be send via api
         Returns:
-            (Datetime, Datetime): Returns the time interval (based on modification date) in which all results of the
-            query lie.
+            (Datetime, Datetime, Exception): Returns the time interval (based on modification date) in which all results of the
+            query lie if the Exception is not None the interval is None,None.
         """
         queryparam = f"{query}|?{self.QUERY_SPLITUP_ID}|sort={self.QUERY_SPLITUP_ID}|limit=1"
         queryparamStart = f"{queryparam}|order=asc"
@@ -367,12 +372,11 @@ class SMWClient(SMW):
                                                 .get('printouts').get(self.QUERY_SPLITUP_ID)[0].get("timestamp"))
             start = datetime.utcfromtimestamp(retrieveTimestamp(resultsStart))
             end = datetime.utcfromtimestamp(retrieveTimestamp(resultsEnd))
-            return (start, end)
+            return (start, end, None)
         except Exception as e:
-            print(e)
-            return None, None
-
-
+            if self.debug:
+                print(str(e))
+            return (None, None, e)
 
     def askForAllResults(self, query, limit=None, kwargs={}):
         """
