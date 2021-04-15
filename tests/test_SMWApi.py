@@ -302,7 +302,7 @@ class TestSMW(unittest.TestCase):
         # Test if decimal numbers as value lead to None (Only integers should be extracted)
         self.assertEqual(SMW.getOuterMostArgumentValueOfQuery("arg", "[[Category:Person]]|arg=12.5"), None,
                          "Decimal number was extracted as correct value. Only integers should be extracted.")
-
+ 
 
     def testQueryDivision(self):
         """

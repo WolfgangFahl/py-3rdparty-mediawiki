@@ -17,7 +17,7 @@ class WikiClient(Wiki):
         '''
         Constructor
         '''
-        super(WikiClient,self).__init__(wikiUser,debug) 
+        super(WikiClient,self).__init__(wikiUser,debug=debug) 
         self.wikiUser=wikiUser
         self.site=None
       

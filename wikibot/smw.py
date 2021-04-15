@@ -245,8 +245,8 @@ class SMWClient(SMW):
     Semantic MediaWiki access using mw client library
     '''
     
-    def __init__(self, site=None,prefix="/",showProgress=False, queryDivision=1):
-        super(SMWClient,self).__init__(site,prefix,showProgress=showProgress, queryDivision=queryDivision)
+    def __init__(self, site=None,prefix="/",showProgress=False, queryDivision=1,debug=False):
+        super(SMWClient,self).__init__(site,prefix,showProgress=showProgress, queryDivision=queryDivision,debug=debug)
         pass
     
     def info(self):
@@ -317,7 +317,7 @@ class SMWClient(SMW):
             print(f"Error when getting boundaries of query: {str(ex)}")
         else:
             if self.showProgress:
-                print(f"Start: {start}, End: {end}")
+                print(f"Start: {start}, End: {end}", file=sys.stderr, flush=True)
             numIntervals = self.queryDivision
             calcIntervalBound = lambda start, n: (start + n * lenSubinterval).replace(microsecond=0)
             calcLimit = lambda limit, numRes: None if limit is None else limit - numResults
@@ -468,8 +468,8 @@ class SMWBot(SMW):
     '''
     Semantic MediaWiki access using pywikibot library
     '''
-    def __init__(self, site=None,prefix="/",showProgress=False):
-        super(SMWBot,self).__init__(site,prefix,showProgress=showProgress) 
+    def __init__(self, site=None,prefix="/",showProgress=False,debug=False):
+        super(SMWBot,self).__init__(site,prefix,showProgress=showProgress,debug=debug) 
         pass
     
     def submit(self, parameters):

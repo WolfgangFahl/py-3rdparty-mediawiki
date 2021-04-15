@@ -119,7 +119,7 @@ class WikiPush(object):
         '''
         if wiki is None:
             wiki=self.fromWiki
-        smwClient=SMWClient(wiki.getSite(),showProgress=showProgress, queryDivision=queryDivision)
+        smwClient=SMWClient(wiki.getSite(),showProgress=showProgress, queryDivision=queryDivision,debug=self.debug)
         pageRecords=smwClient.query(askQuery,limit=limit)  
         return pageRecords
     
