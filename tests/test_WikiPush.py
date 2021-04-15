@@ -50,10 +50,10 @@ class TestWikiPush(unittest.TestCase):
         if self.inPublicCI(): return
         try:
             wp = WikiPush("smwcopy")
-            pageTitles = wp.query("[[Modification date::>=2020-11-01]]", queryDivision=10)
+            pageTitles = wp.query("[[Modification date::>=3000-01-01]]", queryDivision=10)
             wp.backup(pageTitles)
-        except AttributeError as e:
-            self.fail("Empty query result should not lead to an error")
+        except  Exception as e:
+            self.fail(f"Empty query result should not lead to an error but {e} was thrown")
 
 
     def testIssue65(self):

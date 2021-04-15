@@ -164,6 +164,8 @@ class SMW(object):
             list: list of dicts with results
         """
         resultDict={}
+        if rawresult is None:
+            return resultDict
         if not 'query' in rawresult:
             raise Exception("invalid query result - 'query' missing")
         query=rawresult['query']
@@ -324,6 +326,8 @@ class SMWClient(SMW):
         """
         (start, end) = self.getBoundariesOfQuery(query)
         results = []
+        if start is None or end is None:
+            return results
         if self.showProgress:
             print(f"Start: {start}, End: {end}", file=sys.stderr, flush=True)
         numIntervals = self.queryDivision
@@ -360,37 +364,30 @@ class SMWClient(SMW):
                     break
             done=True
         return results
-
-    
-    def retrieveTimeStamp(self,res):
-        '''
-           Args:
-               res: SemanticMediaWiki specific dict structure
-        
-        '''
-        timeStamp=None
-        if 'query' in res:
-            queryres=res['query']
-            if 'results' in queryres:
-                results=queryres['results']
-                #  OrderedDict: 
-                #     OrderedDict([
-                #   ('Property:Foaf:knows', 
-                #      rderedDict([('printouts', OrderedDict([('Modification date', [OrderedDict([('timestamp', '1606585236'), ('raw', '1/2020/11/28/17/40/36/0')])])])), ('fulltext', 'Property:Foaf:knows'), ('fullurl', 'http:///smw.bitplan.com/index.php/Property:Foaf:knows'), ('namespace', 102), ('exists', '1'), ('displaytitle', '')]))]) 
-                printouts=next(iter(results.items()))[1].get('printouts')
-                timeStampStr=printouts.get(self.QUERY_SPLITUP_ID)[0].get("timestamp")
-                timeStamp=int(timeStampStr)
-        return timeStamp
     
     def getTimeStampBoundary(self,queryparam,order):
         '''
         query according to a DATE e.g. MODIFICATION_DATE in the given order
+        
+        Args:
+           
         '''
         queryparamBoundary = f"{queryparam}|order={order}"
         resultsBoundary = self.site.raw_api('ask', query=queryparamBoundary, http_method='GET')
         self.site.handle_api_result(resultsBoundary)
-       
-        date = datetime.utcfromtimestamp(self.retrieveTimeStamp(resultsBoundary))
+        deserializedResult=self.deserialize(resultsBoundary)
+        # dict: {
+        #    'Property:Foaf:knows': {
+        #       '': 'Property:Foaf:knows', 
+        #       'Modification date': datetime.datetime(2020, 11, 28, 17, 40, 36)
+        #    }
+        # }
+        date=None
+        deserializedValues=deserializedResult.values()
+        if len(deserializedValues)>0:
+            innerValue = deserializedValues[0]
+            if self.QUERY_SPLITUP_ID in innerValue:
+                date=innerValue[self.QUERY_SPLITUP_ID]
         return date
 
     def getBoundariesOfQuery(self, query):
