@@ -1,6 +1,6 @@
 #!/bin/bash
 # WF 2021-03-06
-# nightly wiki backup 
+# nightly wiki backup
 
 #ansi colors
 #http://www.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
@@ -50,7 +50,7 @@ usage() {
 #
 initialBackup() {
   local l_wiki="$1"
-  wikibackup -l -s $l_wiki --progress -q "[[Modification date::+]]" -qd 10
+  wikibackup -l -s $l_wiki --progress -q "[[Modification date::+]]" -qd 10 --git
 }
 
 #
@@ -59,8 +59,17 @@ initialBackup() {
 dailyBackup() {
   local l_wiki="$1"
   local l_daysAgo="$2"
-  local l_yesterday=$(date -d "$l_daysAgo days ago" '+%Y-%m-%d')
-  wikibackup -l -s $l_wiki --progress -q "[[Modification date::>$l_yesterday]]" -qd 10
+  # https://stackoverflow.com/questions/498358/how-do-i-do-date-math-in-a-bash-script-on-os-x-leopard
+  local l_os=$(uname)
+  local l_yesterday=""
+  case $l_os in
+    Darwin)
+       local l_yesterday=$(date -v -"${l_daysAgo}d" '+%Y-%m-%d')
+       ;;
+    *) local l_yesterday=$(date -d "$l_daysAgo days ago" '+%Y-%m-%d')
+    ;;
+  esac
+  wikibackup -l -s $l_wiki --progress -q "[[Modification date::>$l_yesterday]]" -qd 10 --git
 }
 
 wiki=""
@@ -121,7 +130,7 @@ then
   color_msg $green "initial wiki backup for $wiki done"
 else
   color_msg $blue "starting daily wiki backup for $wiki ..."
-  dailyBackup $wiki $days 
+  dailyBackup $wiki $days
 fi
 if [ "$zip" != "" ]
 then
