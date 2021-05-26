@@ -348,7 +348,11 @@ class SMWClient(SMW):
                     if tempRes is not None:
                         for res in tempRes:
                             results.append(res)
-                            numResults += int(res.get("query").get("meta").get("count"))
+                            query_field=res.get("query")
+                            if query_field is not None:
+                                meta_field=query_field.get("meta")
+                                if meta_field is not None:
+                                    numResults += int(meta_field.get("count"))
                 except QueryResultSizeExceedException as e:
                     # Too many results for current subinterval n -> print error and return the results upto this point
                     print(e)
@@ -441,7 +445,7 @@ class SMWClient(SMW):
             else:
                 if limit is not None and continueOffset >= limit:
                     done = True
-                elif not results.get('query').get('results') or continueOffset < offset:
+                elif (results.get('query') is not None and not results.get('query').get('results')) or continueOffset < offset:
                     # contine-offset is set but result is empty
                     endShowProgress(self.showProgress, count)
                     res.append(results)
@@ -471,9 +475,20 @@ class SMWClient(SMW):
             if result is None:
                 result=singleResult
             else:
-                results=result['query']['results']
-                singleResults=singleResult['query']['results']
-                results.update(singleResults)
+                singleResults=None
+                if 'query' in singleResult:
+                    if 'results' in singleResult['query']:
+                        singleResults=singleResult['query']['results']
+                if singleResults is not None:
+                    if 'query' in result:
+                        if 'results' in result['query']:
+                            results=result['query']['results']
+                            results.update(singleResults)
+                        else:
+                            result['query']['results']=singleResults
+                    else:
+                        result['query']={}
+                        result['query']['results'] = singleResults
         return result
         
     def query(self,askQuery:str,title:str=None,limit:int=None):
