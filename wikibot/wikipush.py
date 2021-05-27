@@ -525,7 +525,7 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
 
-__version__ = "0.4.7"
+__version__ = "0.4.8"
 __date__ = '2020-10-31'
 __updated__ = '2021-05-27'
 DEBUG=False

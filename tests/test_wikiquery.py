@@ -4,7 +4,6 @@ Created on 2021-02-16
 @author: wf
 '''
 import json
-import subprocess
 import unittest
 import getpass
 import sys
@@ -116,6 +115,20 @@ class TestWikiQuery(unittest.TestCase):
             print(lod_res)
         self.assertTrue(isinstance(lod_res, list))
         self.assertTrue(isinstance(lod_res[0], dict))
+        
+    def testIssue66(self):
+        '''
+        test TypeError("'dict_values' object is not subscriptable")
+        '''
+        if self.inPublicCI(): return
+        wikiId= 'wgt'
+        wikiClient = self.getWikiClient(wikiId)
+        wikiClient.login()
+        wikiPush = WikiPush(fromWikiId=wikiId)
+        askQuery="{{#ask:[[Modification date::+]]}}"
+        lod_res= wikiPush.formatQueryResult(askQuery, wikiClient, queryDivision=10)
+        if self.debug:
+            print (lod_res)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

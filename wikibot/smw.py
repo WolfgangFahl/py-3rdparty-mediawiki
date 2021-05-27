@@ -123,6 +123,52 @@ class PrintRequest(object):
         text="PrintRequest(label='%s' key='%s' redi='%s' typeid='%s' mode=%d format='%s')" % (self.label,self.key,self.redi,self.typeid,self.mode,self.format)
         return text
     
+class SplitParam():
+    '''
+    Query parameter to be used for splitting e.g. Modification date, Creation Date, could be potentially
+    any parameter that is ordered and countable
+    Currently we assume a parameter of type Date and use Modification date by default
+    '''
+    
+    def __init__(self,name="Modification date",label="mdate"):
+        '''
+        construct me
+        '''
+        self.name=name
+        self.label=label
+        
+    def queryBounds(self,lowerBound,upperBound)->str:
+        '''
+        get the query bounds 
+        '''
+        result=f"[[{self.name}:: >={lowerBound.isoformat()}]]|[[{self.name}:: <={upperBound.isoformat()}]]"
+        return result
+
+    def getFirst(self)->str:
+        '''
+        get the first element
+        '''
+        result=f"?{self.name}={self.label}|sort={self.name}|limit=1"
+        return result
+    
+    def deserialize(self,values):
+        '''
+        deserialize my query result
+        '''
+        # dict: {
+        #    'Property:Foaf:knows': {
+        #       '': 'Property:Foaf:knows', 
+        #       'Modification date': datetime.datetime(2020, 11, 28, 17, 40, 36)
+        #    }
+        # }
+        date=None
+        vlist=list(values)
+        if len(vlist)>0:
+            innerValue = vlist[0]
+            if self.label in innerValue:
+                date=innerValue[self.label]
+        return date
+        
 
 class SMW(object):
     '''
@@ -150,7 +196,7 @@ class SMW(object):
         self.prefix=prefix
         self.showProgress=showProgress
         self.queryDivision=queryDivision
-        self.QUERY_SPLITUP_ID = "Modification date"
+        self.splitParam=SplitParam()
         self.debug=debug
     
     def deserialize(self,rawresult):
@@ -342,7 +388,8 @@ class SMWClient(SMW):
                     print(f"Query {n+1}/{numIntervals}:")
                 tempLowerBound = calcIntervalBound(start,n)
                 tempUpperBound = calcIntervalBound(start,n+1) if (n+1 < numIntervals) else end
-                queryParam = f"{query}|[[{self.QUERY_SPLITUP_ID}:: >={tempLowerBound.isoformat()}]]|[[{self.QUERY_SPLITUP_ID}:: <={tempUpperBound.isoformat()}]]"
+                queryBounds = self.splitParam.queryBounds(tempLowerBound,tempUpperBound)
+                queryParam=f"{query}|{queryBounds}"
                 try:
                     tempRes = self.askForAllResults(queryParam, calcLimit(limit, numResults))
                     if tempRes is not None:
@@ -380,18 +427,9 @@ class SMWClient(SMW):
         resultsBoundary = self.site.raw_api('ask', query=queryparamBoundary, http_method='GET')
         self.site.handle_api_result(resultsBoundary)
         deserializedResult=self.deserialize(resultsBoundary)
-        # dict: {
-        #    'Property:Foaf:knows': {
-        #       '': 'Property:Foaf:knows', 
-        #       'Modification date': datetime.datetime(2020, 11, 28, 17, 40, 36)
-        #    }
-        # }
-        date=None
+       
         deserializedValues=deserializedResult.values()
-        if len(deserializedValues)>0:
-            innerValue = deserializedValues[0]
-            if self.QUERY_SPLITUP_ID in innerValue:
-                date=innerValue[self.QUERY_SPLITUP_ID]
+        date=self.splitParam.deserialize(deserializedValues)
         return date
 
     def getBoundariesOfQuery(self, query):
@@ -404,7 +442,8 @@ class SMWClient(SMW):
             (Datetime, Datetime): Returns the time interval (based on modification date) in which all results of the
             query lie potentially the start end end might be None if an error occured or the input is invalid
         """
-        queryparam = f"{query}|?{self.QUERY_SPLITUP_ID}|sort={self.QUERY_SPLITUP_ID}|limit=1"
+        first=self.splitParam.getFirst()
+        queryparam = f"{query}|{first}"
         start=self.getTimeStampBoundary(queryparam,'asc')
         end=self.getTimeStampBoundary(queryparam,'desc')
         return (start,end)
