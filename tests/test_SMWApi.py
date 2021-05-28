@@ -492,8 +492,8 @@ class TestSMW(unittest.TestCase):
     def test_query_bounds(self):
         start_date="2021-01-01T01:50:00"
         end_date="2021-02-01T01:50:00"
-        start=datetime.fromisoformat(start_date)
-        end=datetime.fromisoformat(end_date)
+        start=datetime.strptime(start_date, '%Y-%m-%dT%H:%M:%S')
+        end=datetime.strptime(end_date, '%Y-%m-%dT%H:%M:%S')
         exp_askClause=f"[[Modification date:: >={start_date}]]|[[Modification date:: <={end_date}]]"
         askClause=SplitClause().queryBounds(start,end)
         self.assertEqual(askClause, exp_askClause)
