@@ -5,7 +5,7 @@ Created on 2020-05-25
 '''
 import unittest
 from unittest.mock import patch
-from wikibot.smw import SMW, SMWBot, SMWClient, QueryResultSizeExceedException
+from wikibot.smw import SMW, SMWBot, SMWClient, QueryResultSizeExceedException, SplitClause
 from wikibot.wikibot import WikiBot
 from wikibot.wikiclient import WikiClient
 from tests.test_wikibot import TestWikiBot
@@ -487,6 +487,36 @@ class TestSMW(unittest.TestCase):
                     }
                 }
             }
+
+
+    def test_query_bounds(self):
+        start_date="2021-01-01T01:50:00"
+        end_date="2021-02-01T01:50:00"
+        start=datetime.fromisoformat(start_date)
+        end=datetime.fromisoformat(end_date)
+        exp_askClause=f"[[Modification date:: >={start_date}]]|[[Modification date:: <={end_date}]]"
+        askClause=SplitClause().queryBounds(start,end)
+        self.assertEqual(askClause, exp_askClause)
+
+    def test_SplitClause_getFirst(self):
+        name="Modification date"
+        label="_mdate"
+        exp_askClause="?Modification date=_mdate|sort=Modification date|limit=1"
+        askClause=SplitClause(name=name, label=label).getFirst()
+        self.assertEqual(askClause, exp_askClause)
+
+    def test_SplitClause_deserialize(self):
+        name = "Modification date"
+        label = "_mdate"
+        exp_res=datetime(2020, 11, 28, 17, 40, 36)
+        values=[{
+              '': 'Property:Foaf:knows',
+              label: exp_res
+           }
+        ]
+        res=SplitClause(name, label).deserialize(values)
+        self.assertEqual(res, exp_res)
+
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSMWApi']

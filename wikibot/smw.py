@@ -123,7 +123,7 @@ class PrintRequest(object):
         text="PrintRequest(label='%s' key='%s' redi='%s' typeid='%s' mode=%d format='%s')" % (self.label,self.key,self.redi,self.typeid,self.mode,self.format)
         return text
     
-class SplitParam():
+class SplitClause():
     '''
     Query parameter to be used for splitting e.g. Modification date, Creation Date, could be potentially
     any parameter that is ordered and countable
@@ -139,7 +139,15 @@ class SplitParam():
         
     def queryBounds(self,lowerBound,upperBound)->str:
         '''
-        get the query bounds 
+        get the query bounds
+        e.g. [[Modification date::>=2021-01-01T12:00
+
+        Args:
+            lowerBound(datetime): start of the time interval
+            upperBound(datetime): end of the time interval
+
+        Returns:
+            Returns the SMW ask part for the boundary
         '''
         result=f"[[{self.name}:: >={lowerBound.isoformat()}]]|[[{self.name}:: <={upperBound.isoformat()}]]"
         return result
@@ -196,7 +204,7 @@ class SMW(object):
         self.prefix=prefix
         self.showProgress=showProgress
         self.queryDivision=queryDivision
-        self.splitParam=SplitParam()
+        self.splitClause=SplitClause()
         self.debug=debug
     
     def deserialize(self,rawresult):
@@ -388,7 +396,7 @@ class SMWClient(SMW):
                     print(f"Query {n+1}/{numIntervals}:")
                 tempLowerBound = calcIntervalBound(start,n)
                 tempUpperBound = calcIntervalBound(start,n+1) if (n+1 < numIntervals) else end
-                queryBounds = self.splitParam.queryBounds(tempLowerBound,tempUpperBound)
+                queryBounds = self.splitClause.queryBounds(tempLowerBound, tempUpperBound)
                 queryParam=f"{query}|{queryBounds}"
                 try:
                     tempRes = self.askForAllResults(queryParam, calcLimit(limit, numResults))
@@ -429,7 +437,7 @@ class SMWClient(SMW):
         deserializedResult=self.deserialize(resultsBoundary)
        
         deserializedValues=deserializedResult.values()
-        date=self.splitParam.deserialize(deserializedValues)
+        date=self.splitClause.deserialize(deserializedValues)
         return date
 
     def getBoundariesOfQuery(self, query):
@@ -442,7 +450,7 @@ class SMWClient(SMW):
             (Datetime, Datetime): Returns the time interval (based on modification date) in which all results of the
             query lie potentially the start end end might be None if an error occured or the input is invalid
         """
-        first=self.splitParam.getFirst()
+        first=self.splitClause.getFirst()
         queryparam = f"{query}|{first}"
         start=self.getTimeStampBoundary(queryparam,'asc')
         end=self.getTimeStampBoundary(queryparam,'desc')
