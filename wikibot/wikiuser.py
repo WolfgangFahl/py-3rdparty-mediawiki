@@ -46,15 +46,21 @@ class WikiUser(object):
             if field not in self.__dict__ or self.__dict__[field] is None:
                 self.__dict__[field]=input("%s: " %field)
         # encrypt
-        crypt=Crypt.getRandomCrypt()
-        self.secret=crypt.encrypt(self.password)
-        self.cypher=crypt.cypher.decode()
-        self.salt=crypt.salt.decode()
+        self.encrypt()
         if not yes:
             answer=input("shall i store %s? yes/no y/n" % self)
             yes="y" in answer or "yes" in answer
         if yes:
             self.save(filePath)
+    
+    def encrypt(self):
+        '''
+        encrypt my clear text password
+        '''
+        crypt=Crypt.getRandomCrypt()
+        self.secret=crypt.encrypt(self.password)
+        self.cypher=crypt.cypher.decode()
+        self.salt=crypt.salt.decode()
     
     def __str__(self):
         return "%s %s" % (self.user,self.wikiId)
@@ -159,7 +165,9 @@ class WikiUser(object):
                 wikiUser.__dict__[field]=userDict[field]    
             else:
                 if not lenient:
-                    raise Exception("%s missing " % field)    
+                    raise Exception("%s missing " % field)  
+        if not encrypted:
+            wikiUser.encrypt()   
         return wikiUser
     
 __version__ = 0.1
