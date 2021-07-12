@@ -488,7 +488,6 @@ class WikiPush(object):
             backupPath(str): path to backup location
         """
         if stdIn:
-            l = []
             backupPath = os.path.dirname(pageTitles[0].strip())
             pageTitlesfix= []
             for i in pageTitles:
@@ -503,7 +502,6 @@ class WikiPush(object):
         else:
             if backupPath is None:
                 backupPath=self.getHomePath("wikibackup/%s" % self.toWikiId)
-            imageBackupPath = "%s/images" % backupPath
             if pageTitles is None:
                 pageTitles = []
                 for path, subdirs, files in os.walk(backupPath):
