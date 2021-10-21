@@ -59,11 +59,15 @@ class Crypt(object):
         hasher.update(self.salt)
         result = hasher.digest()
     
-        for i in range(1, self.iterations):
+        # iterate over hashes
+        for _i in range(1, self.iterations):
             hasher = MD5.new()
             hasher.update(result)
             result = hasher.digest()
-        return DES.new(result[:8], DES.MODE_CBC, result[8:16])
+        key=result[:8]
+        # initialization vector
+        iv=result[8:16]
+        return DES.new(key, DES.MODE_CBC, iv)
     
     def encrypt(self,msg):
         '''
@@ -74,7 +78,7 @@ class Crypt(object):
         padding = 8 - len(plaintext_to_encrypt) % 8
         plaintext_to_encrypt += chr(padding) * padding
         encoder = self.getCrypt()
-        encrypted = encoder.encrypt(plaintext_to_encrypt)
+        encrypted = encoder.encrypt(plaintext_to_encrypt.encode('utf-8'))
         b64enc=base64.b64encode(encrypted).decode('utf-8')
         return b64enc
 
