@@ -55,8 +55,13 @@ class BaseTest(TestCase):
         self.profiler.time()
         pass
         
-    def inPublicCI(self):
+    @staticmethod    
+    def isInPublicCI():
         '''
         are we running in a public Continuous Integration Environment?
         '''
         return getpass.getuser() in [ "travis", "runner" ];
+    
+    def inPublicCI(self):
+        return BaseTest.isInPublicCI()
+        

@@ -52,7 +52,7 @@ class TestWikiUser(BaseTest):
                 raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
             else:
                 wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
-                if self.inPublicCI():
+                if BaseTest.isInPublicCI():
                     wikiUser.save()
         else: 
             wikiUser=WikiUser.ofWikiId(wikiId,lenient=True)
