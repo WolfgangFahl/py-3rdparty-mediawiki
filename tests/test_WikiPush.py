@@ -5,29 +5,15 @@ Created on 2020-10-29
 '''
 import unittest
 import os
-import getpass
 import wikibot
 from wikibot.wikipush import WikiPush
+from tests.basetest import BaseTest
 
-
-class TestWikiPush(unittest.TestCase):
+class TestWikiPush(BaseTest):
     '''
     test pushing pages including images
     '''
-
-    def setUp(self):
-        self.debug=False
-        pass
-
-    def inPublicCI(self):
-        '''
-        are we running in a public Continuous Integration Environment?
-        '''
-        return getpass.getuser() in [ "travis", "runner" ];
-
-    def tearDown(self):
-        pass
-
+ 
     def testLimitInQuery(self):
         '''
         test if limits defined inside of the query work properly and can be overwritten by the argument definition

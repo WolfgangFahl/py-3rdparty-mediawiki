@@ -12,25 +12,16 @@ from io import StringIO
 from wikibot.wikiclient import WikiClient
 from tests.test_WikiUser import TestWikiUser
 from wikibot.wikipush import WikiPush, mainQuery
+from tests.basetest import BaseTest
 
-
-class TestWikiQuery(unittest.TestCase):
+class TestWikiQuery(BaseTest):
     '''
     tests for https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/56
     '''
     def setUp(self):
-        self.debug=True
+        BaseTest.setUp(self)
         self.eventQuery = "[[IsA::Event]][[Ordinal::>2]][[start date::>2018]][[start date::<2019]]| mainlabel = Event| ?Title = title| ?Event in series = series| ?_CDAT=creation date| ?_MDAT=modification date| ?ordinal=ordinal| ?Homepage = homepage|format=table"
         pass
-
-    def tearDown(self):
-        pass
-
-    def inPublicCI(self):
-        '''
-        are we running in a public Continuous Integration Environment?
-        '''
-        return getpass.getuser() in [ "travis", "runner" ];
     
     def getWikiClient(self,wikiId='or'):
         ''' get the alternative SMW access instances for the given wiki id

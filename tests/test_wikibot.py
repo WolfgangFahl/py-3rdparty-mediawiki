@@ -7,25 +7,12 @@ import unittest
 from wikibot.wikibot import WikiBot
 from tests.test_WikiUser import TestWikiUser
 from wikibot.crypt import Crypt
+from tests.basetest import BaseTest
 
-class TestWikiBot(unittest.TestCase):
+class TestWikiBot(BaseTest):
     '''
     Unit test for WikiBot
     '''
-
-    def setUp(self):
-        '''
-        general setup
-        '''
-        self.debug=False
-        pass
-
-
-    def tearDown(self):
-        '''
-        general tear down
-        '''
-        pass
 
     def testCrypt(self):
         ''' test encryption/decryption '''

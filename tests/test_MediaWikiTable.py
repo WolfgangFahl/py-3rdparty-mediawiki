@@ -6,19 +6,12 @@ Created on 2020-08-21
 from datetime import datetime,date
 import unittest
 from wikibot.mwTable import MediaWikiTable
+from tests.basetest import BaseTest
 
-class Test_MediaWikiTable(unittest.TestCase):
+class Test_MediaWikiTable(BaseTest):
     '''
     test mediawiki table creation
     '''
-
-    def setUp(self):
-        self.debug=False
-        pass
-
-
-    def tearDown(self):
-        pass
     
     def dob(self,isoDateString):
         ''' get the date of birth from the given iso date state'''

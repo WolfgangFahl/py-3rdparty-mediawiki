@@ -5,16 +5,12 @@ Created on 2020-11-02
 '''
 import unittest
 from wikibot.wikiclient import WikiClient
+from tests.basetest import BaseTest
 
-class TestWikiClient(unittest.TestCase):
-
-
-    def setUp(self):
-        pass
-
-
-    def tearDown(self):
-        pass
+class TestWikiClient(BaseTest):
+    '''
+    test Wiki client handling with mwclient library
+    '''
 
     def testWikiClient(self):
         '''

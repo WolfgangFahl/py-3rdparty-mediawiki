@@ -8,19 +8,13 @@ from wikibot.wiki import Wiki
 from wikibot.wikibot import WikiBot
 from wikibot.wikiclient import WikiClient
 from tests.test_WikiUser import TestWikiUser
+from tests.basetest import BaseTest
 
-class TestDuckInterface(unittest.TestCase):
+class TestDuckInterface(BaseTest):
     '''
     test https://en.wikipedia.org/wiki/Duck_typing interface of Wiki
     '''
 
-    def setUp(self):
-        self.debug=False
-        pass
-
-
-    def tearDown(self):
-        pass
     
     def getWikis(self,wikiId):
         '''

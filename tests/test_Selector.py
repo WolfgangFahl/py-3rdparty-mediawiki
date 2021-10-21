@@ -7,22 +7,20 @@ import unittest
 from wikibot.selector import Selector
 import getpass
 import logging
+from tests.basetest import BaseTest
 
-
-class TestSelector(unittest.TestCase):
+class TestSelector(BaseTest):
     """
     Test the selector GUI e.g. checking if the correct selection is returned and all GUI elements work accordingly
     """
 
     def setUp(self):
+        BaseTest.setUp(self)
         self.LOGGER = logging.getLogger(self.__class__.__name__)
         self.LOGGER.setLevel(logging.INFO)
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(logging.Formatter('[%(asctime)s] [%(levelname)s] - %(message)s'))
         self.LOGGER.addHandler(handler)
-
-    def tearDown(self):
-        pass
 
     def testIssue25(self):
         '''

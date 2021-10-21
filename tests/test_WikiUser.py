@@ -4,37 +4,24 @@ Created on 2020-11-01
 @author: wf
 '''
 import unittest
-import getpass
 from wikibot.wikiuser import WikiUser
 import wikibot
 import os
 import tempfile
+from tests.basetest import BaseTest
 
-class TestWikiUser(unittest.TestCase):
+class TestWikiUser(BaseTest):
     '''
     test for WikiUser handling e.g. credentials and parsing
     user info from Java properties compatible ini file
     '''
 
-    def setUp(self):
-        self.debug=False
-        pass
-
-    def tearDown(self):
-        pass
-    
-    @staticmethod
-    def inPublicCI():
-        '''
-        are we running in a public Continuous Integration Environment?
-        '''
-        return getpass.getuser() in [ "travis", "runner" ];
-
     def testWikiUser(self):
         '''
         test the wiki user handling
         '''
-        if TestWikiUser.inPublicCI(): return
+        if self.inPublicCI(): 
+            return
         wikiUsers=WikiUser.getWikiUsers()
         for wikiUser in wikiUsers.values():
             if self.debug:
@@ -56,7 +43,7 @@ class TestWikiUser(unittest.TestCase):
         if not os.path.isfile(iniFile):
             wikiDict=None
             if wikiId=="smwcopy":
-                wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"http://smw.bitplan.com","scriptPath":"","version":"MediaWiki 1.35.0"}
+                wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"http://smw.bitplan.com","scriptPath":"/","version":"MediaWiki 1.35.0"}
             if wikiId=="smw":
                 wikiDict={"wikiId": wikiId,"email":"webmaster@semantic-mediawiki.org","url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.7"}
             if wikiId=="or":
@@ -65,7 +52,7 @@ class TestWikiUser(unittest.TestCase):
                 raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
             else:
                 wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
-                if TestWikiUser.inPublicCI():
+                if self.inPublicCI():
                     wikiUser.save()
         else: 
             wikiUser=WikiUser.ofWikiId(wikiId,lenient=True)

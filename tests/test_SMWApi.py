@@ -11,8 +11,9 @@ from wikibot.wikiclient import WikiClient
 from tests.test_wikibot import TestWikiBot
 from tests.test_WikiUser import TestWikiUser
 from datetime import datetime
+from tests.basetest import BaseTest
 
-class TestSMW(unittest.TestCase):
+class TestSMW(BaseTest):
     """ test access to SemanticMediaWiki API see https://www.semantic-mediawiki.org/wiki/Help:API:ask"""
 
     # sample queries
@@ -22,20 +23,6 @@ class TestSMW(unittest.TestCase):
         |?Has planned start =    start
         |?Has_location  =        location
         |  format=table  }}"""
-        
-    def setUp(self):
-        '''
-        general setup
-        '''
-        self.debug=False
-        pass
-
-
-    def tearDown(self):
-        '''
-        general tear down
-        '''
-        pass
 
     
     def testFixAsk(self):

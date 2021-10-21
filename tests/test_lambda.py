@@ -12,24 +12,21 @@ from wikibot.wikiuser import WikiUser
 from wikibot.wikiclient import WikiClient
 from wikibot.smw import SMWClient
 from wikibot.wikiaction import WikiAction
+from tests.basetest import BaseTest
 
-class TestLambda(unittest.TestCase):
+class TestLambda(BaseTest):
     '''
     test lamdba query/action handling
     '''
 
     def setUp(self):
-        self.debug=False
+        BaseTest.setUp(self)
         self.echoCode = Code("EchoCode", text="""# this is a lambda Action action
 # it get's its context from a context dict
 rows=context["rows"]
 for row in rows:
     print(row)
 context["result"]={"message":"%d rows printed" %len(rows)}""",lang="python")
-        pass
-
-
-    def tearDown(self):
         pass
 
     def getSMW(self,wikiId='orth',url='https://confident.dbis.rwth-aachen.de'):
