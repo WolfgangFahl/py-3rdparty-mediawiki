@@ -6,7 +6,9 @@ pywikibot==6.0.1
 # https://pypi.org/project/mwclient/
 mwclient
 #https://pypi.org/project/pycrypto/
-pycrypto
+#pycrypto
+# https://pypi.org/project/pycryptodome/
+pycryptodome
 # https://pypi.org/project/GitPython/
 gitpython
 # https://pypi.org/project/pylodstorage/
