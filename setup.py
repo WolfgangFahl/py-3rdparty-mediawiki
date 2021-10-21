@@ -25,7 +25,7 @@ setup(
       'gitpython',
       'jinja2',
       'pywikibot',
-      'pycrypto',
+      'pycryptodome',
       'mwclient',
     ],
     entry_points={
