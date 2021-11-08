@@ -2,6 +2,8 @@
 # https://pypi.org/project/pywikibot/
 # https://www.mediawiki.org/wiki/Manual:Pywikibot
 pywikibot==6.6.1
+# pywikibot dependency
+wikitextparser>=0.47.5
 # Mwclient API
 # https://pypi.org/project/mwclient/
 mwclient
