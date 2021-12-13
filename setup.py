@@ -10,7 +10,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='py-3rdparty-mediawiki',
-    version='0.5.0',
+    version='0.5.1',
 
     packages=['wikibot',],
     classifiers=[
@@ -24,9 +24,9 @@ setup(
     install_requires=[
       'gitpython',
       'jinja2',
-      'pywikibot',
-      'pycryptodome',
-      'mwclient',
+      'pywikibot==6.0.1',
+      'pycryptodome~=3.11.0',
+      'mwclient~=0.10.1',
     ],
     entry_points={
       'console_scripts': [
