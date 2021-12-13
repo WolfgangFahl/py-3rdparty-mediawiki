@@ -1,7 +1,7 @@
 # MediaWiki bot package
 # https://pypi.org/project/pywikibot/
 # https://www.mediawiki.org/wiki/Manual:Pywikibot
-pywikibot==6.6.1
+pywikibot==6.0.1
 # pywikibot dependency
 wikitextparser>=0.47.5
 # Mwclient API
@@ -14,6 +14,6 @@ pycryptodome
 # https://pypi.org/project/GitPython/
 gitpython
 # https://pypi.org/project/pylodstorage/
-pylodstorage>=0.0.74
+pylodstorage~=0.0.85
 # https://pypi.org/project/Jinja2/
 jinja2
