@@ -24,8 +24,8 @@ setup(
     install_requires=[
       'gitpython',
       'jinja2',
-      'pywikibot==6.0.1',
-      'pycryptodome~=3.11.0',
+      'pywikibot~=6.6.3',
+      'pycryptodome~=3.12.0',
       'mwclient~=0.10.1',
     ],
     entry_points={

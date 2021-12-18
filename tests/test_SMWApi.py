@@ -243,7 +243,7 @@ class TestSMW(BaseTest):
 """ % (prop,prop)
             for smw in self.getSMWs('smwcopy'):
                 result=self.getAskResult(smw,ask)
-                debug=True
+                debug=self.debug
                 if debug:
                     print("%s: %s" % (prop,result))
                 self.assertTrue(len(result)>=1)
