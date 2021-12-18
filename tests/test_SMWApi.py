@@ -146,7 +146,9 @@ class TestSMW(BaseTest):
                     self.assertEqual(expectedRecord[key],record[key]) 
         
     def testSMWAsk(self):
-        """ test getting the unserialized json result of an ask query"""
+        '''
+        test getting the unserialized json result of an ask query
+        '''
         expectedRecords=[{
             'WikiDataId': 'Q42407116', 
             'location':'Cologne, Germany',

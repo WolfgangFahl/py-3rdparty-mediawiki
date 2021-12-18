@@ -43,7 +43,7 @@ class TestWikiUser(BaseTest):
         if not os.path.isfile(iniFile):
             wikiDict=None
             if wikiId=="smwcopy":
-                wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"http://smw.bitplan.com","scriptPath":"/","version":"MediaWiki 1.35.0"}
+                wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"http://smw.bitplan.com","scriptPath":"","version":"MediaWiki 1.35.0"}
             if wikiId=="smw":
                 wikiDict={"wikiId": wikiId,"email":"webmaster@semantic-mediawiki.org","url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.7"}
             if wikiId=="or":

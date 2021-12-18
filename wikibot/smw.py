@@ -565,15 +565,25 @@ class SMWBot(SMW):
     Semantic MediaWiki access using pywikibot library
     '''
     def __init__(self, site=None,prefix="/",showProgress=False,debug=False):
+        '''
+        constructor
+        
+        Args:
+            site:
+            prefix(str): the prefix to use
+            showProgress(bool): show progress if true
+            debug(bool): set debugging mode if true
+        '''
         super(SMWBot,self).__init__(site,prefix,showProgress=showProgress,debug=debug) 
         pass
     
     def submit(self, parameters):
-        """ submit the request with the given parameters
+        ''' submit the request with the given parameters
         Args:
             parameters(list): the parameters to use for the SMW API request
         Returns:
-            dict: the submit result"""
+            dict: the submit result
+        '''
         if not "Request" in sys.modules:
             from pywikibot.data.api import Request
                 
@@ -585,10 +595,13 @@ class SMWBot(SMW):
         parameters={"action": "smwinfo"}
         return self.submit(parameters)
     
-    def rawquery(self,ask,limit=None):
-        """ send a query see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries#Parser_function_.23ask
+    def rawquery(self,ask:str,limit=None):
+        '''
+         send a query see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries#Parser_function_.23ask
+        
         Args:
-            ask(str): the SMW ASK query as it would be used in MediaWiki markup"""
+            ask(str): the SMW ASK query as it would be used in MediaWiki markup
+        '''
         # allow usage of original Wiki ask content - strip all non needed parts
         fixedAsk=self.fixAsk(ask)
         # set parameters for request
