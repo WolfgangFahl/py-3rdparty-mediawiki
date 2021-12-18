@@ -72,6 +72,18 @@ class WikiBot(Wiki):
         self.scriptPath=o.path+self.scriptPath      
         self.checkFamily()
         
+    def register_family_file(self,family,famfile):
+        '''
+        register the family file
+        
+        Args:
+            family(Family): the family to register
+            famfile(str): the path to the family file
+        '''
+        # deprecated code
+        config2.register_family_file(family, famfile)  
+  
+        
     def checkFamily(self):
         '''
         check if a family file exists and if not create it
@@ -105,7 +117,7 @@ class Family(family.Family):
             code=template % (self.family,self.netloc,self.scriptPath,ispublic,mw_version,self.scheme)
             with open(famfile,"w") as py_file:
                 py_file.write(code)
-        config2.register_family_file(self.family, famfile)  
+        self.register_family_file(self.family,famfile)
         if self.wikiUser.user:
             config2.usernames[self.family]['en'] = self.wikiUser.user
         #config2.authenticate[self.netloc] = (self.user,self.getPassword())
