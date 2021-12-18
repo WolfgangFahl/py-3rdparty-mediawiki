@@ -72,16 +72,17 @@ class WikiBot(Wiki):
         self.scriptPath=o.path+self.scriptPath      
         self.checkFamily()
         
-    def register_family_file(self,family,famfile):
+    def register_family_file(self,familyName:str,famfile:str):
         '''
         register the family file
         
         Args:
-            family(Family): the family to register
+            family(str): the familyName to register
             famfile(str): the path to the family file
         '''
         # deprecated code
-        config2.register_family_file(family, famfile)  
+        #config2.register_family_file(familyName, famfile)
+        config2.family_files[familyName]=famfile  
   
         
     def checkFamily(self):
