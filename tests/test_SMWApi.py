@@ -11,6 +11,7 @@ from wikibot.wikiclient import WikiClient
 from tests.test_wikibot import TestWikiBot
 from tests.test_WikiUser import TestWikiUser
 from datetime import datetime
+import pywikibot
 from tests.basetest import BaseTest
 
 class TestSMW(BaseTest):
@@ -50,6 +51,8 @@ class TestSMW(BaseTest):
         wikibot=WikiBot.ofWikiUser(wikiuser)
         wikiclient=WikiClient.ofWikiUser(wikiuser)
         smwbot=SMWBot(wikibot.site)
+        #https://github.com/wikimedia/pywikibot/blob/master/pywikibot/config.py#L719
+        pywikibot.config.max_retries=2
         smwclient=SMWClient(wikiclient.getSite())
         return [smwbot,smwclient]
          
