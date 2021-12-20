@@ -68,7 +68,13 @@ class TestWikiBot(BaseTest):
             print (bot)
             if bot.site is not None:
                 print (bot.site.sitename)
-                print (bot.getPage("MainPage").text)   
+                try:
+                    mainPageText=bot.getPage("Main Page").text
+                    status=f"✅:{len(mainPageText)}"
+                except Exception as ex:
+                    error=str(ex)
+                    status=f"❌:{error}"
+                print (status)   
                 #bot2=WikiBot.ofWikiId(bot.wikiId)
                 #self.assertEquals(bot2.url,bot.url)
         pass

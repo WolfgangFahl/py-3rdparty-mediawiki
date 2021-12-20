@@ -31,9 +31,11 @@ class TestDuckInterface(BaseTest):
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/38
         add html page retrieval even when using mwclient 
         '''
-        wikiId='or'
+        wikiId='orcopy'
+        debug=self.debug
+        debug=True
         for wiki in self.getWikis(wikiId):
-            if self.debug:
+            if debug:
                 print(wiki)
             self.assertTrue(isinstance(wiki,Wiki))
             pageTitle="Openresearch:About"

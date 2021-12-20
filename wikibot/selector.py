@@ -2,21 +2,24 @@
 Created on 2020-12-20
 
 '''
-from tkinter import *
 
 
 class Selector:
+    '''
+    selector class
+    '''
 
     def __init__(self, items):
         """
             Constructor
         """
+        import tkinter as tk 
         self.items = items
         self.items = list(map(str, self.items))
         self.var = dict()
         self.count = 1
-        self.checkvar = IntVar(value=1)
-        self.label_test = StringVar()
+        self.checkvar = tk.IntVar(value=1)
+        self.label_test = tk.StringVar()
         self.label_test.set("Select None")
         self.quitProgram = False
 
@@ -30,7 +33,8 @@ class Selector:
                description(str): Description of Task to do
            Returns:
                None
-       """
+        """
+        import tkinter as tk 
         # Title
         rowCounter = 0
         root.title(title)    #set window title to given title string
@@ -41,47 +45,47 @@ class Selector:
         longest_string = items_by_len[-1]
 
         # Setting Message to description string
-        desc = Message(root, text=description)
+        desc = tk.Message(root, text=description)
         desc.bind("<Configure>", lambda e: desc.configure(width=e.width - 10))
-        desc.pack(side="top", fill=X)
+        desc.pack(side="top", fill=tk.X)
 
         # Frame creation for Listbox
-        frameList = Frame(root)
+        frameList = tk.Frame(root)
 
-        items = StringVar(root)
+        items = tk.StringVar(root)
         items.set(self.items)
-        listbox = Listbox(frameList, listvariable=items, selectmode="multiple", width=len(longest_string)+5)
-        listbox.pack(side=LEFT, fill=BOTH, expand=True)
-        listbox.select_set(0, END)
+        listbox = tk.Listbox(frameList, listvariable=items, selectmode="multiple", width=len(longest_string)+5)
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        listbox.select_set(0, tk.END)
 
         # Frame creation for select all/none checkbox
-        frameSelect = Frame(root)
-        frameSelect.pack(side=TOP, fill=BOTH)
-        frameList.pack(fill=BOTH, expand=True)
+        frameSelect = tk.Frame(root)
+        frameSelect.pack(side=tk.TOP, fill=tk.BOTH)
+        frameList.pack(fill=tk.BOTH, expand=True)
 
         # label and checkbutton creation
-        label = Label(frameSelect, textvariable=self.label_test)
-        check = Checkbutton(frameSelect, text="", variable=self.checkvar,
+        label = tk.Label(frameSelect, textvariable=self.label_test)
+        check = tk.Checkbutton(frameSelect, text="", variable=self.checkvar,
                             command=lambda: self.select_all(listbox))
-        check.pack(side=LEFT, anchor="sw")
-        label.pack(side=LEFT, anchor="sw")
+        check.pack(side=tk.LEFT, anchor="sw")
+        label.pack(side=tk.LEFT, anchor="sw")
 
         # Scrollbar binding and creation
-        scrollbar = Scrollbar(frameList)
-        scrollbar.pack(side=RIGHT, fill=BOTH)
+        scrollbar = tk.Scrollbar(frameList)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.BOTH)
         listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=listbox.yview)
         listbox.bind("<<ListboxSelect>>", self.updateCheck)
 
         #Frame for Action and Quit Buttons
-        frameControl = Frame(root)
-        frameControl.pack(side=BOTTOM, fill=X)
+        frameControl = tk.Frame(root)
+        frameControl.pack(side=tk.BOTTOM, fill=tk.X)
 
         # Action and Quit button creation
-        actionBtn = Button(frameControl, text=action, bg='green', fg='white', command=lambda: self.updatePages(root, listbox))
-        actionBtn.pack(side=LEFT, anchor="sw")
-        quitBtn = Button(frameControl, text="Quit", bg='red', fg='white', command=lambda: self.quitSelector(root))
-        quitBtn.pack(side=RIGHT, anchor="se")
+        actionBtn = tk.Button(frameControl, text=action, bg='green', fg='white', command=lambda: self.updatePages(root, listbox))
+        actionBtn.pack(side=tk.LEFT, anchor="sw")
+        quitBtn = tk.Button(frameControl, text="Quit", bg='red', fg='white', command=lambda: self.quitSelector(root))
+        quitBtn.pack(side=tk.RIGHT, anchor="se")
 
         #To destroy window and exit program if cross button is pressed
         root.protocol("WM_DELETE_WINDOW", lambda: self.quitSelector(root))
@@ -105,11 +109,12 @@ class Selector:
             Returns:
                 listbox(Tk Listbox Object): listbox to update to all items
         """
+        import tkinter as tk 
         if self.checkvar.get():
-            listbox.select_set(0, END)
+            listbox.select_set(0, tk.END)
             self.label_test.set("Select None")
         else:
-            listbox.select_clear(0, END)
+            listbox.select_clear(0, tk.END)
             self.label_test.set("Select All")
 
     def updatePages(self, root, listbox):
@@ -156,7 +161,8 @@ class Selector:
         :param description: Instructions for the user (consequence of the selection)
         :return: user selected subset of the given selectionList
         """
-        root = Tk()
+        import tkinter as tk 
+        root = tk.Tk()
         GUI = Selector(selectionList)   # Tkinter Object creation
         GUI.createWindow(root, action, title, description)  # create Window with given parameters
         root.mainloop()     # Run GUI loop

@@ -43,12 +43,15 @@ class TestWikiUser(BaseTest):
         if not os.path.isfile(iniFile):
             wikiDict=None
             if wikiId=="smwcopy":
-                wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"http://smw.bitplan.com","scriptPath":"","version":"MediaWiki 1.35.0"}
-            if wikiId=="smw":
+                wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"https://smw.bitplan.com","scriptPath":"","version":"MediaWiki 1.35.5"}
+            elif wikiId=="smw":
                 wikiDict={"wikiId": wikiId,"email":"webmaster@semantic-mediawiki.org","url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.7"}
-            if wikiId=="or":
-                wikiDict={"wikiId": wikiId,"email":"webmaster@openresearch.org","url":"https://www.openresearch.org","scriptPath":"/mediawiki/","version":"MediaWiki 1.31.1"}   
-            if wikiDict is None:
+            elif wikiId=="or":
+                wikiDict={"wikiId": wikiId,"email":"webmaster@openresearch.org","url":"https://www.openresearch.org","scriptPath":"/mediawiki/","version":"MediaWiki 1.31.1"} 
+                raise Exception("don")
+            elif wikiId=="orcopy":  
+                wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"https://or.bitplan.com","scriptPath":"","version":"MediaWiki 1.35.5"}   
+            elif wikiDict is None:
                 raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
             else:
                 wikiUser=WikiUser.ofDict(wikiDict, lenient=True)

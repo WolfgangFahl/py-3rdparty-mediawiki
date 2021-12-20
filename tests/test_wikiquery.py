@@ -23,7 +23,7 @@ class TestWikiQuery(BaseTest):
         self.eventQuery = "[[IsA::Event]][[Ordinal::>2]][[start date::>2018]][[start date::<2019]]| mainlabel = Event| ?Title = title| ?Event in series = series| ?_CDAT=creation date| ?_MDAT=modification date| ?ordinal=ordinal| ?Homepage = homepage|format=table"
         pass
     
-    def getWikiClient(self,wikiId='or'):
+    def getWikiClient(self,wikiId='orcopy'):
         ''' get the alternative SMW access instances for the given wiki id
         '''
         wikiuser=TestWikiUser.getSMW_WikiUser(wikiId)
@@ -36,7 +36,7 @@ class TestWikiQuery(BaseTest):
         '''
         # make sure the CI wikiUser is prepared
         if self.inPublicCI(): return
-        wikiId='or'
+        wikiId='orcopy'
         wikiClient=self.getWikiClient(wikiId)
         wikiPush=WikiPush(fromWikiId=wikiId)
         askQuery="""{{#ask: [[IsA::Event]][[Ordinal::>2]][[start date::>2018]][[start date::<2019]]
@@ -62,7 +62,7 @@ class TestWikiQuery(BaseTest):
     def testJsonDefalt(self):
         """Test if default entityName is set correctly for format json"""
         if self.inPublicCI(): return
-        argv=["-s","or","-q",self.eventQuery]
+        argv=["-s","orcopy","-q",self.eventQuery]
         mystdout = StringIO()
         sys.stdout = mystdout
         mainQuery(argv)
@@ -74,7 +74,7 @@ class TestWikiQuery(BaseTest):
         """Test if given entityName is set correctly for format json"""
         if self.inPublicCI(): return
         entityName = "Event"
-        argv=["-s","or","-q",self.eventQuery, "--entityName", entityName, "--format", "json"]
+        argv=["-s","orcopy","-q",self.eventQuery, "--entityName", entityName, "--format", "json"]
         mystdout = StringIO()
         sys.stdout = mystdout
         mainQuery(argv)
@@ -86,7 +86,7 @@ class TestWikiQuery(BaseTest):
         """Test if wikiquery returns CSV format correctly"""
         if self.inPublicCI(): return
         entityName = "Event"
-        argv=["-s","or","-q",self.eventQuery, "--format", "csv"]
+        argv=["-s","orcopy","-q",self.eventQuery, "--format", "csv"]
         mystdout = StringIO()
         sys.stdout = mystdout
         mainQuery(argv)
@@ -97,7 +97,7 @@ class TestWikiQuery(BaseTest):
 
     def  testLOD(self):
         """Test if LOD is returned correctly if called form api"""
-        wikiId = 'or'
+        wikiId = 'orcopy'
         wikiClient = self.getWikiClient(wikiId)
         wikiPush = WikiPush(fromWikiId=wikiId)
         askQuery = "{{#ask:" + self.eventQuery + "}}"

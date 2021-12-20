@@ -52,7 +52,6 @@ class TestSMW(BaseTest):
         wikiclient=WikiClient.ofWikiUser(wikiuser)
         smwbot=SMWBot(wikibot.site)
         #https://github.com/wikimedia/pywikibot/blob/master/pywikibot/config.py#L719
-        pywikibot.config.max_retries=2
         smwclient=SMWClient(wikiclient.getSite())
         return [smwbot,smwclient]
          
@@ -71,7 +70,7 @@ class TestSMW(BaseTest):
     }}
     """ % limit
         #self.debug=True
-        for smw in self.getSMWs("or"):
+        for smw in self.getSMWs("orcopy"):
             result=smw.query(ask,limit=limit)
             if self.debug:
                 print (len(result))
@@ -179,7 +178,7 @@ class TestSMW(BaseTest):
 |format=table
 }}
         """
-        for smw in self.getSMWs('or'):
+        for smw in self.getSMWs('orcopy'):
             result=self.getAskResult(smw,ask)
             self.assertTrue(len(result)>7)
                 

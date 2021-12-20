@@ -7,7 +7,6 @@ import sys
 from urllib.parse import urlparse
 try:
     import pywikibot
-    from pywikibot import config2
     from pywikibot.data.api import LoginManager
 except Exception as ex:
     # ignore pywikibot setup problems?
@@ -51,13 +50,16 @@ class WikiBot(Wiki):
         wikibot=WikiBot(wikiUser)
         return wikibot
         
-    def __init__(self,wikiUser,debug=False):
+    def __init__(self,wikiUser,debug:bool=False,withLogin:bool=False,maxRetries=2):
         '''
         Constructor
         
         Args:
             wikiUser(WikiUser): the wiki user to initialize me for
+            debug(bool): True if debug mode should be on
+            withLogin(bool): True if init should automatically login
         '''
+        pywikibot.config.max_retries=maxRetries
         super(WikiBot,self).__init__(wikiUser,debug) 
         self.family=wikiUser.wikiId.replace("-","").replace("_","")
         self.url=wikiUser.url.replace("\\:",":")
@@ -71,6 +73,8 @@ class WikiBot(Wiki):
         self.netloc=o.netloc
         self.scriptPath=o.path+self.scriptPath      
         self.checkFamily()
+        if withLogin:
+            self.login()
         
     def register_family_file(self,familyName:str,famfile:str):
         '''
@@ -82,12 +86,13 @@ class WikiBot(Wiki):
         '''
         # deprecated code
         #config2.register_family_file(familyName, famfile)
-        config2.family_files[familyName]=famfile  
+        pywikibot.config.family_files[familyName]=famfile  
   
         
     def checkFamily(self):
         '''
         check if a family file exists and if not create it
+        
         '''
         iniFile=WikiUser.iniFilePath(self.wikiUser.wikiId)
         famfile=iniFile.replace(".ini",".py")
@@ -120,14 +125,18 @@ class Family(family.Family):
                 py_file.write(code)
         self.register_family_file(self.family,famfile)
         if self.wikiUser.user:
-            config2.usernames[self.family]['en'] = self.wikiUser.user
+            pywikibot.config.usernames[self.family]['en'] = self.wikiUser.user
         #config2.authenticate[self.netloc] = (self.user,self.getPassword())
         self.site=pywikibot.Site('en',self.family)  
+        
+    def login(self):
         if self.wikiUser.user:
             # needs patch as outlined in https://phabricator.wikimedia.org/T248471
             #self.site.login(password=self.wikiUser.getPassword())
             lm = LoginManager(password=self.wikiUser.getPassword(), site=self.site, user=self.wikiUser.user)
             lm.login()
+        else:
+            raise Exception("wikiUser is not set")
             
     def getWikiMarkup(self,pageTitle):
         '''

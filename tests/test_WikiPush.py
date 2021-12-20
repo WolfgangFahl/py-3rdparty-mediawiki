@@ -62,7 +62,7 @@ class TestWikiPush(BaseTest):
         # don't test this in Travis
         if self.inPublicCI(): return
         askQuery="[[isA::Event]]"
-        wikipush=WikiPush("or",None)
+        wikipush=WikiPush("orcopy",None)
         pages=wikipush.query(askQuery,showProgress=False,limit=10)
         self.assertEqual(10,len(pages))
     
