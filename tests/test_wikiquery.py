@@ -82,10 +82,12 @@ class TestWikiQuery(BaseTest):
         return
 
     def testCSV(self):
-        """Test if wikiquery returns CSV format correctly"""
+        '''
+        Test if wikiquery returns CSV format correctly
+        '''
         if self.inPublicCI(): return
         entityName = "Event"
-        argv=["-s","orcopy","-q",self.eventQuery, "--format", "csv"]
+        argv=["-s","orclone","-q",self.eventQuery, "--format", "csv"]
         mystdout = StringIO()
         sys.stdout = mystdout
         mainQuery(argv)
