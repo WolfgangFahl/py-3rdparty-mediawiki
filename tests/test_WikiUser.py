@@ -51,8 +51,8 @@ class TestWikiUser(BaseTest):
                 raise Exception("don")
             elif wikiId=="orcopy":  
                 wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"https://or.bitplan.com","scriptPath":"","version":"MediaWiki 1.35.5"}   
-            elif wikiDict is None:
-                raise Exception("%s missing for wikiId %s" % (iniFile,wikiId))
+            if wikiDict is None:
+                raise Exception(f"{iniFile} missing for wikiId {wikiId}")
             else:
                 wikiUser=WikiUser.ofDict(wikiDict, lenient=True)
                 if BaseTest.isInPublicCI():

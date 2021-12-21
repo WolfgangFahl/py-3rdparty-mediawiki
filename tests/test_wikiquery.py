@@ -5,7 +5,6 @@ Created on 2021-02-16
 '''
 import json
 import unittest
-import getpass
 import sys
 from io import StringIO
 
