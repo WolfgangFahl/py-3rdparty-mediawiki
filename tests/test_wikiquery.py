@@ -95,8 +95,10 @@ class TestWikiQuery(BaseTest):
         return
 
     def  testLOD(self):
-        """Test if LOD is returned correctly if called form api"""
-        wikiId = 'orcopy'
+        '''
+        Test if LOD is returned correctly if called form api
+        '''
+        wikiId = 'orclone'
         wikiClient = self.getWikiClient(wikiId)
         wikiPush = WikiPush(fromWikiId=wikiId)
         askQuery = "{{#ask:" + self.eventQuery + "}}"
