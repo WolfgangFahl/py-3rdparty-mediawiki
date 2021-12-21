@@ -49,6 +49,8 @@ class TestWikiUser(BaseTest):
             elif wikiId=="or":
                 wikiDict={"wikiId": wikiId,"email":"webmaster@openresearch.org","url":"https://www.openresearch.org","scriptPath":"/mediawiki/","version":"MediaWiki 1.31.1"} 
                 raise Exception("don")
+            elif wikiId=="orclone":  
+                wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"https://confident.dbis.rwth-aachen.de","scriptPath":"/or","version":"MediaWiki 1.35.5"}   
             elif wikiId=="orcopy":  
                 wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"https://or.bitplan.com","scriptPath":"","version":"MediaWiki 1.35.5"}   
             if wikiDict is None:

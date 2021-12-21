@@ -11,7 +11,6 @@ from wikibot.wikiclient import WikiClient
 from tests.test_wikibot import TestWikiBot
 from tests.test_WikiUser import TestWikiUser
 from datetime import datetime
-import pywikibot
 from tests.basetest import BaseTest
 
 class TestSMW(BaseTest):
@@ -70,7 +69,7 @@ class TestSMW(BaseTest):
     }}
     """ % limit
         #self.debug=True
-        for smw in self.getSMWs("orcopy"):
+        for smw in self.getSMWs("orclone"):
             result=smw.query(ask,limit=limit)
             if self.debug:
                 print (len(result))
