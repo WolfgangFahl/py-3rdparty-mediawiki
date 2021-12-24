@@ -7,6 +7,7 @@ import re
 import sys
 from datetime import datetime
 from urllib.parse import unquote
+import pywikibot
 
 class PrintRequest(object):
     debug=False
@@ -588,7 +589,14 @@ class SMWBot(SMW):
             from pywikibot.data.api import Request
                 
         request=Request(site=self.site,parameters=parameters)
-        return request.submit()    
+        result=None
+        try: 
+            result=request.submit()    
+        except pywikibot.exceptions.TimeoutError as _toe:
+            msg=f"submit for {self.site} failed due to pywikibot TimeoutError"
+            raise Exception(msg)
+            pass
+        return result
     
     def info(self):
         """ see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
