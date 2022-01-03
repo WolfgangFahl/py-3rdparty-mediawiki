@@ -212,7 +212,6 @@ class TestWikiPush(BaseTest):
                 if self.debug:
                     print ("size of %s is %d bytes" % (filename,imageSize))
                 self.assertEqual(3506068,imageSize)
-        
 
     def testWarnings(self):
         '''
@@ -236,7 +235,38 @@ class TestWikiPush(BaseTest):
         argv=["-s","smwcopy","-t","smwcopy","-q","[[modification date::+]]"]
         wikibot.wikipush.mainRestore(argv)
         return
-    
+
+    def testHandleWarningIssue70(self):
+        '''
+        tests the logging of warnings
+        see https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/70
+        '''
+        if self.inPublicCI(): return
+        wp = WikiPush("test")
+        wp.handleWarning("uploaddisabled")
+
+    def testHandleAPIWarningsIssue70(self):
+        '''
+        tests the logging of warnings
+        see https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/70
+        handleAPIWarnings needs to handle strings and lists
+        '''
+        if self.inPublicCI(): return
+        wp = WikiPush("test")
+        wp.handleAPIWarnings("uploaddisabled")
+        wp.handleAPIWarnings(["uploaddisabled", "Server not responding"])
+
+    def testImageOverwrite(self):
+        '''
+        tests the handling of duplicate file warnings
+        '''
+        if self.inPublicCI(): return
+        wp = WikiPush("test")
+        msg = "duplicate\nexists\nnochange"
+        self.assertTrue(wp.handleWarning(msg, ignoreExists=True))
+        self.assertFalse(wp.handleAPIWarnings(msg, ignoreExists=False))
+
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

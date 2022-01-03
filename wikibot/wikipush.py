@@ -411,12 +411,18 @@ class WikiPush(object):
         Args:
             warnings(list): a list of API warnings
             ignoreExists(bool): ignore messages that warn about existing content
+
+        Returns:
+            bool: True if the exception was handled as ok False if it was logged as an error
         '''
         msg=""
         if warnings:
-            for warning in warnings:
-                msg+="%s\n" % str(warning)
-        self.handleWarning(msg,ignoreExists=ignoreExists)
+            if isinstance(warnings, str):
+                msg = warnings
+            else:
+                for warning in warnings:
+                    msg+="%s\n" % str(warning)
+        return self.handleWarning(msg,ignoreExists=ignoreExists)
         
     def handleWarning(self,msg,marker="⚠️",ignoreExists=False):
         '''
@@ -433,9 +439,11 @@ class WikiPush(object):
         #print ("handling warning %s with ignoreExists=%r" % (msg,ignoreExists))
         if ignoreExists and "exists" in msg:
             # shorten exact duplicate message
-            if "exact duplicate in msg":
+            if "exact duplicate" in msg:
                 msg="exact duplicate"
             marker="👀"
+        if not ignoreExists and "exists" in msg:
+            msg="file exists (to overwrite existing files enable the ignore parameter)"
         self.log("%s:%s" % (marker,msg))
         return marker=="👀"
                 
