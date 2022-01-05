@@ -22,19 +22,31 @@ class WikiUser(object):
     '''
     
     def __init__(self):
+        '''
+        construct me
+        '''
         # set None values for all fields
         for field in WikiUser.getFields():
             self.__dict__[field]=None
     
     def getPassword(self):
+        '''
+        get my decrypted password
+        
+        Returns:
+            str: the decrypted password for this user
+        '''
         c=Crypt(self.cypher,20,self.salt)
         return c.decrypt(self.secret)
     
     def getWikiUrl(self):
         '''
         return the full url of this wiki
+        
+        Returns:
+            str: the full url of this wiki
         '''
-        url="%s%s" % (self.url,self.scriptPath)
+        url=f"{self.url}{self.scriptPath}"
         return url
     
     def interactiveSave(self,yes,filePath=None):
@@ -44,7 +56,8 @@ class WikiUser(object):
         fields=WikiUser.getFields(encrypted=False)
         for field in fields:
             if field not in self.__dict__ or self.__dict__[field] is None:
-                self.__dict__[field]=input("%s: " %field)
+                inputMsg=f"{field}: "
+                self.__dict__[field]=input(inputMsg)
         # encrypt
         self.encrypt()
         if not yes:
@@ -63,26 +76,40 @@ class WikiUser(object):
         self.salt=crypt.salt.decode()
     
     def __str__(self):
-        return "%s %s" % (self.user,self.wikiId)
+        text=f"{self.user} {self.wikiId}"
+        return text
     
     @staticmethod
     def getIniPath():
         home = str(Path.home())
-        return "%s/.mediawiki-japi" % home
+        path=f"{home}/.mediawiki-japi"
+        return path
     
     @staticmethod
-    def iniFilePath(wikiId):
+    def iniFilePath(wikiId:str):
         user=getpass.getuser()
-        iniFilePath="%s/%s_%s.ini" % (WikiUser.getIniPath(),user,wikiId)
+        iniPath=WikiUser.getIniPath()
+        iniFilePath=f"{iniPath}/{user}_{wikiId}.ini"
         return iniFilePath
     
     @staticmethod
-    def ofWikiId(wikiId,lenient=False):
+    def ofWikiId(wikiId:str,lenient=False):
+        '''
+        create a wikiUser for the given wikiId
+        
+        Args:
+            wikiId(str): the wikiId of the user to be created
+            lenient(bool): if True ignore parsing errors in the ini file
+            
+        Returns:
+            WikiUser: the wikiUser for this wikiId
+        '''
         path=WikiUser.iniFilePath(wikiId)
         try:
             config=WikiUser.readPropertyFile(path)
-        except FileNotFoundError as e:
-            raise FileNotFoundError('the wiki with the wikiID "%s" does not have a corresponding configuration file ... you might want to create one with the wikiuser command' % (wikiId))
+        except FileNotFoundError as _e:
+            errMsg=f"the wiki with the wikiID {wikiId} does not have a corresponding configuration file ... you might want to create one with the wikiuser command"
+            raise FileNotFoundError(errMsg)
         wikiUser=WikiUser.ofDict(config,lenient=lenient)
         return wikiUser
     
@@ -165,14 +192,14 @@ class WikiUser(object):
                 wikiUser.__dict__[field]=userDict[field]    
             else:
                 if not lenient:
-                    raise Exception("%s missing " % field)  
+                    raise Exception(f"{field} missing")  
         if not encrypted:
             wikiUser.encrypt()   
         return wikiUser
     
-__version__ = 0.1
+__version__ = "0.5.4"
 __date__ = '2020-10-31'
-__updated__ = '2020-10-31'
+__updated__ = '2022-01-05'
 DEBUG=False    
 
 def main(argv=None): # IGNORE:C0111
@@ -193,7 +220,7 @@ def main(argv=None): # IGNORE:C0111
     program_license = '''%s
 
   Created by %s on %s.
-  Copyright 2020 Wolfgang Fahl. All rights reserved.
+  Copyright 2020-2022 Wolfgang Fahl. All rights reserved.
 
   Licensed under the Apache License 2.0
   http://www.apache.org/licenses/LICENSE-2.0
