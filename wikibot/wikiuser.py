@@ -108,7 +108,7 @@ class WikiUser(object):
         try:
             config=WikiUser.readPropertyFile(path)
         except FileNotFoundError as _e:
-            errMsg=f"the wiki with the wikiID {wikiId} does not have a corresponding configuration file ... you might want to create one with the wikiuser command"
+            errMsg=f'the wiki with the wikiID "{wikiId}" does not have a corresponding configuration file ... you might want to create one with the wikiuser command'
             raise FileNotFoundError(errMsg)
         wikiUser=WikiUser.ofDict(config,lenient=lenient)
         return wikiUser
