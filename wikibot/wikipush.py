@@ -13,8 +13,8 @@ import difflib
 import datetime
 from git import Repo
 import os
+import pathlib
 import re
-from pathlib import Path
 import sys
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -350,13 +350,13 @@ class WikiPush(object):
         self.ensureDirectoryExists(directory)
         
     def ensureDirectoryExists(self,directory):
-        Path(directory).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
         
     def getHomePath(self,localPath):
         '''
         get the given home path
         '''
-        homePath=str(Path.home() / localPath)
+        homePath=f"{pathlib.Path.home()}/{localPath}"
         self.ensureDirectoryExists(homePath)
         return homePath
                     
@@ -531,9 +531,9 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
 
-__version__ = "0.5.1"
+__version__ = "0.5.4"
 __date__ = '2020-10-31'
-__updated__ = '2021-12-13'
+__updated__ = '2022-02-06'
 DEBUG=False
 
 def mainNuke(argv=None):
