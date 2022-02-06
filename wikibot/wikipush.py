@@ -12,8 +12,8 @@ from wikibot.smw import SMWClient
 import difflib
 import datetime
 from git import Repo
+from pathlib import Path
 import os
-import pathlib
 import re
 import sys
 from argparse import ArgumentParser
@@ -350,13 +350,19 @@ class WikiPush(object):
         self.ensureDirectoryExists(directory)
         
     def ensureDirectoryExists(self,directory):
-        pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+        '''
+        make sure the given directory exists
+        
+        Args: 
+            directory(str): the directory to check for existance
+        '''
+        Path(directory).mkdir(parents=True, exist_ok=True)
         
     def getHomePath(self,localPath):
         '''
         get the given home path
         '''
-        homePath=f"{pathlib.Path.home()}/{localPath}"
+        homePath=f"{Path.home()}/{localPath}"
         self.ensureDirectoryExists(homePath)
         return homePath
                     
@@ -531,7 +537,7 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
 
-__version__ = "0.5.4"
+__version__ = "0.5.5"
 __date__ = '2020-10-31'
 __updated__ = '2022-02-06'
 DEBUG=False
