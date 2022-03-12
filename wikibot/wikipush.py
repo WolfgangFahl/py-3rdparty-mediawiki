@@ -194,12 +194,22 @@ class WikiPush(object):
         return diffStr
     
     @staticmethod
-    def getModify(search,replace):
+    def getModify(search,replace,debug:False):
+        '''
+        get the modification function
+        
+        Args:
+            search(str): the search string
+            replace(str): the replace string
+            debug(bool): if debug show
+        '''
+        if debug:
+            print(f"search regex: {search}")
+            print(f"replace regex: {replace}")
         searchRegex=r"%s" % search
         replaceRegex=r"%s" % replace
         modify=lambda text: re.sub(searchRegex,replaceRegex,text)
         return modify
-
                 
     def edit(self,pageTitles,modify=None,context=1,force=False):
         '''
@@ -229,12 +239,12 @@ class WikiPush(object):
                             self.log("✅")
                         else:
                             diffStr=self.getDiff(text, newText,n=context)
-                            self.log("👍%s" % diffStr)
+                            self.log(f"👍{diffStr}")
                     else:
                         self.log("↔")
             except Exception as ex:
                 msg=str(ex)
-                self.log("❌:%s" % msg )            
+                self.log(f"❌:{msg}")            
                 
     def upload(self,files,force=False):
         '''
@@ -537,9 +547,9 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
 
-__version__ = "0.5.5"
+__version__ = "0.5.6"
 __date__ = '2020-10-31'
-__updated__ = '2022-02-06'
+__updated__ = '2022-03-12'
 DEBUG=False
 
 def mainNuke(argv=None):
@@ -708,7 +718,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 elif mode=='wikinuke':
                     wikipush.nuke(pages,force=args.force)
                 elif mode=='wikiedit':
-                    modify=WikiPush.getModify(args.search,args.replace)
+                    modify=WikiPush.getModify(args.search,args.replace,args.debug)
                     wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
                 elif mode=="wikirestore":
                     wikipush.restore(pages,backupPath=args.backupPath,stdIn=args.stdinp)
