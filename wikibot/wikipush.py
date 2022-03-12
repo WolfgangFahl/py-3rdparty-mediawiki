@@ -194,7 +194,7 @@ class WikiPush(object):
         return diffStr
     
     @staticmethod
-    def getModify(search,replace,debug:False):
+    def getModify(search:str,replace:str,debug:bool=False):
         '''
         get the modification function
         
