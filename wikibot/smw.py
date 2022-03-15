@@ -245,10 +245,14 @@ class SMW(object):
                 resultDict[key]=recordDict
         return resultDict
     
-    def fixAsk(self,ask):
-        """ fix an ask String to be usable for the API
-        :param ask: - a "normal" ask query
-        :return: the fixed asked query
+    def fixAsk(self, ask:str):
+        """
+        fix an ask String to be usable for the API
+        Args:
+            ask: - a "normal" ask query
+
+        Returns:
+             the fixed asked query
         """
         # ^\\s*\\{\\{
         # remove {{ with surrounding white space at beginning
@@ -262,16 +266,14 @@ class SMW(object):
         fixedAsk = ""
         for part in parts:
             #  remove whitespace around part
-            part = part.strip();
+            part = part.strip()
             # remove whitespace around pipe sign
-            part = re.sub(r"\s*\|\s*", "|",part);
+            part = re.sub(r"\s*\|\s*", "|",part)
             # remove whitespace around assignment =
-            part = re.sub(r"\s*=\s*", "=",part);
+            part = re.sub(r"\s*=\s*", "=",part)
             # remove whitespace in query parts
-            part = re.sub(r"\]\s*\[", "][",part);
-            # replace blanks with _
-            part = re.sub(" ", "_",part);
-            fixedAsk = fixedAsk+ part;
+            part = re.sub(r"\]\s*\[", "][",part)
+            fixedAsk = fixedAsk + part
         return fixedAsk
     
     def getConcept(self,ask):
@@ -291,6 +293,7 @@ class SMW(object):
         Args:
             argument(string): Argument that should be extracted
             query(string): smw query where the given argument is assumed
+
         Returns:
             Returns integer value of the given argument in the given query.
             If the argument occurs multiple times the last one is returned.

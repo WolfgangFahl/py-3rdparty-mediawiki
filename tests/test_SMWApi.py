@@ -26,10 +26,14 @@ class TestSMW(BaseTest):
 
     
     def testFixAsk(self):
-        """ test fixing an ask query to be made fit for API use"""
+        """
+        test fixing an ask query to be made fit for API use
+
+        related to https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/82
+        """
         smw=SMW()
         fixedAsk=smw.fixAsk(TestSMW.testask1)
-        expected="""[[Concept:Semantic_MediaWiki_Cons_2012]]|?Has_Wikidata_item_ID=WikiDataId|?Has_planned_finish=finish|?Has_planned_start=start|?Has_location=location|format=table"""
+        expected="""[[Concept:Semantic MediaWiki Cons 2012]]|?Has_Wikidata_item_ID=WikiDataId|?Has planned finish=finish|?Has planned start=start|?Has_location=location|format=table"""
         if self.debug:
             print(fixedAsk)
         self.assertEqual(expected,fixedAsk)
@@ -41,7 +45,7 @@ class TestSMW(BaseTest):
         concept=smw.getConcept(fixedAsk)
         if self.debug:
             print(concept)
-        self.assertEqual(concept,"Semantic_MediaWiki_Cons_2012")
+        self.assertEqual(concept,"Semantic MediaWiki Cons 2012")
         
     def getSMWs(self,wikiId='smwcopy'):
         ''' get the alternative SMW access instances for the given wiki id
@@ -75,10 +79,10 @@ class TestSMW(BaseTest):
                 print (len(result))
                 print (result)  
             self.assertEqual(limit,len(result))    
-            fields=['Event','acronym','city','ordinal','creation_date','modification_date']
+            fields=['Event','acronym','city','ordinal','creation date','modification date']
             for record in result.values():
                 for field in fields:
-                    self.assertTrue(field in record)
+                    self.assertIn(field, record)
             
     def testSMWInfo(self):
         """ test the SMW Info call"""
@@ -127,7 +131,7 @@ class TestSMW(BaseTest):
         result=smw.query(ask,limit=limit)
         if self.debug:
             print (result)    
-        return result;
+        return result
     
     def checkExpected(self,ask,expectedRecords,debug=False):
         """ check that the given ask query returns the content of the expectedRecords""" 
@@ -139,7 +143,7 @@ class TestSMW(BaseTest):
             resultlist=list(result.items())
             for i in range(len(expectedRecords)):
                 expectedRecord=expectedRecords[i]
-                recordkey,record=resultlist[i];
+                recordkey,record=resultlist[i]
                 for key in expectedRecord.keys():
                     self.assertEqual(expectedRecord[key],record[key]) 
         
@@ -506,6 +510,29 @@ class TestSMW(BaseTest):
         ]
         res=SplitClause(name, label).deserialize(values)
         self.assertEqual(res, exp_res)
+
+    def testIssue82(self):
+        '''
+        tests queries with blanks in selectors
+        see https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/82
+        '''
+        queries = {
+            "askWithBlankInStr":"""{{#ask: [[IsA::Event series]]
+                |mainlabel=Event series
+                |format=table
+                }}
+                """,
+            "askWithBlankInPageTitle":"""{{#ask: [[Concept:Event series]]
+                |mainlabel=Event series
+                |format=table
+                }}
+                """
+        }
+        self.debug=True
+        smw = self.getSMWs('orclone')[1]
+        for name, ask in queries.items():
+            result = self.getAskResult(smw, ask, limit=5)
+            self.assertTrue(len(result) == 5, name)
 
 
 if __name__ == "__main__":
