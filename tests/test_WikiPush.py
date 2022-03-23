@@ -3,8 +3,11 @@ Created on 2020-10-29
 
 @author: wf
 '''
+import io
 import unittest
 import os
+from contextlib import redirect_stdout
+
 import wikibot
 from wikibot.wikipush import WikiPush
 from tests.basetest import BaseTest
@@ -266,6 +269,20 @@ class TestWikiPush(BaseTest):
         self.assertTrue(wp.handleWarning(msg, ignoreExists=True))
         self.assertFalse(wp.handleAPIWarnings(msg, ignoreExists=False))
 
+    def testIssue75(self):
+        '''
+        see https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/75
+        '''
+        if self.inPublicCI():
+            return
+        argv = ["-s", "orfixed", "-t", "test", "-p", "Form:Rating"]
+        f = io.StringIO()
+        with redirect_stdout(f):
+            wikibot.wikipush.mainPush(argv=argv)
+        out = f.getvalue()
+        print(out)
+        self.assertNotIn("internal_api_error_MWException", out)
+        self.assertIn("✅", out)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
