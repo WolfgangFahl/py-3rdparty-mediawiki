@@ -517,7 +517,7 @@ class TestSMW(BaseTest):
         see https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/82
         '''
         queries = {
-            "askWithBlankInStr":"""{{#ask: [[IsA::Event series]]
+            "askWithBlankInStr":"""{{#ask: [[IsA::EventSeries]]
                 |mainlabel=Event series
                 |format=table
                 }}
@@ -532,7 +532,7 @@ class TestSMW(BaseTest):
         smw = self.getSMWs('orclone')[1]
         for name, ask in queries.items():
             result = self.getAskResult(smw, ask, limit=5)
-            self.assertTrue(len(result) == 5, name)
+            self.assertTrue(len(result) == 5, name + smw.site.host+smw.site.path)
 
 
 if __name__ == "__main__":
