@@ -12,6 +12,7 @@
 ## Links
 * [Python](https://www.python.org/)
 * [pywikibot](https://pypi.org/project/pywikibot/)
+* [pyLoDStorage](https://github.com/WolfgangFahl/pyLoDStorage)
 * [py-3rdparty-mediawiki on pypi](https://pypi.org/project/py-3rdparty-mediawiki)
 
 ## Documentation

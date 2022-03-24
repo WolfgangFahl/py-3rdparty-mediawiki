@@ -4,6 +4,7 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 '''
+from wikibot.version import Version
 from wikibot.selector import Selector
 from wikibot.wikiclient import WikiClient
 from mwclient.image import Image
@@ -547,9 +548,9 @@ class WikiPush(object):
             except Exception as ex:
                 self.log("❌:%s" % str(ex) )
 
-__version__ = "0.5.6"
-__date__ = '2020-10-31'
-__updated__ = '2022-03-12'
+__version__ = Version.version
+__date__ = Version.date
+__updated__ = Version.updated
 DEBUG=False
 
 def mainNuke(argv=None):
