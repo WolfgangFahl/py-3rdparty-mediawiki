@@ -1,7 +1,7 @@
 # ! important
 # see https://stackoverflow.com/a/27868004/1497139
 from setuptools import setup
-
+from wikibot.version import Version
 # read the contents of your README file
 from os import path
 this_directory = path.abspath(path.dirname(__file__))
@@ -9,8 +9,8 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='py-3rdparty-mediawiki',
-    version='0.6.0',
+    name=Version.name,
+    version=Version.version,
 
     packages=['wikibot',],
     classifiers=[
