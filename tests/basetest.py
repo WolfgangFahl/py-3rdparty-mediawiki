@@ -3,10 +3,14 @@ Created on 2021-10-21
 
 @author: wf
 '''
+import os
 from unittest import TestCase
 import time
 import getpass
 import warnings
+
+from wikibot.wikiuser import WikiUser
+
 
 class Profiler:
     '''
@@ -47,9 +51,10 @@ class BaseTest(TestCase):
         '''
         TestCase.setUp(self)
         self.debug=debug
-        msg=(f"test {self._testMethodName} ... with debug={self.debug}")
+        msg=f"test {self._testMethodName} ... with debug={self.debug}"
         # make sure there is an EventCorpus.db to speed up tests
         self.profiler=Profiler(msg=msg,profile=profile)
+        self.wikiId = 'smwcopy'
         
     def tearDown(self):
         self.profiler.time()
@@ -60,8 +65,48 @@ class BaseTest(TestCase):
         '''
         are we running in a public Continuous Integration Environment?
         '''
-        return getpass.getuser() in [ "travis", "runner" ];
+        return getpass.getuser() in ["travis", "runner"]
     
     def inPublicCI(self):
         return BaseTest.isInPublicCI()
+
+    def getWikiUser(self, wikiId:str=None) -> WikiUser:
+        """
+        Get WikiUser for given wikiId
+
+        Args:
+            wikiId(str): if of the wiki
+
+        Returns WikiUser
+        """
+        if wikiId is None:
+            wikiId = self.wikiId
+        # make sure there is a wikiUser (even in public CI)
+        wikiUser = self.getSMW_WikiUser(wikiId=wikiId, save=self.inPublicCI())
+        return wikiUser
+
+    def getSMW_WikiUser(self, wikiId="or", save=False) -> WikiUser:
+        '''
+        get semantic media wiki users for SemanticMediawiki.org and openresearch.org
+        '''
+        iniFile = WikiUser.iniFilePath(wikiId)
+        wikiUser = None
+        if not os.path.isfile(iniFile):
+            wikiDict = None
+            if wikiId == "or":
+                wikiDict = {"wikiId": wikiId, "email": "noreply@nouser.com", "url": "https://www.openresearch.org",
+                            "scriptPath": "/mediawiki/", "version": "MediaWiki 1.31.1"}
+            if wikiId == "orclone":
+                wikiDict = {"wikiId": wikiId, "email": "noreply@nouser.com",
+                            "url": "https://confident.dbis.rwth-aachen.de", "scriptPath": "/or/",
+                            "version": "MediaWiki 1.35.1"}
+            if wikiDict is None:
+                raise Exception("wikiId %s is not known" % wikiId)
+            else:
+                wikiUser = WikiUser.ofDict(wikiDict, lenient=True)
+                if save:
+                    wikiUser.save()
+        else:
+            wikiUser = WikiUser.ofWikiId(wikiId, lenient=True)
+        return wikiUser
         

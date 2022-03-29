@@ -13,6 +13,7 @@ import wikibot
 from wikibot.wikipush import WikiPush
 from tests.basetest import BaseTest
 
+
 class TestWikiPush(BaseTest):
     '''
     test pushing pages including images
@@ -44,7 +45,6 @@ class TestWikiPush(BaseTest):
             wp.backup(pageTitles)
         except Exception as e:
             self.fail(f"Empty query result should not lead to an error but {e} was thrown")
-
 
     def testIssue65(self):
         '''
