@@ -18,6 +18,10 @@ class TestWikiPush(BaseTest):
     '''
     test pushing pages including images
     '''
+
+    def setUp(self,debug=False,profile=True):
+        super().setUp(debug, profile)
+        self.getWikiUser("smwcopy")
  
     def testLimitInQuery(self):
         '''

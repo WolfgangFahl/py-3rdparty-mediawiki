@@ -96,10 +96,13 @@ class BaseTest(TestCase):
             if wikiId == "or":
                 wikiDict = {"wikiId": wikiId, "email": "noreply@nouser.com", "url": "https://www.openresearch.org",
                             "scriptPath": "/mediawiki/", "version": "MediaWiki 1.31.1"}
-            if wikiId == "orclone":
+            if wikiId in ["orclone", "orcopy"]:
                 wikiDict = {"wikiId": wikiId, "email": "noreply@nouser.com",
                             "url": "https://confident.dbis.rwth-aachen.de", "scriptPath": "/or/",
                             "version": "MediaWiki 1.35.1"}
+            if wikiId == "smwcopy":
+                wikiDict = {"wikiId": wikiId, "email": "noreply@nouser.com", "url": "https://smw.bitplan.com/",
+                            "scriptPath": "", "version": "MediaWiki 1.35.5"}
             if wikiDict is None:
                 raise Exception("wikiId %s is not known" % wikiId)
             else:

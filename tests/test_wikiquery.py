@@ -6,21 +6,24 @@ Created on 2021-02-16
 import json
 import unittest
 import sys
+from contextlib import redirect_stdout
 from io import StringIO
-
 from wikibot.wikiclient import WikiClient
 from tests.test_WikiUser import TestWikiUser
 from wikibot.wikipush import WikiPush, mainQuery
 from tests.basetest import BaseTest
 
+
 class TestWikiQuery(BaseTest):
     '''
     tests for https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/56
     '''
-    def setUp(self):
-        BaseTest.setUp(self)
+
+    def setUp(self, debug:bool=False, profile:bool=True):
+        super().setUp(debug, profile)
         self.eventQuery = "[[IsA::Event]][[Ordinal::>2]][[start date::>2018]][[start date::<2019]]| mainlabel = Event| ?Title = title| ?Event in series = series| ?_CDAT=creation date| ?_MDAT=modification date| ?ordinal=ordinal| ?Homepage = homepage|format=table"
-        pass
+        self.getWikiUser("orcopy")
+        self.getWikiUser("orclone")
     
     def getWikiClient(self,wikiId='orcopy'):
         ''' get the alternative SMW access instances for the given wiki id
@@ -60,24 +63,26 @@ class TestWikiQuery(BaseTest):
 
     def testJsonDefalt(self):
         """Test if default entityName is set correctly for format json"""
-        if self.inPublicCI(): return
         argv=["-s","orcopy","-q",self.eventQuery]
         mystdout = StringIO()
-        sys.stdout = mystdout
-        mainQuery(argv)
+        with redirect_stdout(mystdout):
+            mainQuery(argv)
         res = mystdout.getvalue()
+        if self.debug:
+            print(res)
         self.assertTrue("data" in json.loads(res).keys())
         return
 
     def testJson(self):
         """Test if given entityName is set correctly for format json"""
-        if self.inPublicCI(): return
         entityName = "Event"
         argv=["-s","orcopy","-q",self.eventQuery, "--entityName", entityName, "--format", "json"]
         mystdout = StringIO()
-        sys.stdout = mystdout
-        mainQuery(argv)
+        with redirect_stdout(mystdout):
+            mainQuery(argv)
         res = mystdout.getvalue()
+        if self.debug:
+            print(res)
         self.assertTrue(entityName in json.loads(res).keys())
         return
 
@@ -85,14 +90,15 @@ class TestWikiQuery(BaseTest):
         '''
         Test if wikiquery returns CSV format correctly
         '''
-        if self.inPublicCI(): return
         entityName = "Event"
         argv=["-s","orclone","-q",self.eventQuery, "--format", "csv"]
         mystdout = StringIO()
-        sys.stdout = mystdout
-        mainQuery(argv)
+        with redirect_stdout(mystdout):
+            mainQuery(argv)
         res = mystdout.getvalue()
-        expected_headline = "Event;title;series;creation_date;modification_date;ordinal;homepage\n"
+        if self.debug:
+            print(res)
+        expected_headline = "Event;title;series;creation date;modification date;ordinal;homepage\n"
         self.assertTrue(res.startswith(expected_headline))
         return
 
