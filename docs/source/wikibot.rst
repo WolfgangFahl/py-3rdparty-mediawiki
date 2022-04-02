@@ -44,6 +44,14 @@ wikibot.smw module
    :undoc-members:
    :show-inheritance:
 
+wikibot.version module
+----------------------
+
+.. automodule:: wikibot.version
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wikibot.wiki module
 -------------------
 

@@ -4,6 +4,14 @@ tests package
 Submodules
 ----------
 
+tests.basetest module
+---------------------
+
+.. automodule:: tests.basetest
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.test\_MediaWikiTable module
 ---------------------------------
 
