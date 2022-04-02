@@ -28,6 +28,14 @@ wikibot.mwTable module
    :undoc-members:
    :show-inheritance:
 
+wikibot.pagehistory module
+--------------------------
+
+.. automodule:: wikibot.pagehistory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 wikibot.selector module
 -----------------------
 

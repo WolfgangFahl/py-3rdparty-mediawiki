@@ -20,6 +20,14 @@ tests.test\_MediaWikiTable module
    :undoc-members:
    :show-inheritance:
 
+tests.test\_PageHistory module
+------------------------------
+
+.. automodule:: tests.test_PageHistory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 tests.test\_SMWApi module
 -------------------------
 
