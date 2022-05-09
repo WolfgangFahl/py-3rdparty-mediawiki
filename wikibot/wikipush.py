@@ -20,6 +20,7 @@ import sys
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 import json
+from lodstorage.query import Query
 
 class WikiPush(object):
     '''
@@ -53,7 +54,7 @@ class WikiPush(object):
         if self.verbose:
             print (msg,end=end)
             
-    def formatQueryResult(self,askQuery,wiki=None,limit=None,showProgress=False,queryDivision=1,outputFormat='lod', entityName="data"):
+    def formatQueryResult(self,askQuery,wiki=None,limit=None,showProgress=False,queryDivision=1,outputFormat='lod', entityName="data",title:str=None):
         '''
         format the query result for the given askQuery.
         Args:
@@ -63,24 +64,33 @@ class WikiPush(object):
             showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
             queryDivision(int): Defines the number of subintervals the query is divided into (must be greater equal 1)
             outputFormat(str): output format of the query results - default format is lod
+            entityName(str): the name of the entity
+            title(str): the title of the query (if any)
         Returns:
             Query results in the requested outputFormat as string.
             If the requested outputFormat is not supported None is returned.
         '''
         pageRecords=self.queryPages(askQuery, wiki, limit, showProgress, queryDivision)
-        if outputFormat.lower() == "csv":
+        outputFormat=outputFormat.lower()
+        if outputFormat== "csv":
             return self.convertToCSV(pageRecords)
-        elif outputFormat.lower() == "json":
+        elif outputFormat == "json":
             res = []
             for page in pageRecords.values():
                 res.append(page)
             res_json = json.dumps({entityName: res}, default=str, indent=3)
             return res_json
-        elif outputFormat.lower() == "lod":
+        elif outputFormat == "lod":
             return [pageRecord for pageRecord in pageRecords.values()]
         else:
-            if self.debug:
-                print(f"Format {outputFormat} is not supported.")
+            if title is None:
+                title=entityName
+            query=Query(name=entityName,query=askQuery,title=title)
+            qlod=[pageRecord for pageRecord in pageRecords.values()]
+            doc=query.documentQueryResult(qlod, limit, tablefmt=outputFormat, withSourceCode=False)
+            return doc
+            #if self.debug:
+            #    print(f"Format {outputFormat} is not supported.")
         return None
 
     def convertToCSV(self, pageRecords, separator=";"):
@@ -627,7 +637,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
         elif mode=="wikiquery":
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
-            parser.add_argument("--format", dest="format", default='json', help="format to use for query result csv,json,xml,ttl or wiki")
+            parser.add_argument("--format", dest="format", default='json', help="format to use for query result csv,json,lod or any of the tablefmt options of https://pypi.org/project/tabulate/")
             parser.add_argument("--entityName", dest="entityName", default='data', help="name of the entites that are queried - only needed for some output formats - default is 'data'")
         elif mode=="wikiupload":
             parser.add_argument("--files", nargs='+', help="list of files to be uploaded", required=True)
@@ -648,7 +658,8 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
             parser.add_argument("-p", "--pages", nargs='+', help="list of page Titles to be pushed", required=False)
             parser.add_argument("-ui", "--withGUI", dest="ui", help="Pop up GUI for selection", action="store_true",required=False)
             parser.add_argument("-qd", "--queryDivision", default=1, dest="queryDivision", type=int, help="divide query into equidistant subintervals to limit the result size of the individual queries", required=False)
-
+        if mode in  ["wikiquery"]:
+            parser.add_argument("--title",help="the title for the query")
         if not mode in ["wikibackup", "wikiquery"]:
             parser.add_argument("-t", "--target", dest="target", help="target wiki id", required=True)
         # Process arguments
@@ -690,7 +701,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                     with open(args.queryFile, 'r') as queryFile:
                         query=queryFile.read()
                 if mode=="wikiquery":
-                    formatedQueryResults = wikipush.formatQueryResult(query,wiki=queryWiki,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision,outputFormat=args.format, entityName=args.entityName)
+                    formatedQueryResults = wikipush.formatQueryResult(query,wiki=queryWiki,limit=args.limit,showProgress=args.showProgress, queryDivision=args.queryDivision,outputFormat=args.format, entityName=args.entityName,title=args.title)
                     if formatedQueryResults:
                         print(formatedQueryResults)
                     else:

@@ -5,7 +5,6 @@ Created on 2021-02-16
 '''
 import json
 import unittest
-import sys
 from contextlib import redirect_stdout
 from io import StringIO
 from wikibot.wikiclient import WikiClient
@@ -38,7 +37,9 @@ class TestWikiQuery(BaseTest):
         '''
         # make sure the CI wikiUser is prepared
         if self.inPublicCI(): return
-        wikiId='orcopy'
+        debug=self.debug
+        debug=True
+        wikiId='orclone'
         wikiClient=self.getWikiClient(wikiId)
         wikiPush=WikiPush(fromWikiId=wikiId)
         askQuery="""{{#ask: [[IsA::Event]][[Ordinal::>2]][[start date::>2018]][[start date::<2019]]
@@ -51,13 +52,13 @@ class TestWikiQuery(BaseTest):
 | ?Homepage = homepage
 |format=table
 }}"""   
-        for outputFormat in ["csv","json","xml","ttl","wikidata","lod"]:
+        for outputFormat in ["csv","json","xml","ttl","mediawiki","github","latex","lod"]:
             formatedQueryResults = wikiPush.formatQueryResult(askQuery, wikiClient,outputFormat=outputFormat, entityName="Event")
             if formatedQueryResults:
-                if self.debug:
+                if debug:
                     print(formatedQueryResults)
             else:
-                if self.debug:
+                if debug:
                     print(f"Format {outputFormat} is not supported.")
         pass
 

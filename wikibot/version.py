@@ -9,6 +9,6 @@ class Version(object):
     Version handling for py-3rdparty-mediawiki
     '''
     name="py-3rdparty-mediawiki"
-    version='0.6.2'
+    version='0.6.3'
     date = '2020-10-31'
-    updated = '2022-03-30'
+    updated = '2022-05-09'
