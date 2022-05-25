@@ -208,7 +208,7 @@ class SMW(object):
         self.splitClause=SplitClause()
         self.debug=debug
     
-    def deserialize(self,rawresult):
+    def deserialize(self,rawresult) -> dict:
         """ deserialize the given rawresult according to 
         https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
         
@@ -216,7 +216,7 @@ class SMW(object):
             rawresult(dict): contains printrequests and results which need to be merged
             
         Returns:
-            list: list of dicts with results
+            dict: query mainlabel (usually pageTitle) mapped to the corresponding dict of printrequests with label
         """
         resultDict={}
         if rawresult is None:
@@ -542,7 +542,7 @@ class SMWClient(SMW):
                         result['query']['results'] = singleResults
         return result
         
-    def query(self,askQuery:str,title:str=None,limit:int=None):
+    def query(self,askQuery:str,title:str=None,limit:int=None) -> dict:
         '''
         run query and return list of Dicts
         
@@ -552,12 +552,11 @@ class SMWClient(SMW):
             limit(int): the maximum number of records to be retrieved (if any)
             
         Return:
-            list: List of Dicts
-            
+            dict: mainlabel as key and value is a dict of the associated property values
         '''
         rawresult=self.rawquery(askQuery, title, limit)
-        lod=self.deserialize(rawresult)
-        return lod
+        resultDict=self.deserialize(rawresult)
+        return resultDict
 
     def updateProgress(self, count):
         if self.showProgress:

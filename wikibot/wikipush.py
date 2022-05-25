@@ -91,7 +91,6 @@ class WikiPush(object):
             return doc
             #if self.debug:
             #    print(f"Format {outputFormat} is not supported.")
-        return None
 
     def convertToCSV(self, pageRecords, separator=";"):
         """
@@ -115,7 +114,7 @@ class WikiPush(object):
             res = f"{res[:-1]}\n"   # remove last separator and end line
         return res
 
-    def queryPages(self,askQuery,wiki=None,limit=None,showProgress=False, queryDivision=1):
+    def queryPages(self,askQuery,wiki=None,limit=None,showProgress=False, queryDivision=1) -> dict:
         '''
         query the given wiki for pagerecords matching the given askQuery
         
@@ -322,7 +321,7 @@ class WikiPush(object):
         '''
         for image in imageList:
             try:
-                imagePath,filename=self.downloadImage(image,imageBackupPath);
+                imagePath,filename=self.downloadImage(image,imageBackupPath)
             except Exception as ex:
                 self.handleException(ex)
         
@@ -375,7 +374,7 @@ class WikiPush(object):
         make sure the given directory exists
         
         Args: 
-            directory(str): the directory to check for existance
+            directory(str): the directory to check for existence
         '''
         Path(directory).mkdir(parents=True, exist_ok=True)
         
@@ -405,7 +404,7 @@ class WikiPush(object):
         for image in imageList:
             try:
                 self.log("%scopying image %s ..." % (delim,image.name), end='')
-                imagePath,filename=self.downloadImage(image);
+                imagePath,filename=self.downloadImage(image)
                 description=image.imageinfo['comment']
                 try:
                     self.uploadImage(imagePath,filename,description,ignore)
