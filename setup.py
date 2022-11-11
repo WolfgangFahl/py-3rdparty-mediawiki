@@ -25,7 +25,7 @@ setup(
     install_requires=[
       'gitpython',
       'jinja2',
-      'pywikibot~=6.6.3',
+      'pywikibot~=7.3',
       'pycryptodome~=3.12.0',
       'mwclient~=0.10.1',
       'wikitextparser~=0.47.5'
