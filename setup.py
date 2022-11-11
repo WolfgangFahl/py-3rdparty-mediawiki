@@ -15,10 +15,11 @@ setup(
     packages=['wikibot',],
     classifiers=[
             'Programming Language :: Python',
-            'Programming Language :: Python :: 3.6',
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
-            'Programming Language :: Python :: 3.9'
+            'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
+            'Programming Language :: Python :: 3.11'
     ],
 
     install_requires=[
@@ -31,7 +32,7 @@ setup(
     ],
     entry_points={
       'console_scripts': [
-        'wikibackup = wikibot.wikipush:mainBackup',   
+        'wikibackup = wikibot.wikipush:mainBackup',
         'wikiedit = wikibot.wikipush:mainEdit',
         'wikinuke = wikibot.wikipush:mainNuke',
         'wikipush = wikibot.wikipush:mainPush',
