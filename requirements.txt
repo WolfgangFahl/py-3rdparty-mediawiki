@@ -5,7 +5,7 @@ pywikibot~=7.3
 # pywikibot dependency
 wikitextparser~=0.47.5
 # pywikibot dependency
-mwparserfromhell
+mwparserfromhell~=0.6.4
 # Mwclient API
 # https://pypi.org/project/mwclient/
 mwclient~=0.10.1
