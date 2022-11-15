@@ -219,6 +219,8 @@ class TestSMW(BaseTest):
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/5
         Support more datatypes
         '''
+        debug=self.debug
+        debug=True
         # https://www.semantic-mediawiki.org/wiki/Help:List_of_datatypes
         properties=[
             "Has annotation uri",
@@ -250,9 +252,8 @@ class TestSMW(BaseTest):
 """ % (prop,prop)
             for smw in self.getSMWs('smwcopy'):
                 result=self.getAskResult(smw,ask)
-                debug=self.debug
                 if debug:
-                    print("%s: %s" % (prop,result))
+                    print(f"{prop}: {result}")
                 self.assertTrue(len(result)>=1)
                 record=list(result.values())[0]
                 #print(record.keys())
