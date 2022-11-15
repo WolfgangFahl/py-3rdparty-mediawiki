@@ -25,7 +25,6 @@ class TestDuckInterface(BaseTest):
         wikiclient=WikiClient.ofWikiUser(wikiuser)
         return wikibot,wikiclient
 
-
     def testGetHtml(self):
         '''
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/38

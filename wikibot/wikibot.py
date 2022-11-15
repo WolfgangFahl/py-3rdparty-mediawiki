@@ -163,7 +163,7 @@ class Family(family.Family):
             str: the rendered HTML code for the page
         '''
         page=self.getPage(pageTitle)
-        html=page._get_parsed_page()
+        html=page.get_parsed_page()
         return html
         
     def getPage(self,pageTitle):
