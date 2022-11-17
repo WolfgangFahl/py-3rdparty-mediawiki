@@ -26,7 +26,7 @@ setup(
       'gitpython',
       'jinja2',
       'pywikibot~=7.3',
-      'pycryptodome~=3.12.0',
+      'pycryptodome~=3.15.0',
       'mwclient~=0.10.1',
       'mwparserfromhell~=0.6.4',
       'wikitextparser~=0.47.5'
