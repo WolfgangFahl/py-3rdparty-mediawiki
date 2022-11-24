@@ -11,4 +11,4 @@ class Version(object):
     name="py-3rdparty-mediawiki"
     version='0.7.2'
     date = '2020-10-31'
-    updated = '2022-11-17'
+    updated = '2022-11-24'

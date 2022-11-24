@@ -10,6 +10,7 @@ from os.path import isdir
 from os import makedirs
 from wikibot.crypt import Crypt
 import datetime
+from wikibot.version import Version
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -155,7 +156,7 @@ class WikiUser(object):
         return props
                     
     @staticmethod
-    def getWikiUsers():
+    def getWikiUsers(lenient:bool=False):
         wikiUsers={}
         iniPath=WikiUser.getIniPath()
         if os.path.isdir(iniPath):
@@ -164,7 +165,7 @@ class WikiUser(object):
                     if entry.name.endswith(".ini") and entry.is_file():
                         try:
                             config=WikiUser.readPropertyFile(entry.path)
-                            wikiUser=WikiUser.ofDict(config)
+                            wikiUser=WikiUser.ofDict(config,lenient=lenient)
                             wikiUsers[wikiUser.wikiId]=wikiUser
                         except Exception as ex:
                             print ("error in %s: %s" % (entry.path,str(ex)))
@@ -197,9 +198,9 @@ class WikiUser(object):
             wikiUser.encrypt()   
         return wikiUser
     
-__version__ = "0.5.4"
-__date__ = '2020-10-31'
-__updated__ = '2022-01-05'
+__version__ = Version.version
+__date__ = Version.date
+__updated__ = Version.updated
 DEBUG=False    
 
 def main(argv=None): # IGNORE:C0111
