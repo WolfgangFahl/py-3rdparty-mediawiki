@@ -11,21 +11,35 @@ class TestWikiClient(BaseTest):
     '''
     test Wiki client handling with mwclient library
     '''
-
+    
     def testWikiClient(self):
         '''
         test clients
         '''
         for i,client in enumerate(WikiClient.getClients().values()):
-            print ("%2d %s " % (i,client),end="")
-            loggedIn=client.login()
-            print ('✅' if loggedIn else '❌',end='')
+            print (f"{i:2}{client} ",end="")
+            error=False
+            status=""
+            try:
+                needsLogin=client.needsLogin()
+            except BaseException as _ex:
+                status="↯"
+                error=True
+                loggedIn=False
+            if not error:
+                if needsLogin:
+                    loggedIn=client.login()
+                else:
+                    loggedIn=True
+            print ('✅' if loggedIn else f'❌{status}',end='')
             if loggedIn:
                 mainpage=client.site.site["mainpage"]
                 page=client.getPage(mainpage)
                 print ('✅' if page.exists else '❌',end='')
             print()
         pass
+    
+    
 
 
 if __name__ == "__main__":

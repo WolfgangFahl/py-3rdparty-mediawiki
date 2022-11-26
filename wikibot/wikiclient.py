@@ -34,6 +34,15 @@ class WikiClient(Wiki):
             path="%s/" % path
             self.site=Site(host=host, path=path, scheme=scheme)
         return self.site
+    
+    def needsLogin(self)->bool:
+        """
+        check whether this wiki is public
+        Returns:
+            bool: True if this is a non public wiki
+        """
+        site=self.getSite()
+        return site.force_login
         
     def login(self):
         '''
