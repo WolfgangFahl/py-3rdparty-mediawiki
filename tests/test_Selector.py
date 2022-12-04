@@ -4,7 +4,7 @@ Created on 2020-12-20
 '''
 import sys
 import unittest
-from wikibot.selector import Selector
+from wikibot3rd.selector import Selector
 import getpass
 import logging
 from tests.basetest import BaseTest

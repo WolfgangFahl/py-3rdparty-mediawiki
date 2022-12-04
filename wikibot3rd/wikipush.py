@@ -4,11 +4,11 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 '''
-from wikibot.version import Version
-from wikibot.selector import Selector
-from wikibot.wikiclient import WikiClient
+from wikibot3rd.version import Version
+from wikibot3rd.selector import Selector
+from wikibot3rd.wikiclient import WikiClient
 from mwclient.image import Image
-from wikibot.smw import SMWClient
+from wikibot3rd.smw import SMWClient
 #from difflib import Differ
 import difflib
 import datetime
@@ -59,7 +59,7 @@ class WikiPush(object):
         format the query result for the given askQuery.
         Args:
              askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
-            wiki(wikibot): the wiki to query - use fromWiki if not specified
+            wiki(wikibot3rd): the wiki to query - use fromWiki if not specified
             limit(int): the limit for the query (optional)
             showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
             queryDivision(int): Defines the number of subintervals the query is divided into (must be greater equal 1)
@@ -120,7 +120,7 @@ class WikiPush(object):
         
         Args:
             askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
-            wiki(wikibot): the wiki to query - use fromWiki if not specified
+            wiki(wikibot3rd): the wiki to query - use fromWiki if not specified
             limit(int): the limit for the query (optional)
             showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
             queryDivision(int): Defines the number of subintervals the query is divided into (must be greater equal 1)
@@ -139,7 +139,7 @@ class WikiPush(object):
         
         Args:
             askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
-            wiki(wikibot): the wiki to query - use fromWiki if not specified
+            wiki(wikibot3rd): the wiki to query - use fromWiki if not specified
             queryField(string): the field to select the pageTitle from
             limit(int): the limit for the query (optional)
             showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)

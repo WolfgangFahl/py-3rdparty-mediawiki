@@ -1,5 +1,5 @@
 from tests.basetest import BaseTest
-from wikibot.pagehistory import PageHistory
+from wikibot3rd.pagehistory import PageHistory
 
 
 class TestPageHistory(BaseTest):

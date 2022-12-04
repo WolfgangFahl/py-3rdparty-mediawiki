@@ -4,9 +4,9 @@ Created on 24.03.2020
 @author: wf
 '''
 import unittest
-from wikibot.wikibot import WikiBot
+from wikibot3rd.wikibot import WikiBot
 from tests.test_WikiUser import TestWikiUser
-from wikibot.crypt import Crypt
+from wikibot3rd.crypt import Crypt
 from tests.basetest import BaseTest
 
 class TestWikiBot(BaseTest):
@@ -51,7 +51,7 @@ class TestWikiBot(BaseTest):
         
     def testWikiBotNoLogin(self):
         '''
-        test a wikibot where no login is needed
+        test a wikibot3rd where no login is needed
         '''
         wikibot=TestWikiBot.getSMW_Wiki()
         pageTitle="Help:Configuration"

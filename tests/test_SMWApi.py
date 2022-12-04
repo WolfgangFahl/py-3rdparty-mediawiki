@@ -5,9 +5,9 @@ Created on 2020-05-25
 '''
 import unittest
 from unittest.mock import patch
-from wikibot.smw import SMW, SMWBot, SMWClient, QueryResultSizeExceedException, SplitClause
-from wikibot.wikibot import WikiBot
-from wikibot.wikiclient import WikiClient
+from wikibot3rd.smw import SMW, SMWBot, SMWClient, QueryResultSizeExceedException, SplitClause
+from wikibot3rd.wikibot import WikiBot
+from wikibot3rd.wikiclient import WikiClient
 from tests.test_wikibot import TestWikiBot
 from tests.test_WikiUser import TestWikiUser
 from datetime import datetime
@@ -329,8 +329,8 @@ class TestSMW(BaseTest):
                 if query == expectedQuery:
                     return [RESULT_N(i)]
 
-        with patch("wikibot.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
-                patch("wikibot.smw.SMWClient.getBoundariesOfQuery") as getBoundariesOfQuery:
+        with patch("wikibot3rd.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
+                patch("wikibot3rd.smw.SMWClient.getBoundariesOfQuery") as getBoundariesOfQuery:
             getBoundariesOfQuery.return_value = (datetime.strptime("01/01/2020 00:00:00", '%d/%m/%Y %H:%M:%S'),
                                                  datetime.strptime("11/01/2020 00:00:00", '%d/%m/%Y %H:%M:%S'))
             askForAllResults_mock.side_effect = _askForAllResults_mock_sideEffect
@@ -408,8 +408,8 @@ class TestSMW(BaseTest):
         for smw in self.getSMWs():
             if isinstance(smw, SMWClient):
                 # Test default case
-                with patch("wikibot.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
-                        patch("wikibot.smw.SMWClient.askPartitionQuery") as askPartitionQuery_mock:
+                with patch("wikibot3rd.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
+                        patch("wikibot3rd.smw.SMWClient.askPartitionQuery") as askPartitionQuery_mock:
                     askForAllResults_mock.return_value = [RESULT]
                     askPartitionQuery_mock.return_value = None
                     result = smw.ask(QUERY)
@@ -418,8 +418,8 @@ class TestSMW(BaseTest):
                     self.assertEqual(askPartitionQuery_mock.call_count, 0)
                 # Test if query division is used if 'queryDivision' attribute is set above 1
                 smw.queryDivision = 10
-                with patch("wikibot.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
-                        patch("wikibot.smw.SMWClient.askPartitionQuery") as askPartitionQuery_mock:
+                with patch("wikibot3rd.smw.SMWClient.askForAllResults") as askForAllResults_mock, \
+                        patch("wikibot3rd.smw.SMWClient.askPartitionQuery") as askPartitionQuery_mock:
                     askForAllResults_mock.return_value = None
                     askPartitionQuery_mock.return_value = [RESULT]
                     result = smw.ask(QUERY)
@@ -535,6 +535,20 @@ class TestSMW(BaseTest):
             result = self.getAskResult(smw, ask, limit=5)
             self.assertTrue(len(result) == 5, name + smw.site.host+smw.site.path)
 
+    def testIssue86(self):
+        """
+        test allowing count queries
+        """
+        smw=self.getSMWs("smwcopy")[1]
+        askQuery="""{{#ask: [[Modification date::+]]
+|format=count
+}}"""
+        result=smw.query(askQuery)
+        debug=self.debug
+        debug=True
+        if debug:
+            print(result)
+        # @FIXME - fix when https://github.com/SemanticMediaWiki/SemanticMediaWiki/issues/4857 is fixed
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSMWApi']

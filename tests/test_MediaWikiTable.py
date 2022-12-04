@@ -5,7 +5,7 @@ Created on 2020-08-21
 '''
 from datetime import datetime,date
 import unittest
-from wikibot.mwTable import MediaWikiTable
+from wikibot3rd.mwTable import MediaWikiTable
 from tests.basetest import BaseTest
 
 class Test_MediaWikiTable(BaseTest):

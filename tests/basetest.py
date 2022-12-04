@@ -9,7 +9,7 @@ import time
 import getpass
 import warnings
 
-from wikibot.wikiuser import WikiUser
+from wikibot3rd.wikiuser import WikiUser
 
 
 class Profiler:

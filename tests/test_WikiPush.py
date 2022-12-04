@@ -9,8 +9,8 @@ import os
 import warnings
 from contextlib import redirect_stdout
 
-import wikibot
-from wikibot.wikipush import WikiPush
+import wikibot3rd
+from wikibot3rd.wikipush import WikiPush
 from tests.basetest import BaseTest
 
 
@@ -175,7 +175,7 @@ class TestWikiPush(BaseTest):
         test starting backup from the command line
         '''
         argv=["-s","smwcopy","-q","[[modification date::+]]"]
-        wikibot.wikipush.mainBackup(argv)
+        wikibot3rd.wikipush.mainBackup(argv)
   
 
     def testWikiPush(self):
@@ -228,20 +228,20 @@ class TestWikiPush(BaseTest):
         return 
         # https://stackoverflow.com/a/5222474/1497139
         argv=["-l","-s","swa","-t","test","-q","[[modification date::>2020-11-29]]","-wi","-f","-i"]
-        wikibot.wikipush.main(argv)
+        wikibot3rd.wikipush.main(argv)
         
     def testEdit(self):
         return
         # this actually edits data ... don't activate if you don't really want to do this
         argv=["-t","orcopy","-d","-q","[[isA::Event]]","--search","\\[Category:","--replace","[has category::","-f","--progress"]
-        wikibot.wikipush.mainEdit(argv)
+        wikibot3rd.wikipush.mainEdit(argv)
         return
 
     def testRestore(self):
         return
         # this actually edits data ... don't activate if you don't really want to do this
         argv=["-s","smwcopy","-t","smwcopy","-q","[[modification date::+]]"]
-        wikibot.wikipush.mainRestore(argv)
+        wikibot3rd.wikipush.mainRestore(argv)
         return
 
     def testHandleWarningIssue70(self):
@@ -283,7 +283,7 @@ class TestWikiPush(BaseTest):
         argv = ["-s", "orfixed", "-t", "test", "-p", "Form:Rating"]
         f = io.StringIO()
         with redirect_stdout(f):
-            wikibot.wikipush.mainPush(argv=argv)
+            wikibot3rd.wikipush.mainPush(argv=argv)
         out = f.getvalue()
         if self.debug:
             print(out)

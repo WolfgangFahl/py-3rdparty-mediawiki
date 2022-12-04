@@ -7,11 +7,11 @@ import unittest
 
 from lodstorage.query import Query
 
-from wikibot.lambda_action import LambdaAction, Code
-from wikibot.wikiuser import WikiUser
-from wikibot.wikiclient import WikiClient
-from wikibot.smw import SMWClient
-from wikibot.wikiaction import WikiAction
+from wikibot3rd.lambda_action import LambdaAction, Code
+from wikibot3rd.wikiuser import WikiUser
+from wikibot3rd.wikiclient import WikiClient
+from wikibot3rd.smw import SMWClient
+from wikibot3rd.wikiaction import WikiAction
 from tests.basetest import BaseTest
 
 class TestLambda(BaseTest):

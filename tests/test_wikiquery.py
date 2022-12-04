@@ -7,9 +7,9 @@ import json
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
-from wikibot.wikiclient import WikiClient
+from wikibot3rd.wikiclient import WikiClient
 from tests.test_WikiUser import TestWikiUser
-from wikibot.wikipush import WikiPush, mainQuery
+from wikibot3rd.wikipush import WikiPush, mainQuery
 from tests.basetest import BaseTest
 
 

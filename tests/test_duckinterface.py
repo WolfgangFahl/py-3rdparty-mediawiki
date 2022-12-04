@@ -4,9 +4,9 @@ Created on 2020-12-27
 @author: wf
 '''
 import unittest
-from wikibot.wiki import Wiki
-from wikibot.wikibot import WikiBot
-from wikibot.wikiclient import WikiClient
+from wikibot3rd.wiki import Wiki
+from wikibot3rd.wikibot import WikiBot
+from wikibot3rd.wikiclient import WikiClient
 from tests.test_WikiUser import TestWikiUser
 from tests.basetest import BaseTest
 

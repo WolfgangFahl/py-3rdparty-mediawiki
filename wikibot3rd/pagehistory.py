@@ -1,6 +1,6 @@
 from typing import List, Union
 from lodstorage.jsonable import JSONAble
-from wikibot.wikiclient import WikiClient
+from wikibot3rd.wikiclient import WikiClient
 
 
 class PageRevision(JSONAble):

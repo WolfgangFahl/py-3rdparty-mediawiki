@@ -4,7 +4,7 @@ Created on 2020-11-02
 @author: wf
 '''
 import unittest
-from wikibot.wikiclient import WikiClient
+from wikibot3rd.wikiclient import WikiClient
 from tests.basetest import BaseTest
 
 class TestWikiClient(BaseTest):

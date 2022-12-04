@@ -3,10 +3,10 @@ Created on 2020-11-02
 
 @author: wf
 '''
-from wikibot.wikiuser import WikiUser
+from wikibot3rd.wikiuser import WikiUser
 from mwclient import Site
 from urllib.parse import urlparse
-from wikibot.wiki import Wiki
+from wikibot3rd.wiki import Wiki
 
 class WikiClient(Wiki):
     '''

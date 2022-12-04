@@ -1,7 +1,7 @@
 # ! important
 # see https://stackoverflow.com/a/27868004/1497139
 from setuptools import setup
-from wikibot.version import Version
+from wikibot3rd.version import Version
 # read the contents of your README file
 from os import path
 this_directory = path.abspath(path.dirname(__file__))
@@ -12,7 +12,7 @@ setup(
     name=Version.name,
     version=Version.version,
 
-    packages=['wikibot',],
+    packages=['wikibot3rd',],
     classifiers=[
             'Programming Language :: Python',
             'Programming Language :: Python :: 3.7',
@@ -25,22 +25,22 @@ setup(
     install_requires=[
       'gitpython',
       'jinja2',
-      'pywikibot~=7.3',
-      'pycryptodome~=3.15.0',
-      'mwclient~=0.10.1',
-      'mwparserfromhell~=0.6.4',
-      'wikitextparser~=0.47.5'
+      'pywikibot>=7.3',
+      'pycryptodome>=3.15.0',
+      'mwclient>=0.10.1',
+      'mwparserfromhell>=0.6.4',
+      'wikitextparser>=0.47.5'
     ],
     entry_points={
       'console_scripts': [
-        'wikibackup = wikibot.wikipush:mainBackup',
-        'wikiedit = wikibot.wikipush:mainEdit',
-        'wikinuke = wikibot.wikipush:mainNuke',
-        'wikipush = wikibot.wikipush:mainPush',
-        'wikiquery = wikibot.wikipush:mainQuery',
-        'wikiupload = wikibot.wikipush:mainUpload',
-        'wikirestore = wikibot.wikipush:mainRestore',
-        'wikiuser = wikibot.wikiuser:main',
+        'wikibackup = wikibot3rd.wikipush:mainBackup',
+        'wikiedit = wikibot3rd.wikipush:mainEdit',
+        'wikinuke = wikibot3rd.wikipush:mainNuke',
+        'wikipush = wikibot3rd.wikipush:mainPush',
+        'wikiquery = wikibot3rd.wikipush:mainQuery',
+        'wikiupload = wikibot3rd.wikipush:mainUpload',
+        'wikirestore = wikibot3rd.wikipush:mainRestore',
+        'wikiuser = wikibot3rd.wikiuser:main',
       ],
     },
     author='Wolfgang Fahl',

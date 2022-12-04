@@ -8,9 +8,9 @@ import os
 import sys
 from os.path import isdir
 from os import makedirs
-from wikibot.crypt import Crypt
+from wikibot3rd.crypt import Crypt
 import datetime
-from wikibot.version import Version
+from wikibot3rd.version import Version
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter

@@ -5,6 +5,10 @@ Created on 2020-03-24
 '''
 import sys
 from urllib.parse import urlparse
+import re
+from os.path import isfile 
+from wikibot3rd.wikiuser import WikiUser
+from wikibot3rd.wiki import Wiki
 try:
     import pywikibot
     from pywikibot.data.api import LoginManager
@@ -13,10 +17,7 @@ except Exception as ex:
     print("pywikibot config issue see https://phabricator.wikimedia.org/T278076")
     print("%s" % str(ex), file=sys.stderr) 
     pass
-import re
-from os.path import isfile 
-from wikibot.wikiuser import WikiUser
-from wikibot.wiki import Wiki
+
 
 class WikiBot(Wiki):
     '''
@@ -171,7 +172,7 @@ class Family(family.Family):
         Args:
             pageTitle(str): the title of the page to retrieve
         Returns:
-            Page: the wikibot page for the given pageTitle
+            Page: the wikibot3rd page for the given pageTitle
         '''
         page = pywikibot.Page(self.site, pageTitle)  
         return page             

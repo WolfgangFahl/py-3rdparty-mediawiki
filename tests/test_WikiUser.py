@@ -4,8 +4,8 @@ Created on 2020-11-01
 @author: wf
 '''
 import unittest
-from wikibot.wikiuser import WikiUser
-import wikibot
+from wikibot3rd.wikiuser import WikiUser
+import wikibot3rd
 import os
 import tempfile
 from tests.basetest import BaseTest
@@ -45,7 +45,7 @@ class TestWikiUser(BaseTest):
             if wikiId=="smwcopy":
                 wikiDict={"wikiId": wikiId,"email":"webmaster@bitplan.com","url":"https://smw.bitplan.com","scriptPath":"","version":"MediaWiki 1.35.5"}
             elif wikiId=="smw":
-                wikiDict={"wikiId": wikiId,"email":"webmaster@semantic-mediawiki.org","url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.7"}
+                wikiDict={"wikiId": wikiId,"email":"webmaster@semantic-mediawiki.org","url":"https://www.semantic-mediawiki.org","scriptPath":"/w","version":"MediaWiki 1.31.16"}
             elif wikiId=="or":
                 wikiDict={"wikiId": wikiId,"email":"webmaster@openresearch.org","url":"https://www.openresearch.org","scriptPath":"/mediawiki/","version":"MediaWiki 1.31.1"} 
                 raise Exception("don")
@@ -72,7 +72,7 @@ class TestWikiUser(BaseTest):
         try:
             if (fd):
                 args=["--url","http://wiki.doe.com","-u","john","-e","john@doe.com","-w","doe","-s","","-v","MediaWiki 1.35.0","-p",password,"-f",path,'-y']
-                wikibot.wikiuser.main(args)
+                wikibot3rd.wikiuser.main(args)
         finally:
             if self.debug:
                 print(open(path, 'r').read())

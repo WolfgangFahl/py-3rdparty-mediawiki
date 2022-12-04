@@ -3,7 +3,7 @@ Created on 02.02.2021
 
 @author: wf
 '''
-from wikibot.lambda_action import Code,LambdaAction
+from wikibot3rd.lambda_action import Code,LambdaAction
 from lodstorage.query import Query
 
 class WikiAction(object):
