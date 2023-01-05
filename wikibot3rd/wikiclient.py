@@ -42,7 +42,8 @@ class WikiClient(Wiki):
             bool: True if this is a non public wiki
         """
         site=self.getSite()
-        return site.force_login
+        login_needed=not site.writeapi
+        return login_needed
         
     def login(self):
         '''
