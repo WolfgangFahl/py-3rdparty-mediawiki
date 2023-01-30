@@ -17,6 +17,7 @@ from pathlib import Path
 import os
 import re
 import sys
+import traceback
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 import json
@@ -745,6 +746,8 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
         indent = len(program_name) * " "
         sys.stderr.write(program_name + ": " + repr(e) + "\n")
         sys.stderr.write(indent + "  for help use --help")
+        if args.debug:
+            print(traceback.format_exc())
         return 2
                 
 if __name__ == "__main__":

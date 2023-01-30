@@ -11,7 +11,7 @@ from os import makedirs
 from wikibot3rd.crypt import Crypt
 import datetime
 from wikibot3rd.version import Version
-
+import traceback
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from pathlib import Path
@@ -262,6 +262,8 @@ USAGE
         indent = len(program_name) * " "
         sys.stderr.write(program_name + ": " + repr(e) + "\n")
         sys.stderr.write(indent + "  for help use --help")
+        if args.debug:
+            print(traceback.format_exc())
         return 2
 
 if __name__ == '__main__':
