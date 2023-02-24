@@ -1,5 +1,5 @@
-from basetest import BaseTest
-from wikitext import WikiSON
+from tests.basetest import BaseTest
+from wikibot3rd.wikitext import WikiSON
 
 
 class TestWikiSON(BaseTest):
