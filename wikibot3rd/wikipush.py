@@ -4,11 +4,14 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 '''
+import typing
+
 from wikibot3rd.version import Version
 from wikibot3rd.selector import Selector
 from wikibot3rd.wikiclient import WikiClient
 from mwclient.image import Image
 from wikibot3rd.smw import SMWClient
+from wikibot3rd.wikitext import WikiSON
 #from difflib import Differ
 import difflib
 import datetime
@@ -22,6 +25,9 @@ from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 import json
 from lodstorage.query import Query
+
+
+
 
 class WikiPush(object):
     '''
@@ -180,7 +186,18 @@ class WikiPush(object):
                 self.log("❌:%s" % msg )
                 
     @staticmethod
-    def getDiff(text,newText,n=1,forHuman=True):
+    def getDiff(text: str, newText: str,n: int = 1,forHuman: bool = True) -> str:
+        """
+        Compare the two given strings and return the differences
+        Args:
+            text: old text to compare the new text to
+            newText: new text
+            n: The number of context lines
+            forHuman: If True update the diff string to be better human-readable
+
+        Returns:
+            str: difference string
+        """
         #if WikiPush.differ is None:
         #    WikiPush.differ=Differ()
         # https://docs.python.org/3/library/difflib.html
@@ -205,15 +222,19 @@ class WikiPush(object):
         return diffStr
     
     @staticmethod
-    def getModify(search:str,replace:str,debug:bool=False):
-        '''
+    def getModify(search: str, replace: str,debug: bool = False) -> typing.Callable[[str], str]:
+        """
         get the modification function
-        
+
         Args:
             search(str): the search string
             replace(str): the replace string
             debug(bool): if debug show
-        '''
+
+        Returns:
+            String modify function that takes as input the string, applies the search and replace action
+             and returns the modified string
+        """
         if debug:
             print(f"search regex: {search}")
             print(f"replace regex: {replace}")
@@ -222,14 +243,16 @@ class WikiPush(object):
         modify=lambda text: re.sub(searchRegex,replaceRegex,text)
         return modify
                 
-    def edit(self,pageTitles,modify=None,context=1,force=False):
-        '''
+    def edit(self, pageTitles: typing.List[str], modify: typing.Callable[[str], str] = None, context: int = 1, force: bool = False):
+        """
         edit the pages with the given page Titles
-        
+
         Args:
-            pageTitles(list): a list of page titles to be transfered from the formWiki to the toWiki
+            pageTitles(list): a list of page titles to be transferred from the formWiki to the toWiki
+            modify: String modify function that takes as input the string and returns the modified string
+            context: The number of context lines
             force(bool): True if pages should be actually deleted - dry run only listing pages is default
-        '''
+        """
         if modify is None:
             raise Exception("wikipush edit needs a modify function!")
         total=len(pageTitles)
@@ -249,13 +272,57 @@ class WikiPush(object):
                             pageToBeEdited.edit(newText,comment)  
                             self.log("✅")
                         else:
-                            diffStr=self.getDiff(text, newText,n=context)
+                            diffStr=self.getDiff(text, newText, n=context)
                             self.log(f"👍{diffStr}")
                     else:
                         self.log("↔")
             except Exception as ex:
                 msg=str(ex)
-                self.log(f"❌:{msg}")            
+                self.log(f"❌:{msg}")
+
+    def edit_wikison(
+            self,
+            page_titles: typing.List[str],
+            entity_type_name: str,
+            property_name: str,
+            value: typing.Any,
+            dry_run: bool = False
+    ):
+        """
+        Edit the WikiSON for on the given pages
+        Args:
+            page_titles: a list of page titles to be edited
+            entity_type_name: name of the WikiSON entity type
+            property_name: name of the property to edit
+            value: value to set. If None property is deleted from the WikiSON
+            dry_run: If True only print the changes. Otherwise, apply the changes
+        """
+        total = len(page_titles)
+        self.log(f"""editing {total} pages in {self.toWikiId} ({"forced" if dry_run else "dry run"})""")
+        for i, page_title in enumerate(page_titles, 1):
+            try:
+                self.log(f"{i}/{total} ({i/total*100:.2f}%): editing {page_title} ...", end='')
+                page_to_be_edited = self.toWiki.getPage(page_title)
+                if not dry_run and not page_to_be_edited.exists:
+                    self.log("👎")
+                else:
+                    comment = "edited by wikiedit"
+                    markup = page_to_be_edited.text()
+                    wikison = WikiSON(page_title, markup)
+                    new_markup = wikison.set(entity_type_name=entity_type_name, record={property_name:value})
+                    if new_markup != markup:
+                        if dry_run:
+                            page_to_be_edited.edit(new_markup, comment)
+                            self.log("✅")
+                        else:
+                            diff_str = self.getDiff(markup, new_markup, n=3)
+                            self.log(f"👍{diff_str}")
+                    else:
+                        self.log("↔")
+            except Exception as ex:
+                msg = str(ex)
+                self.log(f"❌:{msg}")
+
                 
     def upload(self,files,force=False):
         '''
@@ -630,10 +697,13 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
         elif mode=="wikinuke":
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to delete pages - default is 'dry' run only listing pages")
         elif mode=="wikiedit":
-            parser.add_argument("--search", dest="search", help="search pattern", required=True)
-            parser.add_argument("--replace", dest="replace", help="replace pattern", required=True)
+            parser.add_argument("--search", dest="search", help="search pattern", required=False)
+            parser.add_argument("--replace", dest="replace", help="replace pattern", required=False)
             parser.add_argument("--context", dest="context",type=int, help="number of context lines to show in dry run diff display",default=1)
             parser.add_argument("-f", "--force", dest="force", action='store_true', help="force to edit pages - default is 'dry' run only listing pages")
+            parser.add_argument("--template", dest="template", help="Name of the template to edit", required=False)
+            parser.add_argument("--property", dest="property", help="Name of the property in the template to edit", required=False)
+            parser.add_argument("--value", dest="value", help="Value of the Property. If not set but property name is given the property is removed from the template", required=False)
         elif mode=="wikiquery":
             parser.add_argument("-l", "--login", dest="login", action='store_true', help="login to source wiki for access permission")
             parser.add_argument("-s", "--source", dest="source", help="source wiki id", required=True)
@@ -730,8 +800,27 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                 elif mode=='wikinuke':
                     wikipush.nuke(pages,force=args.force)
                 elif mode=='wikiedit':
-                    modify=WikiPush.getModify(args.search,args.replace,args.debug)
-                    wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
+                    # two modes search&replace and WikiSON property edit
+                    if args.search or args.replace:
+                        # search&replace
+                        if args.search and args.replace:
+                            modify=WikiPush.getModify(args.search,args.replace,args.debug)
+                            wikipush.edit(pages,modify=modify,context=args.context,force=args.force)
+                        else:
+                            raise Exception("In wikiedit search&replace mode both args '--search' and '--replace' need to be set")
+                    else:
+                        # WikiSON property edit
+                        if len(pages) > 0 and args.template and args.property:
+                            wikipush.edit_wikison(
+                                    page_titles=pages,
+                                    entity_type_name=args.template,
+                                    property_name=args.property,
+                                    value=args.value,
+                                    dry_run=args.force
+                            )
+                        else:
+                            raise Exception("In wikiedit WikiSON edit mode '--pages', '--template' and '--property' need to be defined ('--value' is optional see '--help')")
+
                 elif mode=="wikirestore":
                     wikipush.restore(pages,backupPath=args.backupPath,stdIn=args.stdinp)
                 else:
