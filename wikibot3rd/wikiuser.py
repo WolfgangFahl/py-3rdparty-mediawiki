@@ -28,7 +28,7 @@ class WikiUser(object):
         '''
         # set None values for all fields
         for field in WikiUser.getFields():
-            self.__dict__[field]=None
+            setattr(self,field,None)
     
     def getPassword(self):
         '''
@@ -50,19 +50,34 @@ class WikiUser(object):
         url=f"{self.url}{self.scriptPath}"
         return url
     
-    def interactiveSave(self,yes,filePath=None):
+    def interactiveSave(self,yes:bool=False,interactive:bool=False,filePath=None):
         '''
         save me
+        
+        Args:
+            yes(bool): if True save without asking
+            interactive(bool): if True get interactive input
+            filePath(str): the path where to save the credentials ini file
         '''
         fields=WikiUser.getFields(encrypted=False)
+        text=""
         for field in fields:
-            if field not in self.__dict__ or self.__dict__[field] is None:
-                inputMsg=f"{field}: "
-                self.__dict__[field]=input(inputMsg)
+            if hasattr(self, field):
+                value=getattr(self,field)
+            else:
+                value=None
+            if interactive:
+                print(text)
+                inputMsg=f"{field} ({value}): "
+                inputValue=input(inputMsg)
+                if inputValue:
+                    setattr(self,field,inputValue)
+                    value=inputValue
+            text+=f"\n  {field}={value}"
         # encrypt
         self.encrypt()
         if not yes:
-            answer=input("shall i store %s? yes/no y/n" % self)
+            answer=input(f"shall i store credentials for {text}\nto an ini file? yes/no y/n")
             yes="y" in answer or "yes" in answer
         if yes:
             self.save(filePath)
@@ -174,7 +189,7 @@ class WikiUser(object):
     @staticmethod
     def getFields(encrypted=True):
         # copy fields
-        fields=['email','scriptPath','user','url','version','wikiId']
+        fields=['wikiId','url','scriptPath','version','user','email']
         passwordFields=['cypher','secret','salt'] if encrypted else ['password']
         result=[]
         result.extend(fields)
@@ -182,7 +197,7 @@ class WikiUser(object):
         return result
     
     @staticmethod
-    def ofDict(userDict,encrypted=True,lenient=False):
+    def ofDict(userDict,encrypted=True,lenient=False,encrypt=True):
         wikiUser=WikiUser()
         # fix http\: entries from Java created entries
         if 'url' in userDict and userDict['url'] is not None:
@@ -194,7 +209,7 @@ class WikiUser(object):
             else:
                 if not lenient:
                     raise Exception(f"{field} missing")  
-        if not encrypted:
+        if not encrypted and encrypt:
             wikiUser.encrypt()   
         return wikiUser
     
@@ -221,7 +236,7 @@ def main(argv=None): # IGNORE:C0111
     program_license = '''%s
 
   Created by %s on %s.
-  Copyright 2020-2022 Wolfgang Fahl. All rights reserved.
+  Copyright 2020-2023 Wolfgang Fahl. All rights reserved.
 
   Licensed under the Apache License 2.0
   http://www.apache.org/licenses/LICENSE-2.0
@@ -237,21 +252,21 @@ USAGE
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
         parser.add_argument("-d", "--debug", dest="debug",   action="count", help="set debug level [default: %(default)s]")
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
-
+        parser.add_argument("-i","--interactive",action="store_true")
         parser.add_argument("-e", "--email", dest="email", help="email of the user")
         parser.add_argument("-f", "--file", dest="filePath", help="ini-file path")
         parser.add_argument("-l", "--url", dest="url", help="url of the wiki")
-        parser.add_argument("-s", "--scriptPath", dest="scriptPath", help="script path")
+        parser.add_argument("-s", "--scriptPath", dest="scriptPath", help="script path default: %(default)s)", default="")
         parser.add_argument("-p", "--password", dest="password", help="password")
-        parser.add_argument("-u", "--user", dest="user", help="os user id")
-        parser.add_argument("-v", "--wikiVersion", dest="version", help="version of the wiki")
+        parser.add_argument("-u", "--user", dest="user", help="os user id default: %(default)s)", default=getpass.getuser())
+        parser.add_argument("-v", "--wikiVersion", dest="version", default="MediaWiki 1.39.1",help="version of the wiki default: %(default)s)")
         parser.add_argument("-w", "--wikiId", dest="wikiId", help="wiki Id")
         parser.add_argument("-y", "--yes", dest="yes", action='store_true', help="immediately store without asking")
         # Process arguments
         args = parser.parse_args(argv)
         argsDict=vars(args)
-        wikiuser=WikiUser.ofDict(argsDict,encrypted=False,lenient=True)
-        wikiuser.interactiveSave(args.yes,args.filePath)
+        wikiuser=WikiUser.ofDict(argsDict,encrypted=False,lenient=True,encrypt=False)
+        wikiuser.interactiveSave(args.yes,args.interactive,args.filePath)
         
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
