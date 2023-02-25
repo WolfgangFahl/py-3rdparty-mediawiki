@@ -1,0 +1,71 @@
+[build-system]
+# we use the hatch build system
+# https://hatch.pypa.io/latest/config/build/
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "py-3rdparty-mediawiki"
+authors = [
+  {name = "Wolfgang Fahl", email = "wf@bitplan.com"},
+  {name = "Tim Holzheim", email = "tim.holzheim@rwth-aachen.de"}
+]
+maintainers = [
+  { name = "Wolfgang Fahl", email = "wf@bitplan.com" },
+  {name = "Tim Holzheim", email = "tim.holzheim@rwth-aachen.de"}
+]
+readme = "README.md"
+license= "Apache-2.0"
+dependencies = [
+	'gitpython',
+    'jinja2',
+    'pywikibot>=7.3',
+    'pycryptodome>=3.15.0',
+    'mwclient>=0.10.1',
+    'mwparserfromhell>=0.6.4',
+    'wikitextparser>=0.47.5'
+]
+
+requires-python = ">=3.8"
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License"
+    ]
+dynamic = ["version", "description"]
+[tool.hatch.version]
+path = "wikibot3rd/__init__.py"
+
+[project.urls]
+Home = "https://wiki.bitplan.com/index.php/Py-3rdparty-mediawiki"
+Documentation = "https://wiki.bitplan.com/index.php/Py-3rdparty-mediawiki"
+Source = "https://wiki.bitplan.com/index.php/Py-3rdparty-mediawiki"
+
+[project.optional-dependencies]
+test = [
+  "green",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+  "wikibot3rd",
+]
+
+[project.scripts]
+wikibackup = "wikibot3rd.wikipush:mainBackup"
+wikiedit = "wikibot3rd.wikipush:mainEdit"
+wikinuke = "wikibot3rd.wikipush:mainNuke"
+wikipush = "wikibot3rd.wikipush:mainPush"
+wikiquery = "wikibot3rd.wikipush:mainQuery"
+wikiupload = "wikibot3rd.wikipush:mainUpload"
+wikirestore = "wikibot3rd.wikipush:mainRestore"
+wikiuser = "wikibot3rd.wikiuser:main"
+

@@ -11,9 +11,8 @@
 
 ## Links
 * [Python](https://www.python.org/)
-* [pywikibot](https://pypi.org/project/pywikibot/)
+* [mwclient](https://github.com/mwclient/mwclient)
 * [pyLoDStorage](https://github.com/WolfgangFahl/pyLoDStorage)
-* [py-3rdparty-mediawiki on pypi](https://pypi.org/project/py-3rdparty-mediawiki)
 
 ## Documentation
-[Wiki](http://mediawiki-japi.bitplan.com/index.php/py-3rdparty-mediawiki)
+[Wiki](https://wiki.bitplan.com/index.php/Py-3rdparty-mediawiki)
