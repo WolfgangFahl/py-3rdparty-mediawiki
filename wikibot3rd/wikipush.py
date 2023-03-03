@@ -311,7 +311,7 @@ class WikiPush(object):
                     wikison = WikiSON(page_title, markup)
                     new_markup = wikison.set(entity_type_name=entity_type_name, record={property_name:value})
                     if new_markup != markup:
-                        if dry_run:
+                        if force:
                             page_to_be_edited.edit(new_markup, comment)
                             self.log("✅")
                         else:
