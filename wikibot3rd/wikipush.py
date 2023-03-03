@@ -286,7 +286,7 @@ class WikiPush(object):
             entity_type_name: str,
             property_name: str,
             value: typing.Any,
-            dry_run: bool = False
+            force: bool = False
     ):
         """
         Edit the WikiSON for on the given pages
@@ -295,15 +295,15 @@ class WikiPush(object):
             entity_type_name: name of the WikiSON entity type
             property_name: name of the property to edit
             value: value to set. If None property is deleted from the WikiSON
-            dry_run: If True only print the changes. Otherwise, apply the changes
+            force: If False only print the changes. Otherwise, apply the changes
         """
         total = len(page_titles)
-        self.log(f"""editing {total} pages in {self.toWikiId} ({"forced" if dry_run else "dry run"})""")
+        self.log(f"""editing {total} pages in {self.toWikiId} ({"forced" if force else "dry run"})""")
         for i, page_title in enumerate(page_titles, 1):
             try:
                 self.log(f"{i}/{total} ({i/total*100:.2f}%): editing {page_title} ...", end='')
                 page_to_be_edited = self.toWiki.getPage(page_title)
-                if not dry_run and not page_to_be_edited.exists:
+                if not force and not page_to_be_edited.exists:
                     self.log("👎")
                 else:
                     comment = "edited by wikiedit"
@@ -322,7 +322,6 @@ class WikiPush(object):
             except Exception as ex:
                 msg = str(ex)
                 self.log(f"❌:{msg}")
-
                 
     def upload(self,files,force=False):
         '''
@@ -816,7 +815,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
                                     entity_type_name=args.template,
                                     property_name=args.property,
                                     value=args.value,
-                                    dry_run=args.force
+                                    force=args.force
                             )
                         else:
                             raise Exception("In wikiedit WikiSON edit mode '--pages', '--template' and '--property' need to be defined ('--value' is optional see '--help')")
