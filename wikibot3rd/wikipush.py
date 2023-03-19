@@ -57,7 +57,13 @@ class WikiPush(object):
             if not self.toWiki.login():
                 raise Exception("can't login to target Wiki %s" % toWikiId )
         
-    def log(self,msg,end='\n'):
+    def log(self,msg:str,end='\n'):
+        """
+        show the given message if verbose is on
+        
+        Args:
+            msg(str): the message to display
+        """
         if self.verbose:
             print (msg,end=end)
             
