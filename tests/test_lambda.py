@@ -29,15 +29,14 @@ for row in rows:
 context["result"]={"message":"%d rows printed" %len(rows)}""",lang="python")
         pass
 
-    def getSMW(self,wikiId='orth',url='https://confident.dbis.rwth-aachen.de'):
+    def getSMW(self,wikiId="cr"):
         smw=None
         wikiclient=None
         wusers=WikiUser.getWikiUsers()
-        if 'test' in wusers:
+        if wikiId in wusers:
             wuser=wusers[wikiId]
-            if wuser.url.startswith(url):
-                wikiclient=WikiClient.ofWikiUser(wuser)
-                smw=SMWClient(wikiclient.getSite())
+            wikiclient=WikiClient.ofWikiUser(wuser)
+            smw=SMWClient(wikiclient.getSite())
         return smw,wikiclient
     
     def testLambda(self):
@@ -57,8 +56,3 @@ context["result"]={"message":"%d rows printed" %len(rows)}""",lang="python")
             self.assertTrue(message is not None)
             self.assertTrue("printed" in message)
         pass
-
-
-if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()
