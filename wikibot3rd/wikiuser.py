@@ -82,14 +82,19 @@ class WikiUser(object):
         if yes:
             self.save(filePath)
     
-    def encrypt(self):
+    def encrypt(self,remove:bool=True):
         '''
         encrypt my clear text password
+        
+        Args:
+            remove(bool): if True remove the original password
         '''
         crypt=Crypt.getRandomCrypt()
         self.secret=crypt.encrypt(self.password)
         self.cypher=crypt.cypher.decode()
         self.salt=crypt.salt.decode()
+        if remove:
+            delattr(self,"password")
     
     def __str__(self):
         text=f"{self.user} {self.wikiId}"
