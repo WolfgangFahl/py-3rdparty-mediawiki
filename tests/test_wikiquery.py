@@ -19,12 +19,34 @@ class TestWikiQuery(BaseTest):
     '''
 
     def setUp(self, debug:bool=False, profile:bool=True):
+        """
+        """
         super().setUp(debug, profile)
-        self.eventQuery = "[[IsA::Event]][[Ordinal::>2]][[start date::>2018]][[start date::<2019]]| mainlabel = Event| ?Title = title| ?Event in series = series| ?_CDAT=creation date| ?_MDAT=modification date| ?ordinal=ordinal| ?Homepage = homepage|format=table"
-        self.getWikiUser("orcopy")
-        self.getWikiUser("orclone")
+        self.eventQuery = """{{#ask: [[IsA::Event]]
+|mainlabel=Event
+|?Event acronym = acronym
+|?Event description = description
+|?Event title = title
+|?Event homepage = homepage
+|?Event wikidataid = wikidataid
+|?Event series = series
+|?Event colocated_with = colocated_with
+|?Event city = city
+|?Event country = country
+|?Event region = region
+|?Creation date=creation date
+|?Modification date=modification date 
+|sort=Event acronym
+|order=ascending
+|format=table
+|limit=10
+}}
+"""   
+        self.getWikiUser("cr")
+        #self.getWikiUser("orcopy")
+        #self.getWikiUser("orclone")
     
-    def getWikiClient(self,wikiId='orcopy'):
+    def getWikiClient(self,wikiId='cr'):
         ''' get the alternative SMW access instances for the given wiki id
         '''
         wikiuser=TestWikiUser.getSMW_WikiUser(wikiId)
@@ -39,19 +61,10 @@ class TestWikiQuery(BaseTest):
         if self.inPublicCI(): return
         debug=self.debug
         debug=True
-        wikiId='orclone'
+        wikiId='cr'
         wikiClient=self.getWikiClient(wikiId)
         wikiPush=WikiPush(fromWikiId=wikiId)
-        askQuery="""{{#ask: [[IsA::Event]][[Ordinal::>2]][[start date::>2018]][[start date::<2019]]
-| mainlabel = Event
-| ?Title = title
-| ?Event in series = series
-| ?_CDAT=creation date
-| ?_MDAT=modification date
-| ?ordinal=ordinal
-| ?Homepage = homepage
-|format=table
-}}"""   
+        askQuery=self.eventQuery
         for outputFormat in ["csv","json","xml","ttl","mediawiki","github","latex","lod"]:
             formatedQueryResults = wikiPush.formatQueryResult(askQuery, wikiClient,outputFormat=outputFormat, entityName="Event")
             if formatedQueryResults:
@@ -62,9 +75,9 @@ class TestWikiQuery(BaseTest):
                     print(f"Format {outputFormat} is not supported.")
         pass
 
-    def testJsonDefalt(self):
+    def testJsonDefault(self):
         """Test if default entityName is set correctly for format json"""
-        argv=["-s","orcopy","-q",self.eventQuery]
+        argv=["-s","cr","-q",self.eventQuery]
         mystdout = StringIO()
         with redirect_stdout(mystdout):
             mainQuery(argv)
@@ -77,7 +90,7 @@ class TestWikiQuery(BaseTest):
     def testJson(self):
         """Test if given entityName is set correctly for format json"""
         entityName = "Event"
-        argv=["-s","orcopy","-q",self.eventQuery, "--entityName", entityName, "--format", "json"]
+        argv=["-s","cr","-q",self.eventQuery, "--entityName", entityName, "--format", "json"]
         mystdout = StringIO()
         with redirect_stdout(mystdout):
             mainQuery(argv)
@@ -92,14 +105,16 @@ class TestWikiQuery(BaseTest):
         Test if wikiquery returns CSV format correctly
         '''
         entityName = "Event"
-        argv=["-s","orclone","-q",self.eventQuery, "--format", "csv"]
+        argv=["-s","cr","-q",self.eventQuery, "--format", "csv"]
         mystdout = StringIO()
         with redirect_stdout(mystdout):
             mainQuery(argv)
         res = mystdout.getvalue()
-        if self.debug:
+        debug=self.debug
+        debug=True
+        if debug:
             print(res)
-        expected_headline = "Event;title;series;creation date;modification date;ordinal;homepage\n"
+        expected_headline = "Event;acronym;description;title;homepage;wikidataid;series;colocated_with;city;country;region;creation date;modification date\n"
         self.assertTrue(res.startswith(expected_headline))
         return
 
@@ -107,10 +122,10 @@ class TestWikiQuery(BaseTest):
         '''
         Test if LOD is returned correctly if called form api
         '''
-        wikiId = 'orclone'
+        wikiId = 'cr'
         wikiClient = self.getWikiClient(wikiId)
         wikiPush = WikiPush(fromWikiId=wikiId)
-        askQuery = "{{#ask:" + self.eventQuery + "}}"
+        askQuery = self.eventQuery
         lod_res = wikiPush.formatQueryResult(askQuery, wikiClient, entityName="Event")
         if self.debug:
             print(lod_res)
