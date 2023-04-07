@@ -26,9 +26,6 @@ from argparse import RawDescriptionHelpFormatter
 import json
 from lodstorage.query import Query
 
-
-
-
 class WikiPush(object):
     '''
     Push pages from one MediaWiki to another
