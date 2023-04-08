@@ -12,7 +12,7 @@ class Version(object):
     name="py-3rdparty-mediawiki"
     version=wikibot3rd.__version__
     date = '2020-10-31'
-    updated = '2023-02-25'
+    updated = '2023-03-08'
     
     authors='Wolfgang Fahl, Tim Holzheim'
     
