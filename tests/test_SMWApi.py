@@ -16,6 +16,10 @@ from tests.basetest import BaseTest
 class TestSMW(BaseTest):
     """ test access to SemanticMediaWiki API see https://www.semantic-mediawiki.org/wiki/Help:API:ask"""
 
+    def setUp(self, debug=False, profile=True):
+        BaseTest.setUp(self, debug=debug, profile=profile)
+        self.getWikiUser("cr")
+         
     # sample queries
     testask1="""{{#ask:  [[Concept:Semantic MediaWiki Cons 2012]]
         |?Has_Wikidata_item_ID = WikiDataId
