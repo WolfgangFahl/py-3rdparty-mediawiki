@@ -386,30 +386,36 @@ class WikiPush(object):
             timestamp=datetime.datetime.now().isoformat()
             repo.index.commit("auto commit by wikibackup at %s" % timestamp)
         
-    def backupImages(self,imageList,imageBackupPath):
-        '''
-        '''
+    def backupImages(self,imageList:list,imageBackupPath:str):
+        """
+        backup the images in the givne imageList
+        
+        Args:
+            imageList(list): the list of images
+            imageBackupPath(str): the path to the backup directory
+        """
         for image in imageList:
             try:
                 imagePath,filename=self.downloadImage(image,imageBackupPath)
             except Exception as ex:
                 self.handleException(ex)
-        
-    def push(self,pageTitles,force=False,ignore=False,withImages=False):
-        '''
-        push the given page titles
+                
+    def work(self,pageTitles:list,activity:str="copying",comment:str="pushed",force:bool=False,ignore:bool=False,withImages:bool=False):
+        """
+        work on the given page titles
         
         Args:
             pageTitles(list): a list of page titles to be transfered from the formWiki to the toWiki
             force(bool): True if pages should be overwritten if they exist
             ignore(bool): True if warning for images should be ignored (e.g if they exist)
             withImages(bool): True if the image on a page should also be copied
-        '''
+        """
         total=len(pageTitles)
-        self.log("copying %d pages from %s to %s" % (total,self.fromWikiId,self.toWikiId))
+        self.log(f"{activity} {total} pages from {self.fromWikiId} to {self.toWikiId}")
         for i,pageTitle in enumerate(pageTitles):
             try:
-                self.log("%d/%d (%4.0f%%): copying %s ..." % (i+1,total,(i+1)/total*100,pageTitle), end='')
+                percent=(i+1)/total*100
+                self.log(f"{i+1}/{total} ({percent:4.0f}%): {activity} ... {pageTitle}", end='')
                 page=self.fromWiki.getPage(pageTitle)
                 if page.exists:
                     # is this an image?
@@ -419,7 +425,6 @@ class WikiPush(object):
                         newPage=self.toWiki.getPage(pageTitle)
                         if not newPage.exists or force:
                             try:
-                                comment="pushed from %s by wikipush" % self.fromWikiId
                                 newPage.edit(page.text(),comment)
                                 self.log("✅")
                                 pageOk=True
@@ -432,20 +437,38 @@ class WikiPush(object):
                 else:
                     self.log("❌")
             except Exception as ex:
-                self.log("❌:%s" % str(ex) )       
+                self.log("❌:%s" % str(ex) )   
+        
+    def push(self,pageTitles,force=False,ignore=False,withImages=False):
+        '''
+        push the given page titles
+        
+        Args:
+            pageTitles(list): a list of page titles to be transfered from the formWiki to the toWiki
+            force(bool): True if pages should be overwritten if they exist
+            ignore(bool): True if warning for images should be ignored (e.g if they exist)
+            withImages(bool): True if the image on a page should also be copied
+        '''
+        comment=f"pushed from {self.fromWikiId} by wikipush"  
+        self.work(pageTitles, activity="copying",comment=comment,force=force, ignore=ignore, withImages=withImages)
                 
-    def ensureParentDirectoryExists(self,filePath):
-        # for pages that have a "/" in the name:
+    def ensureParentDirectoryExists(self,filePath:str):
+        """
+        for pages that have a "/" in the name make sure that the parent Directory exists
+        
+        Args:
+            filePath(str): the filePath to check
+        """
         directory = os.path.dirname(filePath)
         self.ensureDirectoryExists(directory)
         
-    def ensureDirectoryExists(self,directory):
-        '''
+    def ensureDirectoryExists(self,directory:str):
+        """
         make sure the given directory exists
         
         Args: 
             directory(str): the directory to check for existence
-        '''
+        """
         Path(directory).mkdir(parents=True, exist_ok=True)
         
     def getHomePath(self,localPath):
@@ -461,7 +484,6 @@ class WikiPush(object):
         get the download path
         '''
         return self.getHomePath("Downloads/mediawiki")
-        
             
     def pushImages(self,imageList,delim="",ignore=False):
         '''
@@ -587,9 +609,12 @@ class WikiPush(object):
         """
         restore given page titles from local backup
         If no page titles are given the whole backup is restored.
+        
         Args:
             pageTitles(list): a list of pageTitles to be restored to toWiki. If None -> full restore of backup
             backupPath(str): path to backup location
+            listFile:
+            stdIn:
         """
         if stdIn:
             backupPath = os.path.dirname(pageTitles[0].strip())
@@ -605,7 +630,7 @@ class WikiPush(object):
                 pageTitles.append(os.path.basename(i.strip()).replace('.wiki',''))
         else:
             if backupPath is None:
-                backupPath=self.getHomePath("wikibackup/%s" % self.toWikiId)
+                backupPath=self.getHomePath(f"wikibackup/{self.toWikiId}")
             if pageTitles is None:
                 pageTitles = []
                 for path, subdirs, files in os.walk(backupPath):
@@ -618,7 +643,7 @@ class WikiPush(object):
         for i,pageTitle in enumerate(pageTitles):
             try:
                 self.log("%d/%d (%4.0f%%): restore %s ..." % (i + 1, total, (i + 1) / total * 100, pageTitle),end='')
-                wikiFilePath = "%s/%s.wiki" % (backupPath, pageTitle)
+                wikiFilePath = f"{backupPath}/{pageTitle}.wiki"
                 with open(wikiFilePath, mode='r') as wikiFile:
                     page_content = wikiFile.read()
                     page = self.toWiki.getPage(pageTitle)
@@ -669,7 +694,7 @@ def main(argv=None,mode='wikipush'): # IGNORE:C0111
     program_license = '''%s
 
   Created by %s on %s.
-  Copyright 2020 Wolfgang Fahl. All rights reserved.
+  Copyright 2020-2023 Wolfgang Fahl. All rights reserved.
 
   Licensed under the Apache License 2.0
   http://www.apache.org/licenses/LICENSE-2.0
