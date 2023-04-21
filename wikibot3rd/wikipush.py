@@ -442,6 +442,8 @@ class WikiPush(object):
                                 pageOk=True
                             except Exception as ex:
                                 pageOk=self.handleException(ex, ignore)
+                                if not pageOk:
+                                    failed.append(pageTitle)
                             if withImages and pageOk:
                                 self.pushImages(page.images(),ignore=ignore)
                         else:
