@@ -454,7 +454,7 @@ class WikiPush(object):
                 failed.append(pageTitle)
         return failed
         
-    def push(self,pageTitles,force=False,ignore=False,withImages=False):
+    def push(self,pageTitles,force=False,ignore=False,withImages=False)->list:
         '''
         push the given page titles
         
@@ -463,9 +463,11 @@ class WikiPush(object):
             force(bool): True if pages should be overwritten if they exist
             ignore(bool): True if warning for images should be ignored (e.g if they exist)
             withImages(bool): True if the image on a page should also be copied
+        Returns:
+            list: a list of pageTitles for which the activity failed
         '''
         comment=f"pushed from {self.fromWikiId} by wikipush"  
-        self.work(pageTitles, activity="copying",comment=comment,force=force, ignore=ignore, withImages=withImages)
+        return self.work(pageTitles, activity="copying",comment=comment,force=force, ignore=ignore, withImages=withImages)
                 
     def ensureParentDirectoryExists(self,filePath:str):
         """
