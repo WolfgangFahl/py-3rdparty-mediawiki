@@ -169,8 +169,9 @@ class WikiPush(object):
         # use a Dict to remove duplicates
         pagesDict={}
         for pageRecord in pageRecords.values():
-            pagesDict[pageRecord[queryField]]=True
-        return pagesDict.keys()
+            if queryField in pageRecord:
+                pagesDict[pageRecord[queryField]]=True
+        return list(pagesDict.keys())
     
     def nuke(self,pageTitles,force=False):
         '''
