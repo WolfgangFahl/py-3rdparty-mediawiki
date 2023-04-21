@@ -32,9 +32,16 @@ class WikiPush(object):
     '''
     differ=None
     
-    def __init__(self, fromWikiId, toWikiId=None,login=False,verbose=True,debug=False):
+    def __init__(self, fromWikiId:str, toWikiId:str=None,login:bool=False,verbose:bool=True,debug:bool=False):
         '''
         Constructor
+        
+        Args:
+            fromWikiId(str): the id of the wiki to push from (source)
+            toWikiID(str): the id of the wiki to push to (target)
+            login(bool): if True login to source wiki
+            verbose(bool): if True print info messages
+            debug(bool): if True show debugging messages
         '''
         self.verbose=verbose
         self.debug=debug
