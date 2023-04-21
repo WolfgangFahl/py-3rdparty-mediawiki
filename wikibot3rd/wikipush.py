@@ -407,16 +407,21 @@ class WikiPush(object):
             except Exception as ex:
                 self.handleException(ex)
                 
-    def work(self,pageTitles:list,activity:str="copying",comment:str="pushed",force:bool=False,ignore:bool=False,withImages:bool=False):
+    def work(self,pageTitles:list,activity:str="copying",comment:str="pushed",force:bool=False,ignore:bool=False,withImages:bool=False)->list:
         """
         work on the given page titles
         
         Args:
             pageTitles(list): a list of page titles to be transfered from the formWiki to the toWiki
+            activity(str): the activity to perform
+            comment(str): the comment to display 
             force(bool): True if pages should be overwritten if they exist
             ignore(bool): True if warning for images should be ignored (e.g if they exist)
             withImages(bool): True if the image on a page should also be copied
+        Returns:
+            list: a list of pageTitles for which the activity failed
         """
+        failed=[]
         total=len(pageTitles)
         self.log(f"{activity} {total} pages from {self.fromWikiId} to {self.toWikiId}")
         for i,pageTitle in enumerate(pageTitles):
@@ -443,8 +448,11 @@ class WikiPush(object):
                             self.log("👎")
                 else:
                     self.log("❌")
+                    failed.append(pageTitle)
             except Exception as ex:
-                self.log("❌:%s" % str(ex) )   
+                self.log(f"❌:{str(ex)}")   
+                failed.append(pageTitle)
+        return failed
         
     def push(self,pageTitles,force=False,ignore=False,withImages=False):
         '''
