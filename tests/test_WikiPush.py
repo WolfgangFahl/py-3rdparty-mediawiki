@@ -144,12 +144,14 @@ class TestWikiPush(BaseTest):
         test transferpages
         '''
         if self.inPublicCI(): return
+        debug=self.debug
+        #debug=True
         ask="{{#ask: [[TransferPage page::+]][[TransferPage wiki::Master]]| mainlabel=-| ?TransferPage page = page| format=table|limit=300}}"
-        wikipush=WikiPush("master","test")
+        wikipush=WikiPush("master-capri","test",login=True,debug=debug)
         pages=wikipush.query(ask,queryField="page")
-        if self.debug:
+        if debug:
             print (pages)
-    
+        self.assertTrue(len(pages)>100)
     def testQuery(self):
         '''
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/10

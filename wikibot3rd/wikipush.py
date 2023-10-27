@@ -56,10 +56,12 @@ class WikiPush(object):
             self.toWiki=WikiClient.ofWikiId(toWikiId,debug=self.debug)
         if login and self.fromWikiId is not None:
             if not self.fromWiki.login():
-                raise Exception("can't login to source Wiki %s" % fromWikiId )
+                msg=f"can't login to source Wiki {fromWikiId}"
+                raise Exception(msg)
         if self.toWiki is not None:
             if not self.toWiki.login():
-                raise Exception("can't login to target Wiki %s" % toWikiId )
+                msg=f"can't login to target Wiki {toWikiId}"
+                raise Exception(msg)
         
     def log(self,msg:str,end='\n'):
         """

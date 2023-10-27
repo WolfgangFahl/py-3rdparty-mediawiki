@@ -93,6 +93,8 @@ class WikiBot(Wiki):
         '''
         check if a valid family file exists and if not create it
         
+        watch out for https://stackoverflow.com/questions/76612838/how-to-work-with-custom-wikibase-using-pywikibot 
+        8.2 changes that might break old family files
         '''
         iniFile=WikiUser.iniFilePath(self.wikiUser.wikiId)
         famfile=iniFile.replace(".ini",".py")
