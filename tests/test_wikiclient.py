@@ -3,7 +3,6 @@ Created on 2020-11-02
 
 @author: wf
 '''
-import unittest
 from wikibot3rd.wikiclient import WikiClient
 from tests.basetest import BaseTest
 
@@ -17,7 +16,7 @@ class TestWikiClient(BaseTest):
         test clients
         '''
         for i,client in enumerate(WikiClient.getClients().values()):
-            print (f"{i:2}{client} ",end="")
+            print (f"{i+1:2}{client} ",end="")
             error=False
             status=""
             try:
@@ -38,10 +37,3 @@ class TestWikiClient(BaseTest):
                 print ('✅' if page.exists else '❌',end='')
             print()
         pass
-    
-    
-
-
-if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()
