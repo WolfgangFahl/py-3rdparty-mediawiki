@@ -80,7 +80,3 @@ class TestWikiUser(BaseTest):
             rUser=WikiUser.ofDict(props, encrypted=True)
             self.assertEqual(password,rUser.getPassword())
             os.remove(path)
-
-if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()
