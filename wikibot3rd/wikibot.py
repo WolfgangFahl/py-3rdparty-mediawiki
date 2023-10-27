@@ -11,7 +11,6 @@ from wikibot3rd.wikiuser import WikiUser
 from wikibot3rd.wiki import Wiki
 try:
     import pywikibot
-    from pywikibot.data.api import LoginManager
 except Exception as ex:
     # ignore pywikibot setup problems?
     print("pywikibot config issue see https://phabricator.wikimedia.org/T278076")
@@ -92,7 +91,7 @@ class WikiBot(Wiki):
         
     def checkFamily(self):
         '''
-        check if a family file exists and if not create it
+        check if a valid family file exists and if not create it
         
         '''
         iniFile=WikiUser.iniFilePath(self.wikiUser.wikiId)
@@ -134,7 +133,7 @@ class Family(family.Family):
         if self.wikiUser.user:
             # needs patch as outlined in https://phabricator.wikimedia.org/T248471
             #self.site.login(password=self.wikiUser.getPassword())
-            lm = LoginManager(password=self.wikiUser.getPassword(), site=self.site, user=self.wikiUser.user)
+            lm = pywikibot.login.ClientLoginManager(password=self.wikiUser.getPassword(), site=self.site, user=self.wikiUser.user)
             lm.login()
         else:
             raise Exception("wikiUser is not set")
