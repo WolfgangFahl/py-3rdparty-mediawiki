@@ -25,15 +25,15 @@ dependencies = [
     # https://pypi.org/project/pywikibot/
     'pywikibot>=7.3',
     # https://pypi.org/project/pycryptodome/
-    'pycryptodome>=3.15.0',
+    'pycryptodome>=3.19.0',
     # https://pypi.org/project/mwclient/
     'mwclient>=0.10.1',
     # https://pypi.org/project/mwparserfromhell/
-    'mwparserfromhell>=0.6.4',
+    'mwparserfromhell>=0.6.5',
     # https://pypi.org/project/wikitextparser/
-    'wikitextparser>=0.47.5',
+    'wikitextparser>=0.54.0',
     # https://pypi.org/project/pylodstorage/
-    'pylodstorage>0.4.7'
+    'pylodstorage>0.4.14'
 ]
 
 requires-python = ">=3.8"
