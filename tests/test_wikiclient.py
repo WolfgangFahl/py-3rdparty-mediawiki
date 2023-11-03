@@ -38,6 +38,7 @@ class TestWikiClient(BaseTest):
         """
         Test the get_site_statistics method of MediaWikiAPI
         """
+        errors={}
         for i, client in enumerate(self.clients):
             print(f"{i+1:2}{client} ", end="")
             _error,loggedIn=self.optLogin(client)
@@ -45,27 +46,38 @@ class TestWikiClient(BaseTest):
                 statistics = client.get_site_statistics()
             
                 # Assert that statistics is not None
-                self.assertIsNotNone(statistics, "Statistics should not be None")
-                
-                # List of expected keys in the statistics
-                expected_keys = [
-                    "pages",
-                    "articles",
-                    "edits",
-                    "images",
-                    "users",
-                    "activeusers",
-                    "admins",
-                    "jobs",
-                ]
-                
-                # Loop through each expected key and assert it is in statistics
-                for key in expected_keys:
-                    self.assertIn(key, statistics, f"Statistics should include {key} count")
-                print(statistics["pages"])
+                try:
+                    self.assertIsNotNone(statistics, "Statistics should not be None")
+              
+                    
+                    # List of expected keys in the statistics
+                    expected_keys = [
+                        "pages",
+                        "articles",
+                        "edits",
+                        "images",
+                        "users",
+                        "activeusers",
+                        "admins",
+                        "jobs",
+                    ]
+                    
+                    # Loop through each expected key and assert it is in statistics
+                    for key in expected_keys:
+                        self.assertIn(key, statistics, f"Statistics should include {key} count")
+                    print(statistics["pages"])
+                except Exception as ex:
+                    errors[client.wikiUser.wikiId]=ex
+                    print(str(ex))
             else:
                 print()
-                
+        error_count=len(errors)
+        print(f"{error_count} errors found")
+        for index, (key, value) in enumerate(errors.items()):
+            print(f"{index}: {key} - {str(value)}")
+        if self.inPublicCI():
+            self.assertEqual(0,error_count)
+            
     def testWikiClient(self):
         """
         test clients

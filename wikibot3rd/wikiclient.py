@@ -19,6 +19,8 @@ class WikiClient(Wiki):
         """
         super(WikiClient, self).__init__(wiki_user, debug=debug)
         self.wiki_user: WikiUser = wiki_user
+        # compatibility
+        self.wikiUser=self.wiki_user
         self.site: Optional[Site] = None
 
     def get_site(self) -> Site:
