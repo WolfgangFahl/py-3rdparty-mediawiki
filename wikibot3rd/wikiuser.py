@@ -29,6 +29,10 @@ class WikiUser(object):
         # set None values for all fields
         for field in WikiUser.getFields():
             setattr(self,field,None)
+            
+    def get_password(self):
+        password=self.getPassword()
+        return password
     
     def getPassword(self):
         '''
@@ -39,6 +43,10 @@ class WikiUser(object):
         '''
         c=Crypt(self.cypher,20,self.salt)
         return c.decrypt(self.secret)
+    
+    def get_wiki_url(self):
+        wiki_url=self.getWikiUrl()
+        return wiki_url
     
     def getWikiUrl(self):
         '''

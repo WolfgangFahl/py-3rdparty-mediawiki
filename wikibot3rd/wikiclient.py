@@ -1,121 +1,226 @@
-'''
-Created on 2020-11-02
-
-@author: wf
-'''
-from wikibot3rd.wikiuser import WikiUser
+from typing import Optional, Dict, Any
 from mwclient import Site
 from urllib.parse import urlparse
 from wikibot3rd.wiki import Wiki
+from wikibot3rd.wikiuser import WikiUser
 
 class WikiClient(Wiki):
-    '''
-    access MediaWiki via mwclient library
-    '''
+    """
+    Access MediaWiki via mwclient library.
+    """
 
-    def __init__(self, wikiUser,debug=False):
-        '''
-        Constructor
-        '''
-        super(WikiClient,self).__init__(wikiUser,debug=debug) 
-        self.wikiUser=wikiUser
-        self.site=None
-      
-        
-    def getSite(self):
-        '''
-        get my site
-        '''
-        if self.site is None:
-            o=urlparse(self.wikiUser.url)
-            scheme=o.scheme
-            host=o.netloc
-            path=o.path+self.wikiUser.scriptPath   
-            path="%s/" % path
-            self.site=Site(host=host, path=path, scheme=scheme)
-        return self.site
-    
-    def needsLogin(self)->bool:
+    def __init__(self, wiki_user: WikiUser, debug: bool = False):
         """
-        check whether this wiki is public
+        Initialize the WikiClient with a WikiUser and an optional debug mode.
+
+        Args:
+            wiki_user: A WikiUser instance containing login credentials.
+            debug: A flag to enable debug mode.
+        """
+        super(WikiClient, self).__init__(wiki_user, debug=debug)
+        self.wiki_user: WikiUser = wiki_user
+        self.site: Optional[Site] = None
+
+    def get_site(self) -> Site:
+        """
+        Get the Site object for the MediaWiki site.
+
         Returns:
-            bool: True if this is a non public wiki
+            The Site object representing the MediaWiki site.
         """
-        site=self.getSite()
-        login_needed=not site.writeapi
+        if self.site is None:
+            o = urlparse(self.wiki_user.url)
+            scheme = o.scheme
+            host = o.netloc
+            path = o.path + self.wiki_user.scriptPath
+            path = f"{path}/"
+            self.site = Site(host=host, path=path, scheme=scheme)
+        return self.site
+
+    def getSite(self) -> Site:
+        """Deprecated: Use get_site instead."""
+        return self.get_site()
+
+    def needs_login(self) -> bool:
+        """
+        Check if login is required for the wiki.
+
+        Returns:
+            True if login is required, False otherwise.
+        """
+        site = self.get_site()
+        login_needed: bool = not site.writeapi
         return login_needed
-        
-    def login(self):
-        '''
-        login
-        '''
-        wu=self.wikiUser
+
+    def needsLogin(self) -> bool:
+        """Deprecated: Use needs_login instead."""
+        return self.needs_login()
+
+    def login(self) -> bool:
+        """
+        Attempt to log in to the MediaWiki site.
+
+        Returns:
+            True if login is successful, False otherwise.
+        """
+        wu = self.wiki_user
         try:
-            self.getSite().login(username=wu.user,password=wu.getPassword())
+            self.get_site().login(username=wu.user, password=wu.get_password())
             return True
         except Exception as ex:
             if self.debug:
-                print("login failed: %s" % str(ex))
+                print(f"Login failed: {ex}")
             return False
-        
-    def getWikiMarkup(self,pageTitle):
-        '''
-        get the wiki markup code (text) for the given page Title
-        
+
+    def get_wiki_markup(self, page_title: str) -> str:
+        """
+        Get the wiki markup for a given page title.
+
         Args:
-            pageTitle(str): the title of the page to retrieve
-            
+            page_title: The title of the page to retrieve the markup for.
+
         Returns:
-            str: the wiki markup code for the page
-        '''
-        page=self.getPage(pageTitle)
-        markup=page.text()
+            The wiki markup of the specified page.
+        """
+        page = self.get_page(page_title)
+        markup = page.text()
         return markup
-    
-    def getHtml(self,pageTitle):
-        '''
-        get the HTML code for the given page Title
-        
+
+    def getWikiMarkup(self, pageTitle: str) -> str:
+        """Deprecated: Use get_wiki_markup instead."""
+        return self.get_wiki_markup(pageTitle)
+
+    def get_html(self, page_title: str) -> str:
+        """
+        Get the HTML content for a given page title.
+
         Args:
-            pageTitle(str): the title of the page to retrieve
-        '''
-        api=self.getSite().api("parse",page=pageTitle)
-        if not "parse" in api:
-            raise Exception("could not retrieve html for page %s" % pageTitle)
-        html=api["parse"]["text"]["*"]
-        return html        
-        
-    def getPage(self,pageTitle):
-        page=self.getSite().pages[pageTitle]
+            page_title: The title of the page to retrieve the HTML for.
+
+        Returns:
+            The HTML content of the specified page.
+        """
+        api = self.get_site().api("parse", page=page_title)
+        if "parse" not in api:
+            raise Exception(f"Could not retrieve HTML for page {page_title}")
+        html: str = api["parse"]["text"]["*"]
+        return html
+
+    def getHtml(self, pageTitle: str) -> str:
+        """Deprecated: Use get_html instead."""
+        return self.get_html(pageTitle)
+
+    def get_page(self, page_title: str) -> Any:
+        """
+        Get the page object for a given title.
+
+        Args:
+            page_title: The title of the page to retrieve.
+
+        Returns:
+            The page object for the specified title.
+        """
+        page = self.get_site().pages[page_title]
         return page
-    
-    def savePage(self,pageTitle,pageContent,pageSummary):
-        '''
-        save the page
+
+    def getPage(self, pageTitle: str) -> Any:
+        """Deprecated: Use get_page instead."""
+        return self.get_page(pageTitle)
+
+    def save_page(self, page_title: str, page_content: str, page_summary: str) -> None:
+        """
+        Save a page with given title and content.
+
         Args:
-            pageTitle(str): the title of the page
-            pageContent(str): the wikimarkup content
-            pageSummary(str): 
-        '''
-        newPage=self.getPage(pageTitle)
-        newPage.edit(pageContent,pageSummary)
-        
+            page_title: The title of the page.
+            page_content: The new content of the page.
+            page_summary: A summary of the changes made.
+        """
+        new_page = self.get_page(page_title)
+        new_page.edit(page_content, page_summary)
+
+    def savePage(self, pageTitle: str, pageContent: str, pageSummary: str) -> None:
+        """Deprecated: Use save_page instead."""
+        self.save_page(pageTitle, pageContent, pageSummary)
+
+    def get_site_statistics(self) -> Dict[str, Any]:
+        """
+        Fetch site statistics using the MediaWiki API.
+
+        Returns:
+            A dictionary containing the site statistics.
+        """
+        params = {
+            "action": "query",
+            "meta": "siteinfo",
+            "siprop": "statistics",
+            "format": "json",
+        }
+        site=self.get_site()
+        data=site.api(**params)
+        statistics=data["query"]["statistics"]
+        return statistics
+
+    def getSiteStatistics(self) -> Dict[str, Any]:
+        """Deprecated: Use get_site_statistics instead."""
+        return self.get_site_statistics()
+
     @staticmethod
-    def getClients():
-        clients={}
-        for wikiUser in WikiUser.getWikiUsers().values():
-            wikiClient=WikiClient(wikiUser)
-            clients[wikiUser.wikiId]=wikiClient
+    def get_clients() -> Dict[str, 'WikiClient']:
+        """
+        Get a dictionary of WikiClient instances for all WikiUsers.
+
+        Returns:
+            Dict[str, WikiClient]: A dictionary with wiki user IDs as keys and WikiClient instances as values.
+        """
+        clients: Dict[str, WikiClient] = {}
+        for wiki_user in WikiUser.getWikiUsers().values():
+            wiki_client = WikiClient(wiki_user)
+            clients[wiki_user.wikiId] = wiki_client
         return clients
-        
+
     @staticmethod
-    def ofWikiId(wikiId,lenient=True,debug=False):
-        wikiUser=WikiUser.ofWikiId(wikiId,lenient=lenient)
-        wikibot=WikiClient(wikiUser,debug=debug)
-        return wikibot
-    
+    def getClients() -> Dict[str, 'WikiClient']:
+        """Deprecated: Use get_clients instead."""
+        return WikiClient.get_clients()
+
     @staticmethod
-    def ofWikiUser(wikiUser):
-        wikibot=WikiClient(wikiUser)
+    def of_wiki_id(wiki_id: str, lenient: bool = True, debug: bool = False) -> 'WikiClient':
+        """
+        Create a WikiClient instance for a specific wiki ID.
+
+        Args:
+            wiki_id: The ID of the wiki to create a client for.
+            lenient: Whether to be lenient in case of errors.
+            debug: Whether to enable debug output.
+
+        Returns:
+            WikiClient: A WikiClient instance for the given wiki ID.
+        """
+        wiki_user = WikiUser.ofWikiId(wiki_id, lenient=lenient)
+        wikibot = WikiClient(wiki_user, debug=debug)
         return wikibot
-        
+
+    @staticmethod
+    def ofWikiId(wiki_id: str, lenient: bool = True, debug: bool = False) -> 'WikiClient':
+        """Deprecated: Use of_wiki_id instead."""
+        return WikiClient.of_wiki_id(wiki_id, lenient, debug)
+
+    @staticmethod
+    def of_wiki_user(wiki_user: WikiUser) -> 'WikiClient':
+        """
+        Create a WikiClient instance from a WikiUser object.
+
+        Args:
+            wiki_user: A WikiUser instance to create a WikiClient for.
+
+        Returns:
+            WikiClient: A WikiClient instance for the given WikiUser.
+        """
+        wikibot = WikiClient(wiki_user)
+        return wikibot
+
+    @staticmethod
+    def ofWikiUser(wiki_user: WikiUser) -> 'WikiClient':
+        """Deprecated: Use of_wiki_user instead."""
+        return WikiClient.of_wiki_user(wiki_user)
