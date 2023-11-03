@@ -42,11 +42,11 @@ class TestWikiClient(BaseTest):
         for i, client in enumerate(self.clients):
             print(f"{i+1:2}{client} ", end="")
             _error,loggedIn=self.optLogin(client)
-            if loggedIn:
-                statistics = client.get_site_statistics()
-            
-                # Assert that statistics is not None
+            if loggedIn:         
                 try:
+                    statistics = client.get_site_statistics()
+                    # Assert that statistics is not None
+   
                     self.assertIsNotNone(statistics, "Statistics should not be None")
               
                     
