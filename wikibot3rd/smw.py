@@ -1,16 +1,18 @@
-'''
+"""
 Created on 2020-05-29
 
 @author: wf
-'''
+"""
 import re
 import sys
 from datetime import datetime
 from urllib.parse import unquote
+
 import pywikibot
 
+
 class PrintRequest(object):
-    debug=False
+    debug = False
     """
     construct the given print request
     see https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
@@ -22,124 +24,129 @@ class PrintRequest(object):
     :ivar mode:  
     :ivar format: 
     """
-    def __init__(self,smw,record):
-        '''
+
+    def __init__(self, smw, record):
+        """
         construct me from the given record
         Args:
             smw(SMW): the SemanticMediaWiki context of this PrintRequest
-            record(dict): the dict derived from the printrequest json serialization  
-        '''
-        self.smw=smw
-        self.debug=PrintRequest.debug
+            record(dict): the dict derived from the printrequest json serialization
+        """
+        self.smw = smw
+        self.debug = PrintRequest.debug
         if self.debug:
             print(record)
-        self.label=record['label']
-        self.key=record['key']
-        self.redi=record['redi']
-        self.typeid=record['typeid']
-        self.mode=int(record['mode'])
-        if 'format' in record:
-            self.format=record['format']
+        self.label = record["label"]
+        self.key = record["key"]
+        self.redi = record["redi"]
+        self.typeid = record["typeid"]
+        self.mode = int(record["mode"])
+        if "format" in record:
+            self.format = record["format"]
         else:
-            self.format=None   
-            
-    def deserializeSingle(self,value):
-        """ deserialize a single value 
+            self.format = None
+
+    def deserializeSingle(self, value):
+        """deserialize a single value
         Args:
             value(object): the value to be deserialized according to the typeid
-            
+
         Returns:
             the deserialized value
         """
         # FIXME complete list of types according to
-        # https://www.semantic-mediawiki.org/wiki/Help:API:ask  
-        # Page https://www.semantic-mediawiki.org/wiki/Help:API:ask/Page    
-        if self.typeid=="_wpg":  
-            value=value["fulltext"]
+        # https://www.semantic-mediawiki.org/wiki/Help:API:ask
+        # Page https://www.semantic-mediawiki.org/wiki/Help:API:ask/Page
+        if self.typeid == "_wpg":
+            value = value["fulltext"]
             if value:
-                value=unquote(value)
-            pass  
+                value = unquote(value)
+            pass
         # Text https://www.semantic-mediawiki.org/wiki/Help:API:ask/Text
-        elif self.typeid=="_txt":
+        elif self.typeid == "_txt":
             pass
-        elif self.typeid=="_qty":    
+        elif self.typeid == "_qty":
             pass
-        elif self.typeid=="_num":
-            value=int(value)            
-        elif self.typeid=="_dat":
-            if 'timestamp' in value:
-                ts=int(value['timestamp'])
+        elif self.typeid == "_num":
+            value = int(value)
+        elif self.typeid == "_dat":
+            if "timestamp" in value:
+                ts = int(value["timestamp"])
                 try:
-                    value=datetime.utcfromtimestamp(ts)
+                    value = datetime.utcfromtimestamp(ts)
                     #  print (date.strftime('%Y-%m-%d %H:%M:%S'))
                 except ValueError as ve:
                     if self.debug:
-                        print("Warning timestamp %d is invalid: %s" % (ts,str(ve)))
+                        print("Warning timestamp %d is invalid: %s" % (ts, str(ve)))
                     pass
             else:
                 # ignore faulty values
                 if self.debug:
                     print("Warning: timestamp missing for value")
                 pass
-        elif self.typeid=="_eid":
+        elif self.typeid == "_eid":
             pass
-        else:   
+        else:
             pass
         return value
-            
-    def deserialize(self,result):
-        """ deserialize the given result record
+
+    def deserialize(self, result):
+        """deserialize the given result record
         Args:
             result(dict): a single result record dict from the deserialiation of the ask query
-        Returns:    
-            object: a single deserialized value according to my typeid   
+        Returns:
+            object: a single deserialized value according to my typeid
         """
-        po=result['printouts']
+        po = result["printouts"]
         if self.label in po:
-            value=po[self.label]
+            value = po[self.label]
         else:
-            value=result
-        if isinstance(value,list):
-            valueList=[]
+            value = result
+        if isinstance(value, list):
+            valueList = []
             for valueItem in value:
                 valueList.append(self.deserializeSingle(valueItem))
             # handle lists
             # empty lists => None
-            if len(valueList)==0:
-                value=None    
-            # lists with one value -> return the item (this unfortunately removes the list property of the value)   
-            elif len(valueList)==1:
-                value=valueList[0]
-            # only if there is a "real" list return it    
-            else:        
-                value=valueList  
+            if len(valueList) == 0:
+                value = None
+            # lists with one value -> return the item (this unfortunately removes the list property of the value)
+            elif len(valueList) == 1:
+                value = valueList[0]
+            # only if there is a "real" list return it
+            else:
+                value = valueList
         else:
-            value=self.deserializeSingle(value)                           
-        
+            value = self.deserializeSingle(value)
+
         if PrintRequest.debug:
-            print ("%s(%s)='%s'" % (self.label,self.typeid,value))  
-        return value    
-            
+            print("%s(%s)='%s'" % (self.label, self.typeid, value))
+        return value
+
     def __repr__(self):
-        text="PrintRequest(label='%s' key='%s' redi='%s' typeid='%s' mode=%d format='%s')" % (self.label,self.key,self.redi,self.typeid,self.mode,self.format)
+        text = (
+            "PrintRequest(label='%s' key='%s' redi='%s' typeid='%s' mode=%d format='%s')"
+            % (self.label, self.key, self.redi, self.typeid, self.mode, self.format)
+        )
         return text
-    
-class SplitClause():
-    '''
+
+
+class SplitClause:
+    """
     Query parameter to be used for splitting e.g. Modification date, Creation Date, could be potentially
     any parameter that is ordered and countable
     Currently we assume a parameter of type Date and use Modification date by default
-    '''
-    
-    def __init__(self,name="Modification date",label="mdate"):
-        '''
+    """
+
+    def __init__(self, name="Modification date", label="mdate"):
+        """
         construct me
-        '''
-        self.name=name
-        self.label=label
-        
-    def queryBounds(self,lowerBound,upperBound)->str:
-        '''
+        """
+        self.name = name
+        self.label = label
+
+    def queryBounds(self, lowerBound, upperBound) -> str:
+        """
         get the query bounds
         e.g. [[Modification date::>=2021-01-01T12:00
 
@@ -149,103 +156,106 @@ class SplitClause():
 
         Returns:
             Returns the SMW ask part for the boundary
-        '''
-        result=f"[[{self.name}:: >={lowerBound.isoformat()}]]|[[{self.name}:: <={upperBound.isoformat()}]]"
+        """
+        result = f"[[{self.name}:: >={lowerBound.isoformat()}]]|[[{self.name}:: <={upperBound.isoformat()}]]"
         return result
 
-    def getFirst(self)->str:
-        '''
+    def getFirst(self) -> str:
+        """
         get the first element
-        '''
-        result=f"?{self.name}={self.label}|sort={self.name}|limit=1"
+        """
+        result = f"?{self.name}={self.label}|sort={self.name}|limit=1"
         return result
-    
-    def deserialize(self,values):
-        '''
+
+    def deserialize(self, values):
+        """
         deserialize my query result
-        '''
+        """
         # dict: {
         #    'Property:Foaf:knows': {
-        #       '': 'Property:Foaf:knows', 
+        #       '': 'Property:Foaf:knows',
         #       'Modification date': datetime.datetime(2020, 11, 28, 17, 40, 36)
         #    }
         # }
-        date=None
-        vlist=list(values)
-        if len(vlist)>0:
+        date = None
+        vlist = list(values)
+        if len(vlist) > 0:
             innerValue = vlist[0]
             if self.label in innerValue:
-                date=innerValue[self.label]
+                date = innerValue[self.label]
         return date
-        
+
 
 class SMW(object):
-    '''
+    """
     Semantic MediaWiki Access e.g. for ask API
     see
     * https://www.semantic-mediawiki.org/wiki/Help:API
     * https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
     * https://www.semantic-mediawiki.org/wiki/Help:API:askargs
-    
-    adapted from Java SimpleGraph Module 
+
+    adapted from Java SimpleGraph Module
     https://github.com/BITPlan/com.bitplan.simplegraph/blob/master/simplegraph-smw/src/main/java/com/bitplan/simplegraph/smw/SmwSystem.java
     :ivar site: the pywikibot site to use for requests
     :ivar prefix: the path prefix for this site e.g. /wiki/
-    '''
-    def __init__(self, site=None,prefix="/",showProgress=False, queryDivision=1,debug=False):
-        '''
+    """
+
+    def __init__(
+        self, site=None, prefix="/", showProgress=False, queryDivision=1, debug=False
+    ):
+        """
         Constructor
         Args:
             site: the site to use (optional)
             showProgess(bool): if progress should be shown
             queryDivision(int): Defines the number of subintervals the query is divided into (must be greater equal 1)
             debug(bool): if debugging should be activated - default: False
-        '''
-        self.site=site
-        self.prefix=prefix
-        self.showProgress=showProgress
-        self.queryDivision=queryDivision
-        self.splitClause=SplitClause()
-        self.debug=debug
-    
-    def deserialize(self,rawresult) -> dict:
-        """ deserialize the given rawresult according to 
+        """
+        self.site = site
+        self.prefix = prefix
+        self.showProgress = showProgress
+        self.queryDivision = queryDivision
+        self.splitClause = SplitClause()
+        self.debug = debug
+
+    def deserialize(self, rawresult) -> dict:
+        """deserialize the given rawresult according to
         https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
-        
+
         Args:
             rawresult(dict): contains printrequests and results which need to be merged
-            
+
         Returns:
             dict: query mainlabel (usually pageTitle) mapped to the corresponding dict of printrequests with label
         """
-        resultDict={}
+        resultDict = {}
         if rawresult is None:
             return resultDict
-        if not 'query' in rawresult:
+        if not "query" in rawresult:
             raise Exception("invalid query result - 'query' missing")
-        query=rawresult['query']
-        if not 'printrequests' in query:
+        query = rawresult["query"]
+        if not "printrequests" in query:
             raise Exception("invalid query result - 'printrequests' missing")
-        printrequests=query['printrequests']
-        if not 'results' in query:
+        printrequests = query["printrequests"]
+        if not "results" in query:
             raise Exception("invalid query result - 'results' missing")
-        results=query['results']
-        prdict={}
+        results = query["results"]
+        prdict = {}
         for record in printrequests:
-            pr=PrintRequest(self,record)
-            prdict[pr.label]=pr
-        
+            pr = PrintRequest(self, record)
+            prdict[pr.label] = pr
+
         if results:
             for key in results.keys():
-                record=results[key]
-                recordDict={}
+                record = results[key]
+                recordDict = {}
                 for label in prdict.keys():
-                    pr=prdict[label]
-                    recordDict[label]=pr.deserialize(record)
-                resultDict[key]=recordDict
+                    pr = prdict[label]
+                    recordDict[label] = pr.deserialize(record)
+                resultDict[key] = recordDict
         return resultDict
-    
-    def fixAsk(self, ask:str):
+
+    def fixAsk(self, ask: str):
         """
         fix an ask String to be usable for the API
         Args:
@@ -256,11 +266,11 @@ class SMW(object):
         """
         # ^\\s*\\{\\{
         # remove {{ with surrounding white space at beginning
-        fixedAsk = re.sub(r"^\s*\{\{", "",ask)
+        fixedAsk = re.sub(r"^\s*\{\{", "", ask)
         # remove #ask:
-        fixedAsk = re.sub(r"#ask:", "",fixedAsk)
+        fixedAsk = re.sub(r"#ask:", "", fixedAsk)
         # remove }} with surrounding white space at end
-        fixedAsk = re.sub(r"\}\}\s*$", "",fixedAsk)
+        fixedAsk = re.sub(r"\}\}\s*$", "", fixedAsk)
         # split by lines (with side effect to remove newlines)
         parts = fixedAsk.split(r"\n")
         fixedAsk = ""
@@ -268,17 +278,17 @@ class SMW(object):
             #  remove whitespace around part
             part = part.strip()
             # remove whitespace around pipe sign
-            part = re.sub(r"\s*\|\s*", "|",part)
+            part = re.sub(r"\s*\|\s*", "|", part)
             # remove whitespace around assignment =
-            part = re.sub(r"\s*=\s*", "=",part)
+            part = re.sub(r"\s*=\s*", "=", part)
             # remove whitespace in query parts
-            part = re.sub(r"\]\s*\[", "][",part)
+            part = re.sub(r"\]\s*\[", "][", part)
             fixedAsk = fixedAsk + part
         return fixedAsk
-    
-    def getConcept(self,ask):
-        """ get the concept from the given ask query"""
-        m=re.search(r"\[\[Concept:(.+?)\]\]",ask)
+
+    def getConcept(self, ask):
+        """get the concept from the given ask query"""
+        m = re.search(r"\[\[Concept:(.+?)\]\]", ask)
         if m:
             return m.groups()[0]
         else:
@@ -308,22 +318,30 @@ class SMW(object):
 
 
 class SMWClient(SMW):
-    '''
+    """
     Semantic MediaWiki access using mw client library
-    '''
-    
-    def __init__(self, site=None,prefix="/",showProgress=False, queryDivision=1,debug=False):
-        super(SMWClient,self).__init__(site,prefix,showProgress=showProgress, queryDivision=queryDivision,debug=debug)
+    """
+
+    def __init__(
+        self, site=None, prefix="/", showProgress=False, queryDivision=1, debug=False
+    ):
+        super(SMWClient, self).__init__(
+            site,
+            prefix,
+            showProgress=showProgress,
+            queryDivision=queryDivision,
+            debug=debug,
+        )
         pass
-    
+
     def info(self):
-        """ see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
-        results = self.site.raw_api('smwinfo', http_method='GET')
+        """see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
+        results = self.site.raw_api("smwinfo", http_method="GET")
         self.site.handle_api_result(results)  # raises APIError on error
-        
+
         return results
-    
-    def ask(self, query:str, title:str=None, limit:int=None):
+
+    def ask(self, query: str, title: str = None, limit: int = None):
         """
         Ask a query against Semantic MediaWiki.
 
@@ -336,9 +354,9 @@ class SMWClient(SMW):
         Args:
             query(str): SMW ask query to be executed
             title(str): title of query (optional)
-            limit(int): the maximum number of results to be returned - 
+            limit(int): the maximum number of results to be returned -
                 please note that SMW configuration will also limit results on the server side
-        
+
         Returns:
             Generator for retrieving all search results, with each answer as a dictionary.
             If the query is invalid, an APIError is raised. A valid query with zero
@@ -352,8 +370,8 @@ class SMWClient(SMW):
             >>>         print(title)
             >>>         print(data)
         """
-        #kwargs = {}
-        #if title is None:
+        # kwargs = {}
+        # if title is None:
         #    kwargs['title'] = title
 
         if limit is None:
@@ -389,7 +407,9 @@ class SMWClient(SMW):
         if self.showProgress:
             print(f"Start: {start}, End: {end}", file=sys.stderr, flush=True)
         numIntervals = self.queryDivision
-        calcIntervalBound = lambda start, n: (start + n * lenSubinterval).replace(microsecond=0)
+        calcIntervalBound = lambda start, n: (start + n * lenSubinterval).replace(
+            microsecond=0
+        )
         calcLimit = lambda limit, numRes: None if limit is None else limit - numResults
         done = False
         numResults = 0
@@ -398,18 +418,24 @@ class SMWClient(SMW):
             for n in range(numIntervals):
                 if self.showProgress:
                     print(f"Query {n+1}/{numIntervals}:")
-                tempLowerBound = calcIntervalBound(start,n)
-                tempUpperBound = calcIntervalBound(start,n+1) if (n+1 < numIntervals) else end
-                queryBounds = self.splitClause.queryBounds(tempLowerBound, tempUpperBound)
-                queryParam=f"{query}|{queryBounds}"
+                tempLowerBound = calcIntervalBound(start, n)
+                tempUpperBound = (
+                    calcIntervalBound(start, n + 1) if (n + 1 < numIntervals) else end
+                )
+                queryBounds = self.splitClause.queryBounds(
+                    tempLowerBound, tempUpperBound
+                )
+                queryParam = f"{query}|{queryBounds}"
                 try:
-                    tempRes = self.askForAllResults(queryParam, calcLimit(limit, numResults))
+                    tempRes = self.askForAllResults(
+                        queryParam, calcLimit(limit, numResults)
+                    )
                     if tempRes is not None:
                         for res in tempRes:
                             results.append(res)
-                            query_field=res.get("query")
+                            query_field = res.get("query")
                             if query_field is not None:
-                                meta_field=query_field.get("meta")
+                                meta_field = query_field.get("meta")
                                 if meta_field is not None:
                                     numResults += int(meta_field.get("count"))
                 except QueryResultSizeExceedException as e:
@@ -425,23 +451,25 @@ class SMWClient(SMW):
                         print(f"Defined limit of {limit} reached - ending querying")
                     done = True
                     break
-            done=True
+            done = True
         return results
-    
-    def getTimeStampBoundary(self,queryparam,order):
-        '''
+
+    def getTimeStampBoundary(self, queryparam, order):
+        """
         query according to a DATE e.g. MODIFICATION_DATE in the given order
-        
+
         Args:
-           
-        '''
+
+        """
         queryparamBoundary = f"{queryparam}|order={order}"
-        resultsBoundary = self.site.raw_api('ask', query=queryparamBoundary, http_method='GET')
+        resultsBoundary = self.site.raw_api(
+            "ask", query=queryparamBoundary, http_method="GET"
+        )
         self.site.handle_api_result(resultsBoundary)
-        deserializedResult=self.deserialize(resultsBoundary)
-       
-        deserializedValues=deserializedResult.values()
-        date=self.splitClause.deserialize(deserializedValues)
+        deserializedResult = self.deserialize(resultsBoundary)
+
+        deserializedValues = deserializedResult.values()
+        date = self.splitClause.deserialize(deserializedValues)
         return date
 
     def getBoundariesOfQuery(self, query):
@@ -454,12 +482,12 @@ class SMWClient(SMW):
             (Datetime, Datetime): Returns the time interval (based on modification date) in which all results of the
             query lie potentially the start end end might be None if an error occured or the input is invalid
         """
-        first=self.splitClause.getFirst()
+        first = self.splitClause.getFirst()
         queryparam = f"{query}|{first}"
-        start=self.getTimeStampBoundary(queryparam,'asc')
-        end=self.getTimeStampBoundary(queryparam,'desc')
-        return (start,end)
-    
+        start = self.getTimeStampBoundary(queryparam, "asc")
+        end = self.getTimeStampBoundary(queryparam, "desc")
+        return (start, end)
+
     def askForAllResults(self, query, limit=None, kwargs={}):
         """
         Executes the query until all results are received of the given limit is reached.
@@ -473,7 +501,11 @@ class SMWClient(SMW):
         Raises:
             QueryResultSizeExceedException: Raised if not all results can be retrieved
         """
-        endShowProgress = lambda showProgress, c: print("\n" if not c % 80 == 0 else "") if showProgress else None
+        endShowProgress = (
+            lambda showProgress, c: print("\n" if not c % 80 == 0 else "")
+            if showProgress
+            else None
+        )
         offset = 0
         done = False
         count = 0
@@ -484,19 +516,24 @@ class SMWClient(SMW):
                 sep = "\n" if count % 80 == 0 else ""
                 print(".", end=sep, flush=True)
 
-            queryParam = u'{query}|offset={offset}'.format(query=query, offset=offset)
+            queryParam = "{query}|offset={offset}".format(query=query, offset=offset)
             if limit is not None:
                 queryParam += "|limit={limit}".format(limit=limit)
             # print(f"QueryPram: {queryParam}")   #debug purposes
-            results = self.site.raw_api('ask', query=queryParam, http_method='GET', **kwargs)
+            results = self.site.raw_api(
+                "ask", query=queryParam, http_method="GET", **kwargs
+            )
             self.site.handle_api_result(results)  # raises APIError on error
-            continueOffset = results.get('query-continue-offset')
+            continueOffset = results.get("query-continue-offset")
             if continueOffset is None:
                 done = True
             else:
                 if limit is not None and continueOffset >= limit:
                     done = True
-                elif (results.get('query') is not None and not results.get('query').get('results')) or continueOffset < offset:
+                elif (
+                    results.get("query") is not None
+                    and not results.get("query").get("results")
+                ) or continueOffset < offset:
                     # contine-offset is set but result is empty
                     endShowProgress(self.showProgress, count)
                     res.append(results)
@@ -507,135 +544,142 @@ class SMWClient(SMW):
             res.append(results)
         endShowProgress(self.showProgress, count)
         return res
-    
-    def rawquery(self,askQuery,title=None,limit=None):
-        '''
+
+    def rawquery(self, askQuery, title=None, limit=None):
+        """
         run the given askQuery and return the raw result
-        
+
         Args:
             askQuery(string): the SMW inline query to be send via api
             title(string): the title (if any)
             limit(int): the maximum number of records to be retrieved (if any)
-            
+
         Returns:
             dict: the raw query result as returned by the ask API
-        '''
-        fixedAsk=self.fixAsk(askQuery)
-        result=None
+        """
+        fixedAsk = self.fixAsk(askQuery)
+        result = None
         for singleResult in self.ask(fixedAsk, title, limit):
             if result is None:
-                result=singleResult
+                result = singleResult
             else:
-                singleResults=None
-                if 'query' in singleResult:
-                    if 'results' in singleResult['query']:
-                        singleResults=singleResult['query']['results']
+                singleResults = None
+                if "query" in singleResult:
+                    if "results" in singleResult["query"]:
+                        singleResults = singleResult["query"]["results"]
                 if singleResults is not None:
-                    if 'query' in result:
-                        if 'results' in result['query']:
-                            results=result['query']['results']
+                    if "query" in result:
+                        if "results" in result["query"]:
+                            results = result["query"]["results"]
                             results.update(singleResults)
                         else:
-                            result['query']['results']=singleResults
+                            result["query"]["results"] = singleResults
                     else:
-                        result['query']={}
-                        result['query']['results'] = singleResults
+                        result["query"] = {}
+                        result["query"]["results"] = singleResults
         return result
-        
-    def query(self,askQuery:str,title:str=None,limit:int=None) -> dict:
-        '''
+
+    def query(self, askQuery: str, title: str = None, limit: int = None) -> dict:
+        """
         run query and return list of Dicts
-        
+
         Args:
             askQuery(string): the SMW inline query to be send via api
             title(string): the title (if any)
             limit(int): the maximum number of records to be retrieved (if any)
-            
+
         Return:
             dict: mainlabel as key and value is a dict of the associated property values
-        '''
-        rawresult=self.rawquery(askQuery, title, limit)
-        resultDict=self.deserialize(rawresult)
+        """
+        rawresult = self.rawquery(askQuery, title, limit)
+        resultDict = self.deserialize(rawresult)
         return resultDict
 
     def updateProgress(self, count):
         if self.showProgress:
             sep = "\n" if count % 80 == 0 else ""
             print(".", end=sep, flush=True)
-    
+
+
 class SMWBot(SMW):
-    '''
+    """
     Semantic MediaWiki access using pywikibot library
-    '''
-    def __init__(self, site=None,prefix="/",showProgress=False,debug=False):
-        '''
+    """
+
+    def __init__(self, site=None, prefix="/", showProgress=False, debug=False):
+        """
         constructor
-        
+
         Args:
             site:
             prefix(str): the prefix to use
             showProgress(bool): show progress if true
             debug(bool): set debugging mode if true
-        '''
-        super(SMWBot,self).__init__(site,prefix,showProgress=showProgress,debug=debug) 
+        """
+        super(SMWBot, self).__init__(
+            site, prefix, showProgress=showProgress, debug=debug
+        )
         pass
-    
+
     def submit(self, parameters):
-        ''' submit the request with the given parameters
+        """submit the request with the given parameters
         Args:
             parameters(list): the parameters to use for the SMW API request
         Returns:
             dict: the submit result
-        '''
+        """
         if not "Request" in sys.modules:
             from pywikibot.data.api import Request
-                
-        request=Request(site=self.site,parameters=parameters)
-        result=None
-        try: 
-            result=request.submit()    
+
+        request = Request(site=self.site, parameters=parameters)
+        result = None
+        try:
+            result = request.submit()
         except pywikibot.exceptions.TimeoutError as _toe:
-            msg=f"submit for {self.site} failed due to pywikibot TimeoutError"
+            msg = f"submit for {self.site} failed due to pywikibot TimeoutError"
             raise Exception(msg)
             pass
         return result
-    
+
     def info(self):
-        """ see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
-        parameters={"action": "smwinfo"}
+        """see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
+        parameters = {"action": "smwinfo"}
         return self.submit(parameters)
-    
-    def rawquery(self,ask:str,limit=None):
-        '''
+
+    def rawquery(self, ask: str, limit=None):
+        """
          send a query see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries#Parser_function_.23ask
-        
+
         Args:
             ask(str): the SMW ASK query as it would be used in MediaWiki markup
-        '''
+        """
         # allow usage of original Wiki ask content - strip all non needed parts
-        fixedAsk=self.fixAsk(ask)
+        fixedAsk = self.fixAsk(ask)
         # set parameters for request
-        parameters={"action": "ask","query":fixedAsk}
-        result=self.submit(parameters)
+        parameters = {"action": "ask", "query": fixedAsk}
+        result = self.submit(parameters)
         return result
-    
-    def query(self,ask,limit=None):
-        '''
+
+    def query(self, ask, limit=None):
+        """
         send a query and deserialize it
-        '''
-        rawresult=self.rawquery(ask,limit=limit)
-        result=self.deserialize(rawresult)
+        """
+        rawresult = self.rawquery(ask, limit=limit)
+        result = self.deserialize(rawresult)
         return result
 
 
 class QueryResultSizeExceedException(BaseException):
     """Raised if the results of a query can not completely be queried due to SMW result limits."""
-    def __init__(self, result=[], message="Query can not completely be queried due to SMW result limits."):
+
+    def __init__(
+        self,
+        result=[],
+        message="Query can not completely be queried due to SMW result limits.",
+    ):
         super().__init__(message)
-        self.result=result
+        self.result = result
 
     def getResults(self):
-        """ Returns the queried results before the exception was raised """
+        """Returns the queried results before the exception was raised"""
         return self.result
-
-

@@ -13,13 +13,48 @@ class TestWikiSON(BaseTest):
         """
         test_params = [
             # (entity_type, data, markup, expected)
-            ("Person", {"Name": "John", "last name": "Doe"}, "", "\n{{Person\n|Name=John\n|last name=Doe\n}}"),
-            ("Person", {"Name": "John", "last name": "Doe"}, "==Freetext==", "==Freetext==\n{{Person\n|Name=John\n|last name=Doe\n}}"),
-            ("Person", {"Name": "John", "last name": "Doe"}, "{{Person\n|age=42}}", "{{Person\n|age=42|Name=John\n|last name=Doe\n}}"),
-            ("Person", {"Name": "John", "last name": "Doe"}, "{{Person\n|Name=Jane\n}}", "{{Person\n|Name=John\n|last name=Doe\n}}"),
-            ("Person", {"Name": "John", "last name": "Doe"}, "{{Scholar\n|Name=Jane\n}}","{{Scholar\n|Name=Jane\n}}\n{{Person\n|Name=John\n|last name=Doe\n}}"),
-            ("Person", {"Name": "John", "last name": "Doe"}, "==Person=={{Person\n|age=42}}\n==Details==", "==Person=={{Person\n|age=42|Name=John\n|last name=Doe\n}}\n==Details=="),
-            ("Person", {"Name": "John", "last name": None}, "", "\n{{Person\n|Name=John\n}}"),
+            (
+                "Person",
+                {"Name": "John", "last name": "Doe"},
+                "",
+                "\n{{Person\n|Name=John\n|last name=Doe\n}}",
+            ),
+            (
+                "Person",
+                {"Name": "John", "last name": "Doe"},
+                "==Freetext==",
+                "==Freetext==\n{{Person\n|Name=John\n|last name=Doe\n}}",
+            ),
+            (
+                "Person",
+                {"Name": "John", "last name": "Doe"},
+                "{{Person\n|age=42}}",
+                "{{Person\n|age=42|Name=John\n|last name=Doe\n}}",
+            ),
+            (
+                "Person",
+                {"Name": "John", "last name": "Doe"},
+                "{{Person\n|Name=Jane\n}}",
+                "{{Person\n|Name=John\n|last name=Doe\n}}",
+            ),
+            (
+                "Person",
+                {"Name": "John", "last name": "Doe"},
+                "{{Scholar\n|Name=Jane\n}}",
+                "{{Scholar\n|Name=Jane\n}}\n{{Person\n|Name=John\n|last name=Doe\n}}",
+            ),
+            (
+                "Person",
+                {"Name": "John", "last name": "Doe"},
+                "==Person=={{Person\n|age=42}}\n==Details==",
+                "==Person=={{Person\n|age=42|Name=John\n|last name=Doe\n}}\n==Details==",
+            ),
+            (
+                "Person",
+                {"Name": "John", "last name": None},
+                "",
+                "\n{{Person\n|Name=John\n}}",
+            ),
         ]
         for test_param in test_params:
             with self.subTest(test_param=test_param):
@@ -34,9 +69,21 @@ class TestWikiSON(BaseTest):
         """
         test_params = [
             # (entity_type, expected, markup)
-            ("Person", {"Name": "John", "last name": "Doe"}, "==Person=={{Person\n|Name=John\n|last name=Doe\n}}"),
-            ("Scholar", {"Name": "Decker", "orcid id": "0000-0001-6324-7164"}, "{{Scholar\n|Name=Decker\n|orcid id=0000-0001-6324-7164\n}}"),
-            ("Event", {"Title": "Wikidata Workshop 2022", "ordinal": "3"}, "{{Event|Title=Wikidata Workshop 2022|ordinal=3}}"),
+            (
+                "Person",
+                {"Name": "John", "last name": "Doe"},
+                "==Person=={{Person\n|Name=John\n|last name=Doe\n}}",
+            ),
+            (
+                "Scholar",
+                {"Name": "Decker", "orcid id": "0000-0001-6324-7164"},
+                "{{Scholar\n|Name=Decker\n|orcid id=0000-0001-6324-7164\n}}",
+            ),
+            (
+                "Event",
+                {"Title": "Wikidata Workshop 2022", "ordinal": "3"},
+                "{{Event|Title=Wikidata Workshop 2022|ordinal=3}}",
+            ),
             ("Person", None, "{{Scholar\n|Name=John\n|last name=Doe\n}}"),
             ("Person", None, "==Person==\n* Name: Bob"),
         ]

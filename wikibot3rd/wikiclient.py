@@ -1,8 +1,11 @@
-from typing import Optional, Dict, Any
-from mwclient import Site
+from typing import Any, Dict, Optional
 from urllib.parse import urlparse
+
+from mwclient import Site
+
 from wikibot3rd.wiki import Wiki
 from wikibot3rd.wikiuser import WikiUser
+
 
 class WikiClient(Wiki):
     """
@@ -20,7 +23,7 @@ class WikiClient(Wiki):
         super(WikiClient, self).__init__(wiki_user, debug=debug)
         self.wiki_user: WikiUser = wiki_user
         # compatibility
-        self.wikiUser=self.wiki_user
+        self.wikiUser = self.wiki_user
         self.site: Optional[Site] = None
 
     def get_site(self) -> Site:
@@ -158,9 +161,9 @@ class WikiClient(Wiki):
             "siprop": "statistics",
             "format": "json",
         }
-        site=self.get_site()
-        data=site.api(**params)
-        statistics=data["query"]["statistics"]
+        site = self.get_site()
+        data = site.api(**params)
+        statistics = data["query"]["statistics"]
         return statistics
 
     def getSiteStatistics(self) -> Dict[str, Any]:
@@ -168,7 +171,7 @@ class WikiClient(Wiki):
         return self.get_site_statistics()
 
     @staticmethod
-    def get_clients() -> Dict[str, 'WikiClient']:
+    def get_clients() -> Dict[str, "WikiClient"]:
         """
         Get a dictionary of WikiClient instances for all WikiUsers.
 
@@ -182,12 +185,14 @@ class WikiClient(Wiki):
         return clients
 
     @staticmethod
-    def getClients() -> Dict[str, 'WikiClient']:
+    def getClients() -> Dict[str, "WikiClient"]:
         """Deprecated: Use get_clients instead."""
         return WikiClient.get_clients()
 
     @staticmethod
-    def of_wiki_id(wiki_id: str, lenient: bool = True, debug: bool = False) -> 'WikiClient':
+    def of_wiki_id(
+        wiki_id: str, lenient: bool = True, debug: bool = False
+    ) -> "WikiClient":
         """
         Create a WikiClient instance for a specific wiki ID.
 
@@ -204,12 +209,14 @@ class WikiClient(Wiki):
         return wikibot
 
     @staticmethod
-    def ofWikiId(wiki_id: str, lenient: bool = True, debug: bool = False) -> 'WikiClient':
+    def ofWikiId(
+        wiki_id: str, lenient: bool = True, debug: bool = False
+    ) -> "WikiClient":
         """Deprecated: Use of_wiki_id instead."""
         return WikiClient.of_wiki_id(wiki_id, lenient, debug)
 
     @staticmethod
-    def of_wiki_user(wiki_user: WikiUser) -> 'WikiClient':
+    def of_wiki_user(wiki_user: WikiUser) -> "WikiClient":
         """
         Create a WikiClient instance from a WikiUser object.
 
@@ -223,6 +230,6 @@ class WikiClient(Wiki):
         return wikibot
 
     @staticmethod
-    def ofWikiUser(wiki_user: WikiUser) -> 'WikiClient':
+    def ofWikiUser(wiki_user: WikiUser) -> "WikiClient":
         """Deprecated: Use of_wiki_user instead."""
         return WikiClient.of_wiki_user(wiki_user)

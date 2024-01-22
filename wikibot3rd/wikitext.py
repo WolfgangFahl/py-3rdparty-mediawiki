@@ -4,6 +4,7 @@ Created on 2023-02-24
 """
 import typing
 import warnings
+
 import wikitextparser as wtp
 from wikitextparser import Template
 
@@ -62,7 +63,9 @@ class WikiMarkup:
     def parsed_wiki_markup(self, parsed_wiki_markup: wtp.WikiText):
         self._parsed_wiki_markup = parsed_wiki_markup
 
-    def _get_templates_by_name(self, template_name: str, match: dict = typing.Dict[str, str]) -> typing.List[Template]:
+    def _get_templates_by_name(
+        self, template_name: str, match: dict = typing.Dict[str, str]
+    ) -> typing.List[Template]:
         """
         Returns the templates matching the given name and if additional matches are defined the values of the template
         also have to match these
@@ -125,12 +128,13 @@ class WikiMarkup:
         self.wiki_markup = f"{self.wiki_markup}\n{template}"
 
     def update_template(
-            self,
-            template_name: str,
-            args: dict,
-            overwrite: bool = False,
-            update_all: bool = False,
-            match: typing.Optional[typing.Dict[str, str]] = None):
+        self,
+        template_name: str,
+        args: dict,
+        overwrite: bool = False,
+        update_all: bool = False,
+        match: typing.Optional[typing.Dict[str, str]] = None,
+    ):
         """
         Updates the given template the values from the given dict args.
         If force is set to True existing values will be overwritten.
@@ -152,7 +156,8 @@ class WikiMarkup:
             if len(matching_templates) > 1 and not update_all:
                 warnings.warn(
                     "More than one template were matched. Either improve the matching criteria or enable update_all",
-                    UserWarning)
+                    UserWarning,
+                )
                 pass
             else:
                 for template in matching_templates:
@@ -188,9 +193,7 @@ class WikiMarkup:
                     template.set_arg(key, str(value) + postfix, preserve_spacing=False)
 
     def extract_template(
-            self,
-            template_name: str,
-            match: typing.Optional[typing.Dict[str, str]] = None
+        self, template_name: str, match: typing.Optional[typing.Dict[str, str]] = None
     ) -> typing.List[typing.Dict[str, str]]:
         """
         Extracts the template data and returns it as dict
@@ -246,7 +249,9 @@ class WikiSON:
         """
         records = self.wiki_markup.extract_template(entity_type_name)
         if len(records) > 1:
-            raise Exception("More than one WikiSON with the same entity type on one Page")
+            raise Exception(
+                "More than one WikiSON with the same entity type on one Page"
+            )
         if len(records) == 1:
             record = records[0]
         else:

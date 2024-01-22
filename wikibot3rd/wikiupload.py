@@ -1,11 +1,13 @@
-'''
+"""
 Created on 2020-11-12
 
 @author: wf
-'''
+"""
 import sys
-import wikibot3rd.wikipush 
-DEBUG=False
+
+import wikibot3rd.wikipush
+
+DEBUG = False
 
 if __name__ == "__main__":
     if DEBUG:
