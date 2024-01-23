@@ -15,6 +15,19 @@ class TestSSO(BaseTest):
     """
     test single sign on
     """
+    
+    def setUp(self, debug=False, profile=True):
+        BaseTest.setUp(self, debug=debug, profile=profile)
+        if not self.inPublicCI():
+            db_username, db_password = self.get_credentials()
+            self.sso = SSO(
+                "cr.bitplan.com",
+                "crwiki",
+                db_username=db_username,
+                db_password=db_password,
+                debug=debug,
+            )
+            self.wiki_user = self.getWikiUser("cr")
 
     def get_credentials(self):
         credentials_file = os.path.expanduser("~/.mediawiki-japi/cr_credentials.yaml")
@@ -29,23 +42,28 @@ class TestSSO(BaseTest):
         test mediawiki single sign on
         """
         if not self.inPublicCI():
-            debug = self.debug
-            debug = True
-            db_username, db_password = self.get_credentials()
-            sso = SSO(
-                "cr.bitplan.com",
-                "crwiki",
-                db_username=db_username,
-                db_password=db_password,
-                debug=debug,
-            )
-            port_avail = sso.check_port()
+            port_avail = self.sso.check_port()
             if not port_avail:
-                print(f"SQL Port {sso.sql_port} not accessible")
+                print(f"SQL Port {self.sso.sql_port} not accessible")
                 print("You might want to try opening an SSL tunnel to the port with")
-                print(f"ssh -L {sso.sql_port}:{sso.host}:{sso.sql_port} {sso.host}")
-            wiki_user = self.getWikiUser("cr")
-            is_valid = sso.check_credentials(
-                username=wiki_user.user, password=wiki_user.get_password()
+                print(f"ssh -L {self.sso.sql_port}:{self.sso.host}:{self.sso.sql_port} {self.sso.host}")
+            is_valid = self.sso.check_credentials(
+                username=self.wiki_user.user, password=self.wiki_user.get_password()
             )
             self.assertTrue(is_valid)
+            
+    def test_get_user(self):
+        """
+        Test the retrieval of a user's details using the get_user method.
+        """
+        if not self.inPublicCI():
+            user=self.sso.get_user(self.wiki_user.user)
+            yaml_str=user.to_yaml()
+            debug=self.debug
+            #debug=True
+            if debug:
+                print(yaml_str)
+
+            for field in ["id","name","real_name","password","email","touched","editcount"]:
+                self.assertTrue(f"{field}:" in yaml_str)
+          

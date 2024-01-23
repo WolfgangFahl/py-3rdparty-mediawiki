@@ -13,6 +13,32 @@ from typing import Optional
 
 import mysql.connector
 from mysql.connector import pooling
+from dataclasses_json import dataclass_json
+from dataclasses import dataclass
+from lodstorage.yamlable import yamlable
+
+@yamlable
+@dataclass_json
+@dataclass
+class User:
+    """
+    Mediawiki user details
+    """
+    id: int
+    name: str
+    real_name: str
+    password: str  # hashed password
+    email: str
+    touched: str
+    editcount: int
+    
+    def __post_init__(self):
+        # Safely convert binary fields to strings if they are not already
+        if isinstance(self.password, bytes):
+            self.password = self.password.decode('utf-8', errors='replace')
+        if isinstance(self.touched, bytes):
+            self.touched = self.touched.decode('utf-8', errors='replace')
+
 
 
 class SSO:
@@ -148,6 +174,60 @@ class SSO:
             hash_algorithm, password.encode("utf-8"), salt, iterations
         )
         return new_hash == hashed_password
+    
+    def get_user(self, username: str) -> Optional[User]:
+        """
+        Retrieve details of a user by username.
+        Returns a User object if found, otherwise None.
+        """
+        mw_username = username[0].upper() + username[1:]
+        user_record = self.fetch_user_data_from_database(mw_username)
+        if user_record:
+            return User(
+                id=user_record["user_id"],
+                name=user_record["user_name"],
+                real_name=user_record["user_real_name"],
+                password=user_record["user_password"],
+                email=user_record["user_email"],
+                touched=user_record["user_touched"],
+                editcount=user_record["user_editcount"]
+            )
+        return None
+    
+    def fetch_user_data_from_database(self, mw_username: str) -> Optional[dict]:
+        """
+        Fetch user data from the database.
+        
+        Args:
+            mw_username(str): the Mediawiki username 
+        """
+        user_record=None
+        try:
+            connection = (
+                self.pool.get_connection()
+                if self.pool
+                else mysql.connector.connect(
+                    host=self.host,
+                    user=self.db_username,
+                    password=self.db_password,
+                    database=self.database,
+                )
+            )
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT * FROM `user` WHERE user_name = %s", (mw_username,)
+            )
+            user_record = cursor.fetchone()
+            
+            cursor.close()
+        except Exception as ex:
+            if self.debug:
+                print(f"Database error: {ex}")
+                traceback.print_exc()
+        finally:
+            if connection and connection.is_connected():
+                connection.close()
+        return user_record
 
     def check_credentials(self, username: str, password: str) -> bool:
         """
@@ -161,38 +241,12 @@ class SSO:
             bool: True if the credentials are valid, False otherwise.
         """
         is_valid = False
-        try:
-            connection = (
-                self.pool.get_connection()
-                if self.pool
-                else mysql.connector.connect(
-                    host=self.host,
-                    user=self.db_username,
-                    password=self.db_password,
-                    database=self.database,
-                )
+        user=self.get_user(username)
+        if user:
+            stored_hash = user.password
+            is_valid = self.verify_password(password, stored_hash.decode("utf-8"))
+        elif self.debug:
+            print(
+                f"Username {username} not found in {self.database} on {self.host}"
             )
-            mw_username = username[0].upper() + username[1:]
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute(
-                "SELECT user_password FROM `user` WHERE user_name = %s", (mw_username,)
-            )
-            result = cursor.fetchone()
-
-            if result:
-                stored_hash = result["user_password"]
-                is_valid = self.verify_password(password, stored_hash.decode("utf-8"))
-            elif self.debug:
-                print(
-                    f"Username {mw_username} not found in {self.database} on {self.host}"
-                )
-
-            cursor.close()
-        except Exception as ex:
-            if self.debug:
-                print(f"Database error: {ex}")
-                traceback.print_exc()
-        finally:
-            if connection and connection.is_connected():
-                connection.close()
         return is_valid
