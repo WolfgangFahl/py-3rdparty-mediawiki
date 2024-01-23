@@ -244,7 +244,7 @@ class SSO:
         user=self.get_user(username)
         if user:
             stored_hash = user.password
-            is_valid = self.verify_password(password, stored_hash.decode("utf-8"))
+            is_valid = self.verify_password(password, stored_hash)
         elif self.debug:
             print(
                 f"Username {username} not found in {self.database} on {self.host}"
