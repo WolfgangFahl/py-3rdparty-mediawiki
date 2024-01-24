@@ -30,6 +30,9 @@ class TestSSO(BaseTest):
             self.wiki_user = self.getWikiUser("cr")
 
     def get_credentials(self):
+        """
+        get the mediawiki credentials of user
+        """
         credentials_file = os.path.expanduser("~/.mediawiki-japi/cr_credentials.yaml")
         with open(credentials_file, "r") as file:
             credentials = yaml.safe_load(file)
@@ -64,6 +67,6 @@ class TestSSO(BaseTest):
             if debug:
                 print(yaml_str)
 
-            for field in ["id","name","real_name","password","email","touched","editcount"]:
+            for field in ["id","name","real_name","password","email","touched","editcount","is_admin"]:
                 self.assertTrue(f"{field}:" in yaml_str)
           

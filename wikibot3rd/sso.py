@@ -9,7 +9,7 @@ import base64
 import hashlib
 import socket
 import traceback
-from typing import Optional
+from typing import Dict,Optional
 
 import mysql.connector
 from mysql.connector import pooling
@@ -31,6 +31,7 @@ class User:
     email: str
     touched: str
     editcount: int
+    is_admin: Optional[bool]=False
     
     def __post_init__(self):
         # Safely convert binary fields to strings if they are not already
@@ -190,9 +191,17 @@ class SSO:
                 password=user_record["user_password"],
                 email=user_record["user_email"],
                 touched=user_record["user_touched"],
-                editcount=user_record["user_editcount"]
+                editcount=user_record["user_editcount"],
+                is_admin = user_record['is_sysop'] > 0
             )
         return None
+    
+    def query(self,connection,sql_query,params)->Dict:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(sql_query,params)
+        record = cursor.fetchone()
+        cursor.close()
+        return record
     
     def fetch_user_data_from_database(self, mw_username: str) -> Optional[dict]:
         """
@@ -213,13 +222,16 @@ class SSO:
                     database=self.database,
                 )
             )
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute(
-                "SELECT * FROM `user` WHERE user_name = %s", (mw_username,)
-            )
-            user_record = cursor.fetchone()
-            
-            cursor.close()
+            # JOIN query: Fetch user data and sysop status
+            sql_query = """
+            SELECT u.*, 
+                   COUNT(ug.ug_group) AS is_sysop
+            FROM `user` u
+            LEFT JOIN `user_groups` ug ON u.user_id = ug.ug_user AND ug.ug_group = 'sysop'
+            WHERE u.user_name = %s
+            GROUP BY u.user_id
+            """
+            user_record = self.query(connection, sql_query, (mw_username,))            
         except Exception as ex:
             if self.debug:
                 print(f"Database error: {ex}")
