@@ -13,13 +13,10 @@ from typing import Dict,Optional
 
 import mysql.connector
 from mysql.connector import pooling
-from dataclasses_json import dataclass_json
-from dataclasses import dataclass
-from lodstorage.yamlable import yamlable
 
-@yamlable
-@dataclass_json
-@dataclass
+from lodstorage.yamlable import lod_storable
+
+@lod_storable
 class User:
     """
     Mediawiki user details
