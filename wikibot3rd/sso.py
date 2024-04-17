@@ -9,18 +9,19 @@ import base64
 import hashlib
 import socket
 import traceback
-from typing import Dict,Optional
+from typing import Dict, Optional
 
 import mysql.connector
+from lodstorage.yamlable import lod_storable
 from mysql.connector import pooling
 
-from lodstorage.yamlable import lod_storable
 
 @lod_storable
 class User:
     """
     Mediawiki user details
     """
+
     id: int
     name: str
     real_name: str
@@ -28,15 +29,14 @@ class User:
     email: str
     touched: str
     editcount: int
-    is_admin: Optional[bool]=False
-    
+    is_admin: Optional[bool] = False
+
     def __post_init__(self):
         # Safely convert binary fields to strings if they are not already
         if isinstance(self.password, bytes):
-            self.password = self.password.decode('utf-8', errors='replace')
+            self.password = self.password.decode("utf-8", errors="replace")
         if isinstance(self.touched, bytes):
-            self.touched = self.touched.decode('utf-8', errors='replace')
-
+            self.touched = self.touched.decode("utf-8", errors="replace")
 
 
 class SSO:
@@ -172,7 +172,7 @@ class SSO:
             hash_algorithm, password.encode("utf-8"), salt, iterations
         )
         return new_hash == hashed_password
-    
+
     def get_user(self, username: str) -> Optional[User]:
         """
         Retrieve details of a user by username.
@@ -189,25 +189,25 @@ class SSO:
                 email=user_record["user_email"],
                 touched=user_record["user_touched"],
                 editcount=user_record["user_editcount"],
-                is_admin = user_record['is_sysop'] > 0
+                is_admin=user_record["is_sysop"] > 0,
             )
         return None
-    
-    def query(self,connection,sql_query,params)->Dict:
+
+    def query(self, connection, sql_query, params) -> Dict:
         cursor = connection.cursor(dictionary=True)
-        cursor.execute(sql_query,params)
+        cursor.execute(sql_query, params)
         record = cursor.fetchone()
         cursor.close()
         return record
-    
+
     def fetch_user_data_from_database(self, mw_username: str) -> Optional[dict]:
         """
         Fetch user data from the database.
-        
+
         Args:
-            mw_username(str): the Mediawiki username 
+            mw_username(str): the Mediawiki username
         """
-        user_record=None
+        user_record = None
         try:
             connection = (
                 self.pool.get_connection()
@@ -228,7 +228,7 @@ class SSO:
             WHERE u.user_name = %s
             GROUP BY u.user_id
             """
-            user_record = self.query(connection, sql_query, (mw_username,))            
+            user_record = self.query(connection, sql_query, (mw_username,))
         except Exception as ex:
             if self.debug:
                 print(f"Database error: {ex}")
@@ -250,12 +250,10 @@ class SSO:
             bool: True if the credentials are valid, False otherwise.
         """
         is_valid = False
-        user=self.get_user(username)
+        user = self.get_user(username)
         if user:
             stored_hash = user.password
             is_valid = self.verify_password(password, stored_hash)
         elif self.debug:
-            print(
-                f"Username {username} not found in {self.database} on {self.host}"
-            )
+            print(f"Username {username} not found in {self.database} on {self.host}")
         return is_valid

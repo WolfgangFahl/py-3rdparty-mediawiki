@@ -14,7 +14,7 @@ class Version(object):
     name = "py-3rdparty-mediawiki"
     version = wikibot3rd.__version__
     date = "2020-10-31"
-    updated = "2024-01-28"
+    updated = "2024-04-17"
 
     authors = "Wolfgang Fahl, Tim Holzheim"
 
@@ -24,7 +24,7 @@ class Version(object):
     chat_url = "https://github.com/WolfgangFahl/py-3rdparty-mediawiki/discussions"
     doc_url = "https://wiki.bitplan.com/index.php/Py-3rdparty-mediawiki"
 
-    license = f"""Copyright 2020-2023 contributors. All rights reserved.
+    license = f"""Copyright 2020-2024 contributors. All rights reserved.
   Licensed under the Apache License 2.0
   http://www.apache.org/licenses/LICENSE-2.0
   Distributed on an "AS IS" basis without warranties

@@ -15,7 +15,7 @@ class TestSSO(BaseTest):
     """
     test single sign on
     """
-    
+
     def setUp(self, debug=False, profile=True):
         BaseTest.setUp(self, debug=debug, profile=profile)
         if not self.inPublicCI():
@@ -49,24 +49,34 @@ class TestSSO(BaseTest):
             if not port_avail:
                 print(f"SQL Port {self.sso.sql_port} not accessible")
                 print("You might want to try opening an SSL tunnel to the port with")
-                print(f"ssh -L {self.sso.sql_port}:{self.sso.host}:{self.sso.sql_port} {self.sso.host}")
+                print(
+                    f"ssh -L {self.sso.sql_port}:{self.sso.host}:{self.sso.sql_port} {self.sso.host}"
+                )
             is_valid = self.sso.check_credentials(
                 username=self.wiki_user.user, password=self.wiki_user.get_password()
             )
             self.assertTrue(is_valid)
-            
+
     def test_get_user(self):
         """
         Test the retrieval of a user's details using the get_user method.
         """
         if not self.inPublicCI():
-            user=self.sso.get_user(self.wiki_user.user)
-            yaml_str=user.to_yaml()
-            debug=self.debug
-            #debug=True
+            user = self.sso.get_user(self.wiki_user.user)
+            yaml_str = user.to_yaml()
+            debug = self.debug
+            # debug=True
             if debug:
                 print(yaml_str)
 
-            for field in ["id","name","real_name","password","email","touched","editcount","is_admin"]:
+            for field in [
+                "id",
+                "name",
+                "real_name",
+                "password",
+                "email",
+                "touched",
+                "editcount",
+                "is_admin",
+            ]:
                 self.assertTrue(f"{field}:" in yaml_str)
-          
