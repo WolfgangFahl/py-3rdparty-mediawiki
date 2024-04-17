@@ -243,8 +243,7 @@ class WikiPush(object):
                     pageToBeDeleted.delete("deleted by wiknuke")
                     self.log("✅")
             except Exception as ex:
-                msg = str(ex)
-                self.log("❌:%s" % msg)
+                self.show_exception(ex)
 
     @staticmethod
     def getDiff(text: str, newText: str, n: int = 1, forHuman: bool = True) -> str:
@@ -353,8 +352,7 @@ class WikiPush(object):
                     else:
                         self.log("↔")
             except Exception as ex:
-                msg = str(ex)
-                self.log(f"❌:{msg}")
+                self.show_exception(ex)
 
     def edit_wikison(
         self,
@@ -403,8 +401,7 @@ class WikiPush(object):
                     else:
                         self.log("↔")
             except Exception as ex:
-                msg = str(ex)
-                self.log(f"❌:{msg}")
+                self.show_exception(ex)
 
     def upload(self, files, force=False):
         """
@@ -427,7 +424,7 @@ class WikiPush(object):
                 self.uploadImage(file, filename, description, force)
                 self.log("✅")
             except Exception as ex:
-                self.log("❌:%s" % str(ex))
+                self.show_exception(ex)     
 
     def backup(self, pageTitles, backupPath=None, git=False, withImages=False):
         """
@@ -463,7 +460,7 @@ class WikiPush(object):
                     self.backupImages(page.images(), imageBackupPath)
 
             except Exception as ex:
-                self.log("❌:%s" % str(ex))
+                self.show_exception(ex)
         if git:
             gitPath = "%s/.git" % backupPath
             if not os.path.isdir(gitPath):
@@ -546,7 +543,7 @@ class WikiPush(object):
                     self.log("❌")
                     failed.append(pageTitle)
             except Exception as ex:
-                self.log(f"❌:{str(ex)}")
+                self.show_exception(ex)
                 failed.append(pageTitle)
         return failed
 
@@ -627,6 +624,17 @@ class WikiPush(object):
                     print(image.imageinfo)
             except Exception as ex:
                 self.handleException(ex, ignore)
+                
+    def show_exception(self, ex: Exception):
+        """
+        Show the given exception and, if debug mode is on, show the traceback.
+        """
+        msg = f"❌: {str(ex)}"
+        if self.debug:
+            # Append the formatted traceback to the message
+            msg += "\n" + traceback.format_exc()
+        
+        self.log(msg)
 
     def handleException(self, ex, ignoreExists=False):
         """
@@ -783,8 +791,7 @@ class WikiPush(object):
                     )
                 self.log("✅")
             except Exception as ex:
-                self.log("❌:%s" % str(ex))
-
+                self.show_exception(ex)
 
 __version__ = Version.version
 __date__ = Version.date
