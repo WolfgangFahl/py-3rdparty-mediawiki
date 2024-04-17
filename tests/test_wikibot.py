@@ -16,7 +16,7 @@ class TestWikiBot(BaseTest):
     Unit test for WikiBot
     """
 
-    def testCrypt(self):
+    def test_encryption(self):
         """test encryption/decryption"""
         expected = "01234567890unsecure"
         cypher = "koyYMmY93wJS_aqpp_PmyxZJKPH5FhSG"
@@ -25,9 +25,9 @@ class TestWikiBot(BaseTest):
         c = Crypt(cypher, 20, salt)
         secret1 = c.encrypt(expected)
         # print(secret1)
-        self.assertEquals(secret, secret1)
+        self.assertEqual(secret, secret1)
         pw = c.decrypt(secret)
-        self.assertEquals(expected, pw)
+        self.assertEqual(expected, pw)
 
     def testRandomCrypt(self):
         """
