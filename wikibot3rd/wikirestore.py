@@ -1,5 +1,5 @@
 """
-Created on 2024-04-18
+Created on 2021-02-16
 
 @author: wf
 """
@@ -12,4 +12,4 @@ DEBUG = False
 if __name__ == "__main__":
     if DEBUG:
         sys.argv.append("-d")
-    sys.exit(wikibot3rd.wikipush.mainQuery())
+    sys.exit(wikibot3rd.wikipush.mainRestore())
