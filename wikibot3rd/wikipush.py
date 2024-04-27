@@ -705,7 +705,15 @@ class WikiPush(object):
             image(image): the image to download
             downloadPath(str): the path to download to if None getDownloadPath will be used
         """
-        filename = image.name.replace("File:", "")
+        original_filename = image.name
+        prefixes = ["File", "Datei", "Fichier", "Archivo", "Файл", "文件", "ファイル"]
+        for prefix in prefixes:
+            if original_filename.startswith(f"{prefix}:"):
+                filename = original_filename.replace(f"{prefix}:", "")
+                break
+        else:
+            filename = original_filename  # Fallback in case no prefix matches
+
         if downloadPath is None:
             downloadPath = self.getDownloadPath()
         imagePath = "%s/%s" % (downloadPath, filename)
