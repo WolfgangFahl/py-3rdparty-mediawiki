@@ -621,6 +621,7 @@ class WikiPush(object):
                 except Exception as ex:
                     self.handleAPIWarnings(ex.args[0], ignoreExists=ignore)
                 if self.debug:
+                    self.show_exception(ex)
                     print(image.imageinfo)
             except Exception as ex:
                 self.handleException(ex, ignore)
