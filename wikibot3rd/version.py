@@ -3,6 +3,7 @@ Created on 2022-03-24
 
 @author: wf
 """
+
 import wikibot3rd
 
 

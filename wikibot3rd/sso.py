@@ -5,6 +5,7 @@ Created on 2024-01-22
 
 with ChatGPT-4 prompting
 """
+
 import base64
 import hashlib
 import socket

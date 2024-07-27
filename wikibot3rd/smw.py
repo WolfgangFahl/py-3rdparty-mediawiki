@@ -3,6 +3,7 @@ Created on 2020-05-29
 
 @author: wf
 """
+
 import re
 import sys
 from datetime import datetime
@@ -501,10 +502,8 @@ class SMWClient(SMW):
         Raises:
             QueryResultSizeExceedException: Raised if not all results can be retrieved
         """
-        endShowProgress = (
-            lambda showProgress, c: print("\n" if not c % 80 == 0 else "")
-            if showProgress
-            else None
+        endShowProgress = lambda showProgress, c: (
+            print("\n" if not c % 80 == 0 else "") if showProgress else None
         )
         offset = 0
         done = False

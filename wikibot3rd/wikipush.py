@@ -4,6 +4,7 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 """
+
 import datetime
 
 # from difflib import Differ
@@ -424,7 +425,7 @@ class WikiPush(object):
                 self.uploadImage(file, filename, description, force)
                 self.log("✅")
             except Exception as ex:
-                self.show_exception(ex)     
+                self.show_exception(ex)
 
     def backup(self, pageTitles, backupPath=None, git=False, withImages=False):
         """
@@ -626,7 +627,7 @@ class WikiPush(object):
                     print(image.imageinfo)
             except Exception as ex:
                 self.handleException(ex, ignore)
-                
+
     def show_exception(self, ex: Exception):
         """
         Show the given exception and, if debug mode is on, show the traceback.
@@ -635,7 +636,7 @@ class WikiPush(object):
         if self.debug:
             # Append the formatted traceback to the message
             msg += "\n" + traceback.format_exc()
-        
+
         self.log(msg)
 
     def handleException(self, ex, ignoreExists=False):
@@ -802,6 +803,7 @@ class WikiPush(object):
                 self.log("✅")
             except Exception as ex:
                 self.show_exception(ex)
+
 
 __version__ = Version.version
 __date__ = Version.date

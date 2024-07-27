@@ -3,6 +3,7 @@ Created on 2021-01-23
 
 @author: wf
 """
+
 import unittest
 
 from lodstorage.query import Query

@@ -3,6 +3,7 @@ Created on 2020-11-02
 
 @author: wf
 """
+
 from tests.basetest import BaseTest
 from wikibot3rd.wikiclient import WikiClient
 

@@ -3,6 +3,7 @@ Created on 2024-04-18
 
 @author: wf
 """
+
 import sys
 
 import wikibot3rd.wikipush

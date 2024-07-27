@@ -3,6 +3,7 @@ Created on 2020-05-25
 
 @author: wf
 """
+
 import unittest
 from datetime import datetime
 from unittest.mock import patch
@@ -432,11 +433,12 @@ class TestSMW(BaseTest):
                 if query == expectedQuery:
                     return [RESULT_N(i)]
 
-        with patch(
-            "wikibot3rd.smw.SMWClient.askForAllResults"
-        ) as askForAllResults_mock, patch(
-            "wikibot3rd.smw.SMWClient.getBoundariesOfQuery"
-        ) as getBoundariesOfQuery:
+        with (
+            patch("wikibot3rd.smw.SMWClient.askForAllResults") as askForAllResults_mock,
+            patch(
+                "wikibot3rd.smw.SMWClient.getBoundariesOfQuery"
+            ) as getBoundariesOfQuery,
+        ):
             getBoundariesOfQuery.return_value = (
                 datetime.strptime("01/01/2020 00:00:00", "%d/%m/%Y %H:%M:%S"),
                 datetime.strptime("11/01/2020 00:00:00", "%d/%m/%Y %H:%M:%S"),
@@ -528,11 +530,14 @@ class TestSMW(BaseTest):
         for smw in self.getSMWs():
             if isinstance(smw, SMWClient):
                 # Test default case
-                with patch(
-                    "wikibot3rd.smw.SMWClient.askForAllResults"
-                ) as askForAllResults_mock, patch(
-                    "wikibot3rd.smw.SMWClient.askPartitionQuery"
-                ) as askPartitionQuery_mock:
+                with (
+                    patch(
+                        "wikibot3rd.smw.SMWClient.askForAllResults"
+                    ) as askForAllResults_mock,
+                    patch(
+                        "wikibot3rd.smw.SMWClient.askPartitionQuery"
+                    ) as askPartitionQuery_mock,
+                ):
                     askForAllResults_mock.return_value = [RESULT]
                     askPartitionQuery_mock.return_value = None
                     result = smw.ask(QUERY)
@@ -541,11 +546,14 @@ class TestSMW(BaseTest):
                     self.assertEqual(askPartitionQuery_mock.call_count, 0)
                 # Test if query division is used if 'queryDivision' attribute is set above 1
                 smw.queryDivision = 10
-                with patch(
-                    "wikibot3rd.smw.SMWClient.askForAllResults"
-                ) as askForAllResults_mock, patch(
-                    "wikibot3rd.smw.SMWClient.askPartitionQuery"
-                ) as askPartitionQuery_mock:
+                with (
+                    patch(
+                        "wikibot3rd.smw.SMWClient.askForAllResults"
+                    ) as askForAllResults_mock,
+                    patch(
+                        "wikibot3rd.smw.SMWClient.askPartitionQuery"
+                    ) as askPartitionQuery_mock,
+                ):
                     askForAllResults_mock.return_value = None
                     askPartitionQuery_mock.return_value = [RESULT]
                     result = smw.ask(QUERY)
