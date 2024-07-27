@@ -6,7 +6,7 @@ Created on 2020-05-29
 
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import unquote
 
 import pywikibot
@@ -19,11 +19,11 @@ class PrintRequest(object):
     see https://www.semantic-mediawiki.org/wiki/Serialization_(JSON)
     :ivar smw: SMW context for this printrequest
     :ivar label: the label of the printrequest
-    :ivar key: 
-    :ivar redi: 
-    :ivar typeid: 
-    :ivar mode:  
-    :ivar format: 
+    :ivar key:
+    :ivar redi:
+    :ivar typeid:
+    :ivar mode:
+    :ivar format:
     """
 
     def __init__(self, smw, record):
@@ -74,7 +74,7 @@ class PrintRequest(object):
             if "timestamp" in value:
                 ts = int(value["timestamp"])
                 try:
-                    value = datetime.utcfromtimestamp(ts)
+                    value = datetime.fromtimestamp(ts, tz=timezone.utc)
                     #  print (date.strftime('%Y-%m-%d %H:%M:%S'))
                 except ValueError as ve:
                     if self.debug:
