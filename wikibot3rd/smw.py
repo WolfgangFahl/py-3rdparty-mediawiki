@@ -74,7 +74,10 @@ class PrintRequest(object):
             if "timestamp" in value:
                 ts = int(value["timestamp"])
                 try:
+                    # timezone aware
                     value = datetime.fromtimestamp(ts, tz=timezone.utc)
+                    # naive - for compatibility
+                    value = value.replace(tzinfo=None)
                     #  print (date.strftime('%Y-%m-%d %H:%M:%S'))
                 except ValueError as ve:
                     if self.debug:
