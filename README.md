@@ -4,8 +4,9 @@
 [![Github Actions Build](https://github.com/WolfgangFahl/py-3rdparty-mediawiki/actions/workflows/build.yml/badge.svg)](https://github.com/WolfgangFahl/py-3rdparty-mediawiki/actions/workflows/build.yml)
 [![GitHub issues](https://img.shields.io/github/issues/WolfgangFahl/py-3rdparty-mediawiki.svg)](https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues)
 [![GitHub closed issues](https://img.shields.io/github/issues-closed/WolfgangFahl/py-3rdparty-mediawiki.svg)](https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/?q=is%3Aissue+is%3Aclosed)
-[![GitHub](https://img.shields.io/github/license/WolfgangFahl/py-3rdparty-mediawiki.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![PyPI Status](https://img.shields.io/pypi/v/py-3rdparty-mediawiki.svg)](https://pypi.python.org/pypi/py-3rdparty-mediawiki/)
+[![API Docs](https://img.shields.io/badge/API-Documentation-blue)](https://WolfgangFahl.github.io/py-3rdparty-mediawiki/)
+[![License](https://img.shields.io/github/license/WolfgangFahl/py-3rdparty-mediawiki.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![BITPlan](http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/198px-BITPlanLogoFontLessTransparent.png)](http://www.bitplan.com)
 
 ## Links

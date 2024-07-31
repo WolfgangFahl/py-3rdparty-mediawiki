@@ -69,9 +69,11 @@ test = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = [
-  "wikibot3rd",
-]
+only-include = ["wikibot3rd"]
+
+[tool.hatch.build.targets.wheel.sources]
+"wikibot3rd" = "wikibot3rd"
+
 
 [project.scripts]
 wikibackup = "wikibot3rd.wikipush:mainBackup"

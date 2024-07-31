@@ -1,7 +1,8 @@
 #!/bin/bash
 # WF 2020-03-26
 # create a release see https://packaging.python.org/tutorials/packaging-projects/
-rm -rf dist
-scripts/doc
-python3 setup.py sdist bdist_wheel
-python3 -m twine upload -u __token__ --repository-url https://upload.pypi.org/legacy/ dist/*
+scripts/doc -d
+
+# Commit with a message that includes the current ISO timestamp
+git commit -a -m "release commit"
+git push
