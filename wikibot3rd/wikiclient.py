@@ -25,6 +25,7 @@ class WikiClient(Wiki):
         # compatibility
         self.wikiUser = self.wiki_user
         self.site: Optional[Site] = None
+        self._is_logged_in: bool = False
 
     def get_site(self) -> Site:
         """
@@ -71,8 +72,10 @@ class WikiClient(Wiki):
         wu = self.wiki_user
         try:
             self.get_site().login(username=wu.user, password=wu.get_password())
+            self._is_logged_in = True
             return None
         except Exception as ex:
+            self._is_logged_in = False
             return ex
 
     def login(self) -> bool:
