@@ -173,7 +173,7 @@ class WikiUser(object):
         iniFile.close()
 
     @staticmethod
-    def readPropertyFile(filepath, sep="=", comment_char="#") -> Dict[str]:
+    def readPropertyFile(filepath, sep="=", comment_char="#") -> Dict[str,str]:
         """
         Read the file passed as parameter as a properties file.
         https://stackoverflow.com/a/31852401/1497139
