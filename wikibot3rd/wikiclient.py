@@ -82,10 +82,10 @@ class WikiClient(Wiki):
         Returns:
             True if login is successful, False otherwise.
         """
-        ex=self.try_login()
+        ex = self.try_login()
         if ex and self.debug:
             print(f"Login failed: {ex}")
-        success=ex is None
+        success = ex is None
         return success
 
     def get_wiki_markup(self, page_title: str) -> str:

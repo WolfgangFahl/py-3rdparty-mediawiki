@@ -13,6 +13,7 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from os import makedirs
 from os.path import isdir
 from pathlib import Path
+from typing import Dict
 
 from wikibot3rd.crypt import Crypt
 from wikibot3rd.version import Version
@@ -35,7 +36,7 @@ class WikiUser(object):
         password = self.getPassword()
         return password
 
-    def getPassword(self):
+    def getPassword(self) -> str:
         """
         get my decrypted password
 
@@ -66,9 +67,9 @@ class WikiUser(object):
         save me
 
         Args:
-            yes(bool): if True save without asking
-            interactive(bool): if True get interactive input
-            filePath(str): the path where to save the credentials ini file
+            yes (bool): if True save without asking
+            interactive (bool): if True get interactive input
+            filePath (str): the path where to save the credentials ini file
         """
         fields = WikiUser.getFields(encrypted=False)
         text = ""
@@ -100,7 +101,7 @@ class WikiUser(object):
         encrypt my clear text password
 
         Args:
-            remove(bool): if True remove the original password
+            remove (bool): if True remove the original password
         """
         crypt = Crypt.getRandomCrypt()
         self.secret = crypt.encrypt(self.password)
@@ -127,13 +128,13 @@ class WikiUser(object):
         return iniFilePath
 
     @staticmethod
-    def ofWikiId(wikiId: str, lenient=False):
+    def ofWikiId(wikiId: str, lenient=False) -> "WikiUser":
         """
         create a wikiUser for the given wikiId
 
         Args:
-            wikiId(str): the wikiId of the user to be created
-            lenient(bool): if True ignore parsing errors in the ini file
+            wikiId (str): the wikiId of the user to be created
+            lenient (bool): if True ignore parsing errors in the ini file
 
         Returns:
             WikiUser: the wikiUser for this wikiId
@@ -172,7 +173,7 @@ class WikiUser(object):
         iniFile.close()
 
     @staticmethod
-    def readPropertyFile(filepath, sep="=", comment_char="#"):
+    def readPropertyFile(filepath, sep="=", comment_char="#") -> Dict[str]:
         """
         Read the file passed as parameter as a properties file.
         https://stackoverflow.com/a/31852401/1497139
@@ -259,7 +260,7 @@ def main(argv=None):  # IGNORE:C0111
     program_license = """%s
 
   Created by %s on %s.
-  Copyright 2020-2023 Wolfgang Fahl. All rights reserved.
+  Copyright 2020-2024 Wolfgang Fahl. All rights reserved.
 
   Licensed under the Apache License 2.0
   http://www.apache.org/licenses/LICENSE-2.0
