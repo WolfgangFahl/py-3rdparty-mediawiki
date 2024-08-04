@@ -61,6 +61,20 @@ class WikiClient(Wiki):
         """Deprecated: Use needs_login instead."""
         return self.needs_login()
 
+    def try_login(self) -> Exception:
+        """
+        Attempt to log in to the MediaWiki site.
+
+        Returns:
+            Exception: None if login is successful, Exception otherwise.
+        """
+        wu = self.wiki_user
+        try:
+            self.get_site().login(username=wu.user, password=wu.get_password())
+            return None
+        except Exception as ex:
+            return ex
+
     def login(self) -> bool:
         """
         Attempt to log in to the MediaWiki site.
@@ -68,14 +82,11 @@ class WikiClient(Wiki):
         Returns:
             True if login is successful, False otherwise.
         """
-        wu = self.wiki_user
-        try:
-            self.get_site().login(username=wu.user, password=wu.get_password())
-            return True
-        except Exception as ex:
-            if self.debug:
-                print(f"Login failed: {ex}")
-            return False
+        ex=self.try_login()
+        if ex and self.debug:
+            print(f"Login failed: {ex}")
+        success=ex is None
+        return success
 
     def get_wiki_markup(self, page_title: str) -> str:
         """
