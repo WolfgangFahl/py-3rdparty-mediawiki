@@ -15,6 +15,7 @@ import re
 import sys
 import traceback
 import typing
+from typing import Dict
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from pathlib import Path
 
@@ -73,6 +74,18 @@ class WikiPush(object):
             if not self.toWiki.login():
                 msg = f"can't login to target Wiki {toWikiId}"
                 raise Exception(msg)
+
+    def is_smw_enabled(self, wiki=None):
+        """
+        Check if the wiki has Semantic MediaWiki enabled
+        """
+        if wiki is None:
+            wiki = self.fromWiki
+        try:
+            result = wiki.site.api('smwinfo')
+            return 'info' in result and 'smwversion' in result['info']
+        except:
+            return False
 
     def log(self, msg: str, end="\n"):
         """
@@ -159,29 +172,44 @@ class WikiPush(object):
         return res
 
     def queryPages(
-        self, askQuery, wiki=None, limit=None, showProgress=False, queryDivision=1
+        self, askQuery:str, wiki=None, limit=None, showProgress=False, queryDivision=1
     ) -> dict:
         """
         query the given wiki for pagerecords matching the given askQuery
 
         Args:
-            askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
-            wiki(wikibot3rd): the wiki to query - use fromWiki if not specified
-            limit(int): the limit for the query (optional)
-            showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
-            queryDivision(int): Defines the number of subintervals the query is divided into (must be greater equal 1)
+            askQuery (str): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
+            wiki (wikibot3rd): the wiki to query - use fromWiki if not specified
+            limit (int): the limit for the query (optional)
+            showProgress (bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
+            queryDivision (int): Defines the number of subintervals the query is divided into (must be greater equal 1)
         Returns:
             list: a list of pageRecords matching the given askQuery
         """
         if wiki is None:
             wiki = self.fromWiki
-        smwClient = SMWClient(
-            wiki.getSite(),
-            showProgress=showProgress,
-            queryDivision=queryDivision,
-            debug=self.debug,
-        )
-        pageRecords = smwClient.query(askQuery, limit=limit)
+
+        if self.is_smw_enabled(wiki):
+            smwClient = SMWClient(
+                wiki.getSite(),
+                showProgress=showProgress,
+                queryDivision=queryDivision,
+                debug=self.debug,
+            )
+            pageRecords = smwClient.query(askQuery, limit=limit)
+        else:
+            pageRecords = self.query_via_mw_api(askQuery,wiki, limit=limit)
+        return pageRecords
+
+    def query_via_mw_api(self,askQuery:str,wiki,limit:int=None)->Dict:
+        # Handle non-SMW wiki (assuming category query)
+        category = askQuery.strip('[]').split(':')[1]
+        site = wiki.getSite()
+        pageRecords = {}
+        for page in site.categories[category]:
+            if limit and len(pageRecords) >= limit:
+                break
+            pageRecords[page.name] = {'pageTitle': page.name}
         return pageRecords
 
     def query(

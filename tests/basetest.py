@@ -88,9 +88,9 @@ class BaseTest(TestCase):
         wikiUser = self.getSMW_WikiUser(wikiId=wikiId, save=self.inPublicCI())
         return wikiUser
 
-    def getSMW_WikiUser(self, wikiId="or", save=False) -> WikiUser:
+    def get_wiki_user(self, wikiId="or", save=False) -> WikiUser:
         """
-        get semantic media wiki users for SemanticMediawiki.org and openresearch.org
+        get wiki users for given wikiId
         """
         iniFile = WikiUser.iniFilePath(wikiId)
         wikiUser = None
@@ -111,6 +111,14 @@ class BaseTest(TestCase):
                     "url": "http://cr.bitplan.com",
                     "scriptPath": "",
                     "version": "MediaWiki 1.35.5",
+                }
+            if wikiId == "genealogy":
+                wikiDict = {
+                    "wikiId": wikiId,
+                    "email": "noreply@nouser.com",
+                    "url": "https://wiki.genealogy.net",
+                    "scriptPath": "/",
+                    "version": "MediaWiki 1.35.11",
                 }
             if wikiId in ["orclone", "orcopy"]:
                 wikiDict = {
@@ -137,3 +145,7 @@ class BaseTest(TestCase):
         else:
             wikiUser = WikiUser.ofWikiId(wikiId, lenient=True)
         return wikiUser
+
+    def getSMW_WikiUser(self, wikiId="or", save=False) -> WikiUser:
+        wiki_user=self.get_wiki_user(wikiId, save)
+        return wiki_user
