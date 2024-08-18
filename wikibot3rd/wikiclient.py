@@ -12,7 +12,7 @@ class WikiClient(Wiki):
     Access MediaWiki via mwclient library.
     """
 
-    def __init__(self, wiki_user: WikiUser, debug: bool = False):
+    def __init__(self, wiki_user: WikiUser, debug: bool = False,smw_enabled:bool=True):
         """
         Initialize the WikiClient with a WikiUser and an optional debug mode.
 
@@ -20,7 +20,7 @@ class WikiClient(Wiki):
             wiki_user: A WikiUser instance containing login credentials.
             debug: A flag to enable debug mode.
         """
-        super(WikiClient, self).__init__(wiki_user, debug=debug)
+        super(WikiClient, self).__init__(wiki_user, debug=debug,smw_enabled=smw_enabled)
         self.wiki_user: WikiUser = wiki_user
         # compatibility
         self.wikiUser = self.wiki_user

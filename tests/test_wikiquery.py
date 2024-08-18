@@ -94,7 +94,9 @@ class TestWikiQuery(BaseTest):
         with redirect_stdout(mystdout):
             mainQuery(argv)
         res = mystdout.getvalue()
-        if self.debug:
+        debug=self.debug
+        #debug=True
+        if debug:
             print(res)
         self.assertTrue("data" in json.loads(res).keys())
         return

@@ -15,7 +15,7 @@ class TestNonSMW(BaseTest):
     Add basic support for non SMW wikis
     """
 
-    def setUp(self, debug=True, profile=True):
+    def setUp(self, debug=False, profile=True):
         BaseTest.setUp(self, debug=debug, profile=profile)
         self.wiki_id = "genealogy"
         self.category = "Kategorie:Adressbuch_in_der_Online-Erfassung/fertig"
@@ -25,6 +25,7 @@ class TestNonSMW(BaseTest):
 
         # Setup WikiClient
         self.wiki_client = WikiClient.ofWikiUser(self.wiki_user)
+        self.wiki_client.is_smw_enabled=False
 
     def test_category_query(self):
         """
@@ -35,7 +36,7 @@ class TestNonSMW(BaseTest):
         wikipush.fromWiki = self.wiki_client
 
         # Check if the wiki is correctly identified as non-SMW
-        self.assertFalse(wikipush.is_smw_enabled(wikipush.fromWiki))
+        self.assertFalse(wikipush.fromWiki.is_smw_enabled)
 
         # Perform the category query
         query = f"[[{self.category}]]"

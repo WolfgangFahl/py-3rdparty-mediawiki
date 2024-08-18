@@ -10,7 +10,7 @@ class Wiki(object):
     common interface for WikiBot and WikiClient
     """
 
-    def __init__(self, wikiUser, debug=False):
+    def __init__(self, wikiUser, debug=False,smw_enabled:bool=True):
         """
         Constructor
 
@@ -19,6 +19,7 @@ class Wiki(object):
         """
         self.wikiUser = wikiUser
         self.debug = debug
+        self.is_smw_enabled=smw_enabled
 
     def __str__(self):
         """

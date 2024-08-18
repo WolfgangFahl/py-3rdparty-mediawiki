@@ -75,18 +75,6 @@ class WikiPush(object):
                 msg = f"can't login to target Wiki {toWikiId}"
                 raise Exception(msg)
 
-    def is_smw_enabled(self, wiki=None):
-        """
-        Check if the wiki has Semantic MediaWiki enabled
-        """
-        if wiki is None:
-            wiki = self.fromWiki
-        try:
-            result = wiki.site.api('smwinfo')
-            return 'info' in result and 'smwversion' in result['info']
-        except:
-            return False
-
     def log(self, msg: str, end="\n"):
         """
         show the given message if verbose is on
@@ -189,7 +177,7 @@ class WikiPush(object):
         if wiki is None:
             wiki = self.fromWiki
 
-        if self.is_smw_enabled(wiki):
+        if wiki.is_smw_enabled:
             smwClient = SMWClient(
                 wiki.getSite(),
                 showProgress=showProgress,
