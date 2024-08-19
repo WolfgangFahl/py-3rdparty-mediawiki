@@ -326,52 +326,71 @@ class WikiPush(object):
         modify = lambda text: re.sub(searchRegex, replaceRegex, text)
         return modify
 
+    def edit_page_content(self, page_title: str, modify: typing.Callable[[str], str], force: bool, context: int) -> str:
+        """
+        Edit the content of a single page.
+
+        Args:
+        page_title (str): The title of the page to be edited
+        modify (Callable[[str], str]): Function to modify the page content
+        force (bool): If True, actually edit the page; if False, perform a dry run
+        context (int): The number of context lines for diff
+
+        Returns:
+        str: Status of the edit operation
+        """
+        page_to_edit = self.toWiki.getPage(page_title)
+        if not force and not page_to_edit.exists:
+            return "👎"
+
+        text = page_to_edit.text()
+        new_text = modify(text)
+
+        if new_text == text:
+            return "↔"
+
+        if force:
+            comment = "edited by wikiedit"
+            page_to_edit.edit(new_text, comment)
+            return "✅"
+        else:
+            diff_str = self.getDiff(text, new_text, n=context)
+            return f"👍{diff_str}"
+
     def edit(
         self,
-        pageTitles: typing.List[str],
+        page_titles: typing.List[str],
         modify: typing.Callable[[str], str] = None,
         context: int = 1,
         force: bool = False,
     ):
         """
-        edit the pages with the given page Titles
+        Edit the pages with the given page titles
 
         Args:
-            pageTitles(list): a list of page titles to be transferred from the formWiki to the toWiki
-            modify: String modify function that takes as input the string and returns the modified string
-            context: The number of context lines
-            force(bool): True if pages should be actually deleted - dry run only listing pages is default
+        page_titles (list): a list of page titles to be transferred from the formWiki to the toWiki
+        modify: String modify function that takes as input the string and returns the modified string
+        context: The number of context lines
+        force (bool): True if pages should be actually edited - dry run only listing pages is default
         """
         if modify is None:
             raise Exception("wikipush edit needs a modify function!")
-        total = len(pageTitles)
+
+        total = len(page_titles)
         self.log(
-            "editing %d pages in %s (%s)"
-            % (total, self.toWikiId, "forced" if force else "dry run")
+            f"editing {total} pages in {self.toWikiId} ({'forced' if force else 'dry run'})"
         )
-        for i, pageTitle in enumerate(pageTitles):
+
+        for i, page_title in enumerate(page_titles):
             try:
                 self.log(
-                    "%d/%d (%4.0f%%): editing %s ..."
-                    % (i + 1, total, (i + 1) / total * 100, pageTitle),
+                    f"{i + 1}/{total} ({(i + 1) / total * 100:4.0f}%): editing {page_title} ...",
                     end="",
                 )
-                pageToBeEdited = self.toWiki.getPage(pageTitle)
-                if not force and not pageToBeEdited.exists:
-                    self.log("👎")
-                else:
-                    comment = "edited by wikiedit"
-                    text = pageToBeEdited.text()
-                    newText = modify(text)
-                    if newText != text:
-                        if force:
-                            pageToBeEdited.edit(newText, comment)
-                            self.log("✅")
-                        else:
-                            diffStr = self.getDiff(text, newText, n=context)
-                            self.log(f"👍{diffStr}")
-                    else:
-                        self.log("↔")
+
+                result = self.edit_page_content(page_title, modify, force, context)
+                self.log(result)
+
             except Exception as ex:
                 self.show_exception(ex)
 
