@@ -326,12 +326,20 @@ class WikiPush(object):
         modify = lambda text: re.sub(searchRegex, replaceRegex, text)
         return modify
 
-    def edit_page_content(self, page_title: str, modify: typing.Callable[[str], str], force: bool, context: int) -> str:
+    def edit_page_content(self,
+            page_title: str,
+            new_text: str=None,
+            summary = "edited by wikiedit",
+            modify: typing.Callable[[str], str]=None,
+            force: bool=False,
+            context: int=1) -> str:
         """
         Edit the content of a single page.
 
         Args:
         page_title (str): The title of the page to be edited
+        new_text (str): the new text for the page
+        summary (str): the summary / comment for the editing
         modify (Callable[[str], str]): Function to modify the page content
         force (bool): If True, actually edit the page; if False, perform a dry run
         context (int): The number of context lines for diff
@@ -344,14 +352,14 @@ class WikiPush(object):
             return "👎"
 
         text = page_to_edit.text()
-        new_text = modify(text)
+        if not new_text:
+            new_text = modify(text)
 
         if new_text == text:
             return "↔"
 
         if force:
-            comment = "edited by wikiedit"
-            page_to_edit.edit(new_text, comment)
+            page_to_edit.edit(new_text, summary)
             return "✅"
         else:
             diff_str = self.getDiff(text, new_text, n=context)
