@@ -21,6 +21,7 @@ from pathlib import Path
 
 from git import Repo
 from lodstorage.query import Query
+from lodstorage.query_cmd import QueryCmd
 from mwclient.image import Image
 
 from wikibot3rd.selector import Selector
@@ -208,7 +209,7 @@ class WikiPush(object):
         self,
         askQuery,
         wiki=None,
-        queryField=None,
+        pageField=None,
         limit=None,
         showProgress=False,
         queryDivision=1,
@@ -219,7 +220,7 @@ class WikiPush(object):
         Args:
             askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
             wiki(wikibot3rd): the wiki to query - use fromWiki if not specified
-            queryField(string): the field to select the pageTitle from
+            pageField(string): the field to select the pageTitle from
             limit(int): the limit for the query (optional)
             showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
         Returns:
@@ -228,13 +229,13 @@ class WikiPush(object):
         pageRecords = self.queryPages(
             askQuery, wiki, limit, showProgress, queryDivision
         )
-        if queryField is None:
+        if pageField is None:
             return pageRecords.keys()
         # use a Dict to remove duplicates
         pagesDict = {}
         for pageRecord in pageRecords.values():
-            if queryField in pageRecord:
-                pagesDict[pageRecord[queryField]] = True
+            if pageField in pageRecord:
+                pagesDict[pageRecord[pageField]] = True
         return list(pagesDict.keys())
 
     def nuke(self, pageTitles, force=False):
@@ -1116,9 +1117,7 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
             "wikiquery",
             "wikirestore",
         ]:
-            parser.add_argument(
-                "--limit", dest="limit", type=int, help="limit for query"
-            )
+            QueryCmd.add_args(parser=parser)
             parser.add_argument(
                 "--progress",
                 dest="showProgress",
@@ -1126,21 +1125,9 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
                 help="shows progress for query",
             )
             parser.add_argument(
-                "-q",
-                "--query",
-                dest="query",
-                help="select pages with given SMW ask query",
-                required=False,
-            )
-            parser.add_argument(
-                "--queryFile",
-                dest="queryFile",
-                help="file the query should be read from",
-            )
-            parser.add_argument(
-                "-qf",
-                "--queryField",
-                dest="queryField",
+                "-pf",
+                "--pageField",
+                dest="pageField",
                 help="query result field which contains page",
             )
             parser.add_argument(
@@ -1209,12 +1196,17 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
             elif hasattr(args, "stdinp"):
                 if args.stdinp:
                     pages = sys.stdin.readlines()
-            elif args.query or args.queryFile:
-                if args.query:
-                    query = args.query
-                else:
-                    with open(args.queryFile, "r") as queryFile:
-                        query = queryFile.read()
+            if pages is None:
+                # set the fixed language for the wikpush toolkit
+                # SMW ask
+                # see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
+                # Parser function #ask
+                args.language="ask"
+                query_cmd=QueryCmd(args=args,with_default_queries=False)
+                handled=query_cmd.handle_args()
+                if handled:
+                    return 0
+                query=query_cmd.queryCode
                 if mode == "wikiquery":
                     formatedQueryResults = wikipush.formatQueryResult(
                         query,
@@ -1234,7 +1226,7 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
                     pages = wikipush.query(
                         query,
                         wiki=queryWiki,
-                        queryField=args.queryField,
+                        pageField=args.pageField,
                         limit=args.limit,
                         showProgress=args.showProgress,
                         queryDivision=args.queryDivision,
@@ -1242,21 +1234,17 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
             if pages is None:
                 if mode == "wikiquery":
                     # we are finished
-                    pass
+                    return 0
                 elif mode == "wikirestore":
-                    if (
-                        args.pages is None
-                        and args.queryFile is None
-                        and args.query is None
-                    ):
-                        wikipush.restore(
-                            pageTitles=None,
-                            backupPath=args.backupPath,
-                            listFile=args.listFile,
-                        )
+                    # full restore
+                    wikipush.restore(
+                        pageTitles=None,
+                        backupPath=args.backupPath,
+                        listFile=args.listFile,
+                    )
                 else:
                     raise Exception(
-                        "no pages specified - you might want to use the -p, -q or --queryFile option"
+                        "no pages specified - you might want to use the -p, -q -qn or --queryFile option"
                     )
             else:
                 if args.ui and len(pages) > 0:

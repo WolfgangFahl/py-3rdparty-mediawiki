@@ -33,7 +33,7 @@ dependencies = [
     # https://pypi.org/project/wikitextparser/
     'wikitextparser>=0.54.0',
     # https://pypi.org/project/pylodstorage/
-    'pylodstorage>=0.11.7',
+    'pylodstorage>=0.12.1',
     # mysql-connector-python 8.3.0
     'mysql-connector-python>=8.3.0',
 	# https://pypi.org/project/bcrypt/
@@ -69,10 +69,11 @@ test = [
 ]
 
 [tool.hatch.build.targets.wheel]
-only-include = ["wikibot3rd"]
+only-include = ["wikibot3rd","wikibot3rd_examples"]
 
 [tool.hatch.build.targets.wheel.sources]
 "wikibot3rd" = "wikibot3rd"
+"wikibot3rd_examples" = "wikibot3rd_examples"
 
 
 [project.scripts]

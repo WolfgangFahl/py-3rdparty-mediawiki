@@ -1,0 +1,16 @@
+#
+# Sample Queries for py-3rdparty-mediawiki library
+#
+# WF 2024-08-21
+'List of Contexts':
+  ask: |
+    {{#ask: [[Concept:Context]]
+    |mainlabel=Context
+    |?Context since = since
+    |?Context updated = updated
+    |?Context demo = demo
+    |?Context master = master
+    |limit=200
+    |sort=Context name
+    |order=ascending
+    }}

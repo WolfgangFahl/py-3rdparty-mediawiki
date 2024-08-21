@@ -131,7 +131,7 @@ class TestWikiPush(BaseTest):
     def testIssue12(self):
         """
         https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/12
-        add -qf / queryField option to allow to select other property than mainlabel
+        add -pf / pageField option to allow to select other property than mainlabel
         """
         # don't test this in Travis
         if self.inPublicCI():
@@ -146,9 +146,10 @@ class TestWikiPush(BaseTest):
  |format=table
  |limit=200
 }}"""
-        pages = wikipush.query(ask, queryField="Event")
-        # self.debug=True
-        if self.debug:
+        pages = wikipush.query(ask, pageField="Event")
+        debug=self.debug
+        debug=True
+        if debug:
             print(pages)
             print(len(pages))
         self.assertTrue(len(pages) > 15)
@@ -161,10 +162,10 @@ class TestWikiPush(BaseTest):
         if self.inPublicCI():
             return
         debug = self.debug
-        # debug=True
+        #debug=True
         ask = "{{#ask: [[TransferPage page::+]][[TransferPage wiki::Master]]| mainlabel=-| ?TransferPage page = page| format=table|limit=300}}"
-        wikipush = WikiPush("master-capri", "test", login=True, debug=debug)
-        pages = wikipush.query(ask, queryField="page")
+        wikipush = WikiPush("master", "test", login=True, debug=debug)
+        pages = wikipush.query(ask, pageField="page")
         if debug:
             print(pages)
         self.assertTrue(len(pages) > 100)
