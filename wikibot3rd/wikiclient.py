@@ -54,8 +54,21 @@ class WikiClient(Wiki):
         Returns:
             True if login is required, False otherwise.
         """
+        login_needed: bool = False
         site = self.get_site()
-        login_needed: bool = not site.writeapi
+        if not site.initialized:
+            try:
+                self.site.site_init()
+                if hasattr("site", "writeapi"):
+                    login_needed = not site.writeapi
+                else:
+                    login_needed = not "writeapi" in site.site
+            except Exception as ex:
+                if hasattr(ex, "args") and "readapidenied" in ex.args:
+                    login_needed=True
+                pass
+
+
         return login_needed
 
     def needsLogin(self) -> bool:

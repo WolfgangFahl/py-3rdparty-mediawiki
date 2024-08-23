@@ -3,6 +3,7 @@
 	<name>wikibot</name>
 	<comment></comment>
 	<projects>
+		<project>mwclient</project>
 		<project>pyLoDStorage</project>
 	</projects>
 	<buildSpec>

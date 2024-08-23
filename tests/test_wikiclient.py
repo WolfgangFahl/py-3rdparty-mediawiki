@@ -88,7 +88,7 @@ class TestWikiClient(BaseTest):
         """
         for i, client in enumerate(self.clients):
             print(f"{i+1:2}{client} ", end="")
-            error, loggedIn = self.optLogin(client)
+            _error, loggedIn = self.optLogin(client)
             if loggedIn:
                 mainpage = client.site.site["mainpage"]
                 page = client.getPage(mainpage)
