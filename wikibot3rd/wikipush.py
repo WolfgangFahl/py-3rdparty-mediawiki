@@ -4,7 +4,8 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 """
-
+import shutup
+shutup.please()
 import datetime
 
 # from difflib import Differ
