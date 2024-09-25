@@ -7,7 +7,7 @@ Created on 24.03.2020
 import unittest
 
 from tests.basetest import BaseTest
-from tests.test_WikiUser import TestWikiUser
+from tests.test_wikiuser import TestWikiUser
 from wikibot3rd.crypt import Crypt
 from wikibot3rd.wikibot import WikiBot
 

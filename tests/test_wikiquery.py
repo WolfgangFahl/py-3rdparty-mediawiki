@@ -10,7 +10,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 
 from tests.basetest import BaseTest
-from tests.test_WikiUser import TestWikiUser
+from tests.test_wikiuser import TestWikiUser
 from wikibot3rd.wikiclient import WikiClient
 from wikibot3rd.wikipush import WikiPush, mainQuery
 

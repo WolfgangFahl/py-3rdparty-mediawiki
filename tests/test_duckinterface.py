@@ -7,7 +7,7 @@ Created on 2020-12-27
 import unittest
 
 from tests.basetest import BaseTest
-from tests.test_WikiUser import TestWikiUser
+from tests.test_wikiuser import TestWikiUser
 from wikibot3rd.wiki import Wiki
 from wikibot3rd.wikibot import WikiBot
 from wikibot3rd.wikiclient import WikiClient

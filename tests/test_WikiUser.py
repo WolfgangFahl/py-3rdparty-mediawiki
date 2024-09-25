@@ -6,7 +6,6 @@ Created on 2020-11-01
 
 import os
 import tempfile
-import unittest
 
 import wikibot3rd
 from tests.basetest import BaseTest

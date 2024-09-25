@@ -3,7 +3,7 @@ Created on 2020-11-01
 
 @author: wf
 """
-
+from dataclasses import dataclass
 import datetime
 import getpass
 import os
@@ -13,24 +13,51 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from os import makedirs
 from os.path import isdir
 from pathlib import Path
-from typing import Dict
+from typing import Any,Dict
 
 from wikibot3rd.crypt import Crypt
 from wikibot3rd.version import Version
 
+@dataclass
+class WikiUserField:
+    """
+    a single field for the WikiUser definition
+    """
+    name: str
+    type: type
+    default: Any = None
+    # needed for password encryption
+    for_password: bool=False,
+    # encrypted field
+    encrypted: bool = False
 
 class WikiUser(object):
     """
     User credentials for a specific wiki
     """
 
+    fields = [
+        WikiUserField("wikiId", str,default=None),
+        WikiUserField("url", str,default=None),
+        WikiUserField("scriptPath", str, default=""),
+        WikiUserField("version", str, default="MediaWiki 1.39.1"),
+        WikiUserField("user", str,default=None),
+        WikiUserField("email", str,default=None),
+        WikiUserField("is_smw", bool, default=True),
+        WikiUserField("password", str, encrypted=True),
+        WikiUserField("cypher", str, for_password=True),
+        WikiUserField("secret", str, for_password=True),
+        WikiUserField("salt", str, for_password=True)
+    ]
+
     def __init__(self):
         """
         construct me
         """
-        # set None values for all fields
-        for field in WikiUser.getFields():
-            setattr(self, field, None)
+        def __init__(self):
+            # set defaults for all fields
+            for field in self.fields:
+                setattr(self, field.name, field.default)
 
     def get_password(self):
         password = self.getPassword()
@@ -205,14 +232,13 @@ class WikiUser(object):
                             print("error in %s: %s" % (entry.path, str(ex)))
         return wikiUsers
 
-    @staticmethod
-    def getFields(encrypted=True):
-        # copy fields
-        fields = ["wikiId", "url", "scriptPath", "version", "user", "email"]
-        passwordFields = ["cypher", "secret", "salt"] if encrypted else ["password"]
+    @classmethod
+    def getFields(cls, encrypted=True):
         result = []
-        result.extend(fields)
-        result.extend(passwordFields)
+        for field in cls.fields:
+            if encrypted or not field.encrypted:
+                if not field.for_password or encrypted:
+                    result.append(field.name)
         return result
 
     @staticmethod
@@ -317,6 +343,7 @@ USAGE
             help="version of the wiki default: %(default)s)",
         )
         parser.add_argument("-w", "--wikiId", dest="wikiId", help="wiki Id")
+        parser.add_argument("--smw",dest="is_smw",default="true",help="is this a semantic mediawiki?")
         parser.add_argument(
             "-y",
             "--yes",

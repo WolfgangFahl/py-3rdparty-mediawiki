@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from tests.basetest import BaseTest
 from tests.test_wikibot import TestWikiBot
-from tests.test_WikiUser import TestWikiUser
+from tests.test_wikiuser import TestWikiUser
 from wikibot3rd.smw import (
     SMW,
     QueryResultSizeExceedException,
