@@ -6,14 +6,13 @@ Created on 2020-12-27
 
 import unittest
 
-from tests.basetest import BaseTest
-from tests.test_wikiuser import TestWikiUser
+from tests.base_smw_test import BaseSmwTest
 from wikibot3rd.wiki import Wiki
 from wikibot3rd.wikibot import WikiBot
 from wikibot3rd.wikiclient import WikiClient
 
 
-class TestDuckInterface(BaseTest):
+class TestDuckInterface(BaseSmwTest):
     """
     test https://en.wikipedia.org/wiki/Duck_typing interface of Wiki
     """
@@ -22,7 +21,7 @@ class TestDuckInterface(BaseTest):
         """
         get the wikis
         """
-        wikiuser = TestWikiUser.getSMW_WikiUser(wikiId)
+        wikiuser = self.getSMW_WikiUser(wikiId)
         wikibot = WikiBot.ofWikiUser(wikiuser)
         wikiclient = WikiClient.ofWikiUser(wikiuser)
         return wikibot, wikiclient

@@ -3,10 +3,14 @@ Created on 2024-08-14
 
 @author: wf
 """
-from tests.basetest import BaseTest
-from wikibot3rd.wikipush import WikiPush
-from wikibot3rd.wikiclient import WikiClient
+
 import unittest
+
+from tests.basetest import BaseTest
+from wikibot3rd.wikiclient import WikiClient
+from wikibot3rd.wikipush import WikiPush
+
+
 class TestNonSMW(BaseTest):
     """
     Test functionality for non SemanticMediaWiki sites
@@ -21,11 +25,11 @@ class TestNonSMW(BaseTest):
         self.category = "Kategorie:Adressbuch_in_der_Online-Erfassung/fertig"
 
         # Setup WikiUser for non-SMW wiki
-        self.wiki_user = self.get_wiki_user(self.wiki_id,save=self.inPublicCI())
+        self.wiki_user = self.get_wiki_user(self.wiki_id, save=self.inPublicCI())
 
         # Setup WikiClient
         self.wiki_client = WikiClient.ofWikiUser(self.wiki_user)
-        self.wiki_client.is_smw_enabled=False
+        self.wiki_client.is_smw_enabled = False
 
     def test_category_query(self):
         """
@@ -40,8 +44,8 @@ class TestNonSMW(BaseTest):
 
         # Perform the category query
         query = f"[[{self.category}]]"
-        limit=500
-        expected=300
+        limit = 500
+        expected = 300
         pages = wikipush.query(query, limit=limit)  # Limit to 10 for faster testing
 
         # Assertions

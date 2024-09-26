@@ -8,7 +8,7 @@ import unittest
 from datetime import datetime
 from unittest.mock import patch
 
-from tests.basetest import BaseTest
+from tests.base_smw_test import BaseSmwTest
 from tests.test_wikibot import TestWikiBot
 from tests.test_wikiuser import TestWikiUser
 from wikibot3rd.smw import (
@@ -22,11 +22,11 @@ from wikibot3rd.wikibot import WikiBot
 from wikibot3rd.wikiclient import WikiClient
 
 
-class TestSMW(BaseTest):
+class TestSMW(BaseSmwTest):
     """test access to SemanticMediaWiki API see https://www.semantic-mediawiki.org/wiki/Help:API:ask"""
 
     def setUp(self, debug=False, profile=True):
-        BaseTest.setUp(self, debug=debug, profile=profile)
+        BaseSmwTest.setUp(self, debug=debug, profile=profile)
         self.getWikiUser("cr")
 
     # sample queries
@@ -61,7 +61,7 @@ class TestSMW(BaseTest):
 
     def getSMWs(self, wikiId="smwcopy"):
         """get the alternative SMW access instances for the given wiki id"""
-        wikiuser = TestWikiUser.getSMW_WikiUser(wikiId)
+        wikiuser = self.getSMW_WikiUser(wikiId)
         wikibot = WikiBot.ofWikiUser(wikiuser)
         wikiclient = WikiClient.ofWikiUser(wikiuser)
         smwbot = SMWBot(wikibot.site)
@@ -190,7 +190,7 @@ class TestSMW(BaseTest):
 
     # test the SMWBaseURL
     def testSMWBaseUrl(self):
-        wikibot = TestWikiBot.getSMW_Wiki()
+        wikibot = self.getSMW_Wiki()
         if TestSMW.debug:
             print(wikibot.scriptPath)
         self.assertEqual("/w", wikibot.scriptPath)
@@ -212,9 +212,9 @@ class TestSMW(BaseTest):
     def testSMWAskWithMainLabel(self):
         ask = """{{#ask:
  [[Category:City]]
- [[Located in::Germany]] 
+ [[Located in::Germany]]
  |mainlabel=City
- |?Population 
+ |?Population
  |?Area#km² = Size in km²
 }}"""
         expectedRecords = [

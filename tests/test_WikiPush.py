@@ -147,8 +147,8 @@ class TestWikiPush(BaseTest):
  |limit=200
 }}"""
         pages = wikipush.query(ask, pageField="Event")
-        debug=self.debug
-        debug=True
+        debug = self.debug
+        debug = True
         if debug:
             print(pages)
             print(len(pages))
@@ -162,7 +162,7 @@ class TestWikiPush(BaseTest):
         if self.inPublicCI():
             return
         debug = self.debug
-        #debug=True
+        # debug=True
         ask = "{{#ask: [[TransferPage page::+]][[TransferPage wiki::Master]]| mainlabel=-| ?TransferPage page = page| format=table|limit=300}}"
         wikipush = WikiPush("master", "test", login=True, debug=debug)
         pages = wikipush.query(ask, pageField="page")

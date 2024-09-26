@@ -10,19 +10,22 @@ Created on 2020-11-01
 @author: wf
 """
 
-from dataclasses import dataclass, field, fields
-from typing import Dict
 import datetime
 import getpass
 import os
+from dataclasses import dataclass, field, fields
 from pathlib import Path
+from typing import Dict
+
 from wikibot3rd.crypt import Crypt
+
 
 @dataclass
 class WikiCredentials:
     """
     Base class for wiki credentials
     """
+
     password: str = field(default=None, repr=False)
     cypher: str = field(default=None, repr=False)
     secret: str = field(default=None, repr=False)
@@ -62,7 +65,7 @@ class WikiCredentials:
         if not self.encrypted:
             raise ValueError("Data is not encrypted")
         c = Crypt(self.cypher, 20, self.salt)
-        password=c.decrypt(self.secret)
+        password = c.decrypt(self.secret)
         return password
 
     def get_password(self) -> str:
@@ -74,17 +77,19 @@ class WikiCredentials:
         """
         if not self.encrypted:
             raise ValueError("clear text password state")
-        password=self.decrypt()
+        password = self.decrypt()
         return password
 
-    def getPassword(self)->str:
+    def getPassword(self) -> str:
         return self.get_password()
+
 
 @dataclass
 class WikiUserData(WikiCredentials):
     """
     User credentials for a specific wiki
     """
+
     wikiId: str = None
     url: str = None
     scriptPath: str = ""
@@ -99,11 +104,12 @@ class WikiUser(WikiUserData):
     """
     WikiUser handling
     """
-    interactive: bool=False
-    debug:bool=False
-    lenient: bool=True
-    filePath:str=None
-    yes:bool=False
+
+    interactive: bool = False
+    debug: bool = False
+    lenient: bool = True
+    filePath: str = None
+    yes: bool = False
 
     def get_wiki_url(self) -> str:
         """
@@ -139,13 +145,16 @@ class WikiUser(WikiUserData):
                 interactive_fields.append(field)
 
         # Add the 'password' field explicitly, assuming it's part of WikiCredentials
-        password_field = next(field for field in fields(WikiCredentials) if field.name == 'password')
+        password_field = next(
+            field for field in fields(WikiCredentials) if field.name == "password"
+        )
         interactive_fields.append(password_field)
 
         return interactive_fields
 
-
-    def interactiveSave(self, yes: bool = False, interactive: bool = False, filePath=None):
+    def interactiveSave(
+        self, yes: bool = False, interactive: bool = False, filePath=None
+    ):
         """
         save me
 
@@ -168,7 +177,9 @@ class WikiUser(WikiUserData):
                     value = inputValue
             text += f"\n  {field.name}={value}"
         if not yes:
-            answer = input(f"shall i store credentials for {text}\nto an ini file? yes/no y/n")
+            answer = input(
+                f"shall i store credentials for {text}\nto an ini file? yes/no y/n"
+            )
             yes = "y" in answer or "yes" in answer
         if yes:
             self.save(filePath)
@@ -208,7 +219,9 @@ class WikiUser(WikiUserData):
         try:
             config = cls.readPropertyFile(path)
         except FileNotFoundError:
-            raise FileNotFoundError(f'the wiki with the wikiID "{wikiId}" does not have a corresponding configuration file ... you might want to create one with the wikiuser command')
+            raise FileNotFoundError(
+                f'the wiki with the wikiID "{wikiId}" does not have a corresponding configuration file ... you might want to create one with the wikiuser command'
+            )
         return cls.ofDict(config, lenient=lenient)
 
     def save(self, iniFilePath=None):
@@ -267,7 +280,7 @@ class WikiUser(WikiUserData):
         return wikiUsers
 
     @classmethod
-    def ofDict(cls, userDict:dict, encrypted=True, lenient=False, encrypt=True):
+    def ofDict(cls, userDict: dict, encrypted=True, lenient=False, encrypt=True):
         """
         create a WikiUser from the given dictionary
 
@@ -283,28 +296,32 @@ class WikiUser(WikiUserData):
         if "url" in userDict and userDict["url"] is not None:
             userDict["url"] = userDict["url"].replace("\:", ":")
 
-        is_encrypted = 'password' not in userDict
+        is_encrypted = "password" not in userDict
 
         if encrypted != is_encrypted and not lenient:
             raise Exception("Encryption state mismatch")
 
-        err_msg=""
+        err_msg = ""
         try:
             wikiUser = cls(**userDict)
         except Exception as ex:
-            err_msg=str(ex)+"\n"
+            err_msg = str(ex) + "\n"
         if wikiUser and wikiUser.is_smw:
             for field in fields(WikiUserData):
                 if field.name not in userDict and not lenient:
                     if field.default is None:
-                        if is_encrypted and field.name in ['cypher', 'secret', 'salt']:
-                            err_msg+=f"\n{field.name} missing for encrypted data"
-                        elif field.name not in ['cypher', 'secret', 'salt', 'password', 'encrypted']:
-                            err_msg+=(f"\n{field.name} missing")
+                        if is_encrypted and field.name in ["cypher", "secret", "salt"]:
+                            err_msg += f"\n{field.name} missing for encrypted data"
+                        elif field.name not in [
+                            "cypher",
+                            "secret",
+                            "salt",
+                            "password",
+                            "encrypted",
+                        ]:
+                            err_msg += f"\n{field.name} missing"
         if err_msg:
             raise Exception(err_msg)
         if not is_encrypted and encrypt:
             wikiUser.encrypt(wikiUser.password)
         return wikiUser
-
-

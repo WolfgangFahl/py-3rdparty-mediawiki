@@ -4,7 +4,9 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 """
+
 import shutup
+
 shutup.please()
 import datetime
 
@@ -16,9 +18,9 @@ import re
 import sys
 import traceback
 import typing
-from typing import Dict
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from pathlib import Path
+from typing import Dict
 
 from git import Repo
 from lodstorage.query import Query
@@ -71,15 +73,15 @@ class WikiPush(object):
         if login and self.fromWikiId is not None:
             if not self.fromWiki.login():
                 msg = f"can't login to source Wiki {fromWikiId}"
-                ex=Exception(msg)
+                ex = Exception(msg)
                 self.show_exception(ex)
-                raise(ex)
+                raise (ex)
         if self.toWiki is not None:
             if not self.toWiki.login():
                 msg = f"can't login to target Wiki {toWikiId}"
-                ex=Exception(msg)
+                ex = Exception(msg)
                 self.show_exception(ex)
-                raise(ex)
+                raise (ex)
 
     def log(self, msg: str, end="\n"):
         """
@@ -166,7 +168,7 @@ class WikiPush(object):
         return res
 
     def queryPages(
-        self, askQuery:str, wiki=None, limit=None, showProgress=False, queryDivision=1
+        self, askQuery: str, wiki=None, limit=None, showProgress=False, queryDivision=1
     ) -> dict:
         """
         query the given wiki for pagerecords matching the given askQuery
@@ -192,18 +194,18 @@ class WikiPush(object):
             )
             pageRecords = smwClient.query(askQuery, limit=limit)
         else:
-            pageRecords = self.query_via_mw_api(askQuery,wiki, limit=limit)
+            pageRecords = self.query_via_mw_api(askQuery, wiki, limit=limit)
         return pageRecords
 
-    def query_via_mw_api(self,askQuery:str,wiki,limit:int=None)->Dict:
+    def query_via_mw_api(self, askQuery: str, wiki, limit: int = None) -> Dict:
         # Handle non-SMW wiki (assuming category query)
-        category = askQuery.strip('[]').split(':')[1]
+        category = askQuery.strip("[]").split(":")[1]
         site = wiki.getSite()
         pageRecords = {}
         for page in site.categories[category]:
             if limit and len(pageRecords) >= limit:
                 break
-            pageRecords[page.name] = {'pageTitle': page.name}
+            pageRecords[page.name] = {"pageTitle": page.name}
         return pageRecords
 
     def query(
@@ -328,13 +330,15 @@ class WikiPush(object):
         modify = lambda text: re.sub(searchRegex, replaceRegex, text)
         return modify
 
-    def edit_page_content(self,
-            page_title: str,
-            new_text: str=None,
-            summary = "edited by wikiedit",
-            modify: typing.Callable[[str], str]=None,
-            force: bool=False,
-            context: int=1) -> str:
+    def edit_page_content(
+        self,
+        page_title: str,
+        new_text: str = None,
+        summary="edited by wikiedit",
+        modify: typing.Callable[[str], str] = None,
+        force: bool = False,
+        context: int = 1,
+    ) -> str:
         """
         Edit the content of a single page.
 
@@ -1202,12 +1206,12 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
                 # SMW ask
                 # see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
                 # Parser function #ask
-                args.language="ask"
-                query_cmd=QueryCmd(args=args,with_default_queries=False)
-                handled=query_cmd.handle_args()
+                args.language = "ask"
+                query_cmd = QueryCmd(args=args, with_default_queries=False)
+                handled = query_cmd.handle_args()
                 if handled:
                     return 0
-                query=query_cmd.queryCode
+                query = query_cmd.queryCode
                 if mode == "wikiquery":
                     formatedQueryResults = wikipush.formatQueryResult(
                         query,

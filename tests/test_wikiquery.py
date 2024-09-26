@@ -9,13 +9,12 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 
-from tests.basetest import BaseTest
-from tests.test_wikiuser import TestWikiUser
+from tests.base_smw_test import BaseSmwTest
 from wikibot3rd.wikiclient import WikiClient
 from wikibot3rd.wikipush import WikiPush, mainQuery
 
 
-class TestWikiQuery(BaseTest):
+class TestWikiQuery(BaseSmwTest):
     """
     tests for https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/56
     """
@@ -36,7 +35,7 @@ class TestWikiQuery(BaseTest):
 |?Event country = country
 |?Event region = region
 |?Creation date=creation date
-|?Modification date=modification date 
+|?Modification date=modification date
 |sort=Event acronym
 |order=ascending
 |format=table
@@ -49,7 +48,7 @@ class TestWikiQuery(BaseTest):
 
     def getWikiClient(self, wikiId="cr"):
         """get the alternative SMW access instances for the given wiki id"""
-        wikiuser = TestWikiUser.getSMW_WikiUser(wikiId)
+        wikiuser = self.getSMW_WikiUser(wikiId)
         wikiclient = WikiClient.ofWikiUser(wikiuser)
         return wikiclient
 
@@ -94,8 +93,8 @@ class TestWikiQuery(BaseTest):
         with redirect_stdout(mystdout):
             mainQuery(argv)
         res = mystdout.getvalue()
-        debug=self.debug
-        #debug=True
+        debug = self.debug
+        # debug=True
         if debug:
             print(res)
         self.assertTrue("data" in json.loads(res).keys())

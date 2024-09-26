@@ -7,6 +7,7 @@ Created on 2021-10-21
 import getpass
 import os
 import time
+import unittest
 import warnings
 from unittest import TestCase
 
@@ -147,5 +148,10 @@ class BaseTest(TestCase):
         return wikiUser
 
     def getSMW_WikiUser(self, wikiId="or", save=False) -> WikiUser:
-        wiki_user=self.get_wiki_user(wikiId, save)
+        wiki_user = self.get_wiki_user(wikiId, save)
         return wiki_user
+
+
+if __name__ == "__main__":
+    # import sys;sys.argv = ['', 'Test.testName']
+    unittest.main()

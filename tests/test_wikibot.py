@@ -4,15 +4,11 @@ Created on 24.03.2020
 @author: wf
 """
 
-import unittest
-
-from tests.basetest import BaseTest
-from tests.test_wikiuser import TestWikiUser
+from tests.base_smw_test import BaseSmwTest
 from wikibot3rd.crypt import Crypt
 from wikibot3rd.wikibot import WikiBot
 
-
-class TestWikiBot(BaseTest):
+class TestWikiBot(BaseSmwTest):
     """
     Unit test for WikiBot
     """
@@ -44,9 +40,8 @@ class TestWikiBot(BaseTest):
         self.assertEqual(32, len(cypher))
         self.assertEqual(8, len(salt))
 
-    @staticmethod
-    def getSMW_Wiki(wikiId="smw"):
-        wikiUser = TestWikiUser.getSMW_WikiUser(wikiId)
+    def getSMW_Wiki(self, wikiId="smw"):
+        wikiUser = self.getSMW_WikiUser(wikiId)
         wikibot = None
         if wikiUser is not None:
             wikibot = WikiBot.ofWikiUser(wikiUser)
@@ -56,7 +51,7 @@ class TestWikiBot(BaseTest):
         """
         test a wikibot3rd where no login is needed
         """
-        wikibot = TestWikiBot.getSMW_Wiki()
+        wikibot = self.getSMW_Wiki()
         pageTitle = "Help:Configuration"
         page = wikibot.getPage(pageTitle)
         # print(page.text)
@@ -81,8 +76,3 @@ class TestWikiBot(BaseTest):
                 # bot2=WikiBot.ofWikiId(bot.wikiId)
                 # self.assertEquals(bot2.url,bot.url)
         pass
-
-
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()
