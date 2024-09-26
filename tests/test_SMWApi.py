@@ -4,13 +4,10 @@ Created on 2020-05-25
 @author: wf
 """
 
-import unittest
 from datetime import datetime
 from unittest.mock import patch
 
-from tests.base_smw_test import BaseSmwTest
-from tests.test_wikibot import TestWikiBot
-from tests.test_wikiuser import TestWikiUser
+from tests.base_wiki_test import BaseWikiTest
 from wikibot3rd.smw import (
     SMW,
     QueryResultSizeExceedException,
@@ -22,11 +19,11 @@ from wikibot3rd.wikibot import WikiBot
 from wikibot3rd.wikiclient import WikiClient
 
 
-class TestSMW(BaseSmwTest):
+class TestSMW(BaseWikiTest):
     """test access to SemanticMediaWiki API see https://www.semantic-mediawiki.org/wiki/Help:API:ask"""
 
     def setUp(self, debug=False, profile=True):
-        BaseSmwTest.setUp(self, debug=debug, profile=profile)
+        BaseWikiTest.setUp(self, debug=debug, profile=profile)
         self.getWikiUser("cr")
 
     # sample queries
@@ -667,8 +664,3 @@ class TestSMW(BaseSmwTest):
         if debug:
             print(result)
         # @FIXME - fix when https://github.com/SemanticMediaWiki/SemanticMediaWiki/issues/4857 is fixed
-
-
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testSMWApi']
-    unittest.main()

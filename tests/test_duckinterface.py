@@ -6,13 +6,13 @@ Created on 2020-12-27
 
 import unittest
 
-from tests.base_smw_test import BaseSmwTest
+from tests.base_wiki_test import BaseWikiTest
 from wikibot3rd.wiki import Wiki
 from wikibot3rd.wikibot import WikiBot
 from wikibot3rd.wikiclient import WikiClient
 
 
-class TestDuckInterface(BaseSmwTest):
+class TestDuckInterface(BaseWikiTest):
     """
     test https://en.wikipedia.org/wiki/Duck_typing interface of Wiki
     """

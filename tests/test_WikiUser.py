@@ -8,7 +8,7 @@ import os
 import tempfile
 
 import wikibot3rd.wikiuser_cmd
-from tests.base_smw_test import BaseSmwTest
+from tests.base_wiki_test import BaseSmwTest
 from wikibot3rd.wikiuser import WikiUser
 
 

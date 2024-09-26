@@ -4,9 +4,10 @@ Created on 24.03.2020
 @author: wf
 """
 
-from tests.base_smw_test import BaseSmwTest
+from tests.base_wiki_test import BaseSmwTest
 from wikibot3rd.crypt import Crypt
 from wikibot3rd.wikibot import WikiBot
+
 
 class TestWikiBot(BaseSmwTest):
     """

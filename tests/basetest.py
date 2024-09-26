@@ -5,13 +5,10 @@ Created on 2021-10-21
 """
 
 import getpass
-import os
 import time
 import unittest
 import warnings
 from unittest import TestCase
-
-from wikibot3rd.wikiuser import WikiUser
 
 
 class Profiler:
@@ -73,83 +70,6 @@ class BaseTest(TestCase):
 
     def inPublicCI(self):
         return BaseTest.isInPublicCI()
-
-    def getWikiUser(self, wikiId: str = None) -> WikiUser:
-        """
-        Get WikiUser for given wikiId
-
-        Args:
-            wikiId(str): if of the wiki
-
-        Returns WikiUser
-        """
-        if wikiId is None:
-            wikiId = self.wikiId
-        # make sure there is a wikiUser (even in public CI)
-        wikiUser = self.getSMW_WikiUser(wikiId=wikiId, save=self.inPublicCI())
-        return wikiUser
-
-    def get_wiki_user(self, wikiId="or", save=False) -> WikiUser:
-        """
-        get wiki users for given wikiId
-        """
-        iniFile = WikiUser.iniFilePath(wikiId)
-        wikiUser = None
-        if not os.path.isfile(iniFile):
-            wikiDict = None
-            if wikiId == "or":
-                wikiDict = {
-                    "wikiId": wikiId,
-                    "email": "noreply@nouser.com",
-                    "url": "https://www.openresearch.org",
-                    "scriptPath": "/mediawiki/",
-                    "version": "MediaWiki 1.31.1",
-                }
-            if wikiId == "cr":
-                wikiDict = {
-                    "wikiId": wikiId,
-                    "email": "noreply@nouser.com",
-                    "url": "http://cr.bitplan.com",
-                    "scriptPath": "",
-                    "version": "MediaWiki 1.35.5",
-                }
-            if wikiId == "genealogy":
-                wikiDict = {
-                    "wikiId": wikiId,
-                    "email": "noreply@nouser.com",
-                    "url": "https://wiki.genealogy.net",
-                    "scriptPath": "/",
-                    "version": "MediaWiki 1.35.11",
-                }
-            if wikiId in ["orclone", "orcopy"]:
-                wikiDict = {
-                    "wikiId": wikiId,
-                    "email": "noreply@nouser.com",
-                    "url": "https://confident.dbis.rwth-aachen.de",
-                    "scriptPath": "/or/",
-                    "version": "MediaWiki 1.35.1",
-                }
-            if wikiId == "smwcopy":
-                wikiDict = {
-                    "wikiId": wikiId,
-                    "email": "noreply@nouser.com",
-                    "url": "https://smw.bitplan.com/",
-                    "scriptPath": "",
-                    "version": "MediaWiki 1.35.5",
-                }
-            if wikiDict is None:
-                raise Exception(f"wikiId {wikiId} is not known")
-            else:
-                wikiUser = WikiUser.ofDict(wikiDict, lenient=True)
-                if save:
-                    wikiUser.save()
-        else:
-            wikiUser = WikiUser.ofWikiId(wikiId, lenient=True)
-        return wikiUser
-
-    def getSMW_WikiUser(self, wikiId="or", save=False) -> WikiUser:
-        wiki_user = self.get_wiki_user(wikiId, save)
-        return wiki_user
 
 
 if __name__ == "__main__":

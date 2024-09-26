@@ -9,7 +9,7 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 
-from tests.base_smw_test import BaseSmwTest
+from tests.base_wiki_test import BaseSmwTest
 from wikibot3rd.wikiclient import WikiClient
 from wikibot3rd.wikipush import WikiPush, mainQuery
 
