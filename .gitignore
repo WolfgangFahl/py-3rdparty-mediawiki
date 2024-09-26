@@ -135,4 +135,4 @@ apicache-py3
 pywikibot.lwp
 throttle.ctrl
 # apicache
-.apicache
+apicache

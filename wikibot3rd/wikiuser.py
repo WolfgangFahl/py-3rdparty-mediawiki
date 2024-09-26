@@ -109,6 +109,25 @@ class WikiUser(WikiUserData):
         """
         return self.get_wiki_url()
 
+    def getInteractiveFields(self):
+        """
+        Get the non-credential fields from WikiUserData plus 'password' for interactive input.
+        """
+        # Get all fields from WikiCredentials to exclude
+        credentials_fields = set(fields(WikiCredentials))
+
+        # Get all fields from WikiUserData
+        wiki_user_fields = set(fields(WikiUserData))
+
+        # Calculate the non-credential fields and include the 'password' field
+        non_credential_fields = wiki_user_fields - credentials_fields
+        non_credential_fields.add(next(field for field in credentials_fields if field.name == 'password'))
+
+        # Convert the set to a list
+        interactive_fields = list(non_credential_fields)
+
+        return interactive_fields
+
     def interactiveSave(self, yes: bool = False, interactive: bool = False, filePath=None):
         """
         save me
@@ -119,7 +138,9 @@ class WikiUser(WikiUserData):
             filePath (str): the path where to save the credentials ini file
         """
         text = ""
-        for field in fields(WikiUserData):
+        interactive_fields = self.getInteractiveFields()
+
+        for field in interactive_fields:
             value = getattr(self, field.name)
             if interactive:
                 print(text)
@@ -250,15 +271,21 @@ class WikiUser(WikiUserData):
         if encrypted != is_encrypted and not lenient:
             raise Exception("Encryption state mismatch")
 
-        for field in fields(WikiUserData):
-            if field.name not in userDict and not lenient:
-                if field.default is None:
-                    if is_encrypted and field.name in ['cypher', 'secret', 'salt']:
-                        raise Exception(f"{field.name} missing for encrypted data")
-                    elif field.name not in ['cypher', 'secret', 'salt', 'password', 'encrypted']:
-                        raise Exception(f"{field.name} missing")
-
-        wikiUser = cls(**userDict)
+        err_msg=""
+        try:
+            wikiUser = cls(**userDict)
+        except Exception as ex:
+            err_msg=str(ex)+"\n"
+        if wikiUser and wikiUser.is_smw:
+            for field in fields(WikiUserData):
+                if field.name not in userDict and not lenient:
+                    if field.default is None:
+                        if is_encrypted and field.name in ['cypher', 'secret', 'salt']:
+                            err_msg+=f"\n{field.name} missing for encrypted data"
+                        elif field.name not in ['cypher', 'secret', 'salt', 'password', 'encrypted']:
+                            err_msg+=(f"\n{field.name} missing")
+        if err_msg:
+            raise Exception(err_msg)
         if not is_encrypted and encrypt:
             wikiUser.encrypt(wikiUser.password)
         return wikiUser
