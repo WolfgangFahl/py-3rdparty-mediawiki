@@ -27,12 +27,24 @@ class WikiCredentials:
     cypher: str = field(default=None, repr=False)
     secret: str = field(default=None, repr=False)
     salt: str = field(default=None, repr=False)
-    encrypted: bool = False
 
     def __post_init__(self):
-        if self.password:
+        """
+        if a password is available immediately encrypt it
+        """
+        if self.password is not None:
             self.encrypt(self.password)
             self.password = None
+
+    @property
+    def encrypted(self) -> bool:
+        """
+        Property to check if the credentials are encrypted.
+
+        Returns:
+            bool: True if the credentials are encrypted, False otherwise.
+        """
+        return self.password is None
 
     def encrypt(self, password: str):
         """
@@ -42,7 +54,6 @@ class WikiCredentials:
         self.secret = crypt.encrypt(password)
         self.cypher = crypt.cypher.decode()
         self.salt = crypt.salt.decode()
-        self.encrypted = True
 
     def decrypt(self) -> str:
         """
@@ -51,7 +62,8 @@ class WikiCredentials:
         if not self.encrypted:
             raise ValueError("Data is not encrypted")
         c = Crypt(self.cypher, 20, self.salt)
-        return c.decrypt(self.secret)
+        password=c.decrypt(self.secret)
+        return password
 
     def get_password(self) -> str:
         """
@@ -60,7 +72,9 @@ class WikiCredentials:
         Returns:
             str: the decrypted password for this user
         """
-        password=self.decrypt() if self.encrypted else self.password
+        if not self.encrypted:
+            raise ValueError("clear text password state")
+        password=self.decrypt()
         return password
 
     def getPassword(self)->str:
@@ -113,20 +127,23 @@ class WikiUser(WikiUserData):
         """
         Get the non-credential fields from WikiUserData plus 'password' for interactive input.
         """
-        # Get all fields from WikiCredentials to exclude
-        credentials_fields = set(fields(WikiCredentials))
+        # Get all field names from WikiCredentials to exclude
+        credentials_field_names = {field.name for field in fields(WikiCredentials)}
 
-        # Get all fields from WikiUserData
-        wiki_user_fields = set(fields(WikiUserData))
+        # Create a list to hold the non-credential fields in the declared order
+        interactive_fields = []
 
-        # Calculate the non-credential fields and include the 'password' field
-        non_credential_fields = wiki_user_fields - credentials_fields
-        non_credential_fields.add(next(field for field in credentials_fields if field.name == 'password'))
+        # Iterate over WikiUserData fields in the declared order
+        for field in fields(WikiUserData):
+            if field.name not in credentials_field_names:
+                interactive_fields.append(field)
 
-        # Convert the set to a list
-        interactive_fields = list(non_credential_fields)
+        # Add the 'password' field explicitly, assuming it's part of WikiCredentials
+        password_field = next(field for field in fields(WikiCredentials) if field.name == 'password')
+        interactive_fields.append(password_field)
 
         return interactive_fields
+
 
     def interactiveSave(self, yes: bool = False, interactive: bool = False, filePath=None):
         """
