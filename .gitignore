@@ -134,3 +134,5 @@ apicache-py3
 # pywikibot mess 
 pywikibot.lwp
 throttle.ctrl
+# apicache
+.apicache

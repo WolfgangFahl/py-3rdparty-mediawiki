@@ -7,9 +7,9 @@ Created on 2020-11-01
 import os
 import tempfile
 
-import wikibot3rd
 from tests.basetest import BaseTest
 from wikibot3rd.wikiuser import WikiUser
+import wikibot3rd.wikiuser_cmd
 
 
 class TestWikiUser(BaseTest):
@@ -106,6 +106,7 @@ class TestWikiUser(BaseTest):
                 args = [
                     "--url",
                     "http://wiki.doe.com",
+                    "--lenient",
                     "-u",
                     "john",
                     "-e",
@@ -122,7 +123,7 @@ class TestWikiUser(BaseTest):
                     path,
                     "-y",
                 ]
-                wikibot3rd.wikiuser.main(args)
+                wikibot3rd.wikiuser_cmd.main(args)
         finally:
             if self.debug:
                 print(open(path, "r").read())

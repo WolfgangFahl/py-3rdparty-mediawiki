@@ -3,93 +3,113 @@ Created on 2020-11-01
 
 @author: wf
 """
-from dataclasses import dataclass
+
+"""
+Created on 2020-11-01
+
+@author: wf
+"""
+
+from dataclasses import dataclass, field, fields
+from typing import Dict
 import datetime
 import getpass
 import os
-import sys
-import traceback
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
-from os import makedirs
-from os.path import isdir
 from pathlib import Path
-from typing import Any,Dict
-
 from wikibot3rd.crypt import Crypt
-from wikibot3rd.version import Version
 
 @dataclass
-class WikiUserField:
+class WikiCredentials:
     """
-    a single field for the WikiUser definition
+    Base class for wiki credentials
     """
-    name: str
-    type: type
-    default: Any = None
-    # needed for password encryption
-    for_password: bool=False,
-    # encrypted field
+    password: str = field(default=None, repr=False)
+    cypher: str = field(default=None, repr=False)
+    secret: str = field(default=None, repr=False)
+    salt: str = field(default=None, repr=False)
     encrypted: bool = False
 
-class WikiUser(object):
-    """
-    User credentials for a specific wiki
-    """
+    def __post_init__(self):
+        if self.password:
+            self.encrypt(self.password)
+            self.password = None
 
-    fields = [
-        WikiUserField("wikiId", str,default=None),
-        WikiUserField("url", str,default=None),
-        WikiUserField("scriptPath", str, default=""),
-        WikiUserField("version", str, default="MediaWiki 1.39.1"),
-        WikiUserField("user", str,default=None),
-        WikiUserField("email", str,default=None),
-        WikiUserField("is_smw", bool, default=True),
-        WikiUserField("password", str, encrypted=True),
-        WikiUserField("cypher", str, for_password=True),
-        WikiUserField("secret", str, for_password=True),
-        WikiUserField("salt", str, for_password=True)
-    ]
-
-    def __init__(self):
+    def encrypt(self, password: str):
         """
-        construct me
+        Encrypt the given password
         """
-        def __init__(self):
-            # set defaults for all fields
-            for field in self.fields:
-                setattr(self, field.name, field.default)
+        crypt = Crypt.getRandomCrypt()
+        self.secret = crypt.encrypt(password)
+        self.cypher = crypt.cypher.decode()
+        self.salt = crypt.salt.decode()
+        self.encrypted = True
 
-    def get_password(self):
-        password = self.getPassword()
-        return password
+    def decrypt(self) -> str:
+        """
+        Decrypt and return the password
+        """
+        if not self.encrypted:
+            raise ValueError("Data is not encrypted")
+        c = Crypt(self.cypher, 20, self.salt)
+        return c.decrypt(self.secret)
 
-    def getPassword(self) -> str:
+    def get_password(self) -> str:
         """
         get my decrypted password
 
         Returns:
             str: the decrypted password for this user
         """
-        c = Crypt(self.cypher, 20, self.salt)
-        return c.decrypt(self.secret)
+        password=self.decrypt() if self.encrypted else self.password
+        return password
 
-    def get_wiki_url(self):
-        wiki_url = self.getWikiUrl()
-        return wiki_url
+    def getPassword(self)->str:
+        return self.get_password()
 
-    def getWikiUrl(self):
+@dataclass
+class WikiUserData(WikiCredentials):
+    """
+    User credentials for a specific wiki
+    """
+    wikiId: str = None
+    url: str = None
+    scriptPath: str = ""
+    version: str = "MediaWiki 1.39.1"
+    user: str = None
+    email: str = None
+    is_smw: bool = True
+
+
+@dataclass
+class WikiUser(WikiUserData):
+    """
+    WikiUser handling
+    """
+    interactive: bool=False
+    debug:bool=False
+    lenient: bool=True
+    filePath:str=None
+    yes:bool=False
+
+    def get_wiki_url(self) -> str:
         """
         return the full url of this wiki
 
         Returns:
             str: the full url of this wiki
         """
-        url = f"{self.url}{self.scriptPath}"
-        return url
+        return f"{self.url}{self.scriptPath}"
 
-    def interactiveSave(
-        self, yes: bool = False, interactive: bool = False, filePath=None
-    ):
+    def getWikiUrl(self) -> str:
+        """
+        return the full url of this wiki
+
+        Returns:
+            str: the full url of this wiki
+        """
+        return self.get_wiki_url()
+
+    def interactiveSave(self, yes: bool = False, interactive: bool = False, filePath=None):
         """
         save me
 
@@ -98,64 +118,44 @@ class WikiUser(object):
             interactive (bool): if True get interactive input
             filePath (str): the path where to save the credentials ini file
         """
-        fields = WikiUser.getFields(encrypted=False)
         text = ""
-        for field in fields:
-            if hasattr(self, field):
-                value = getattr(self, field)
-            else:
-                value = None
+        for field in fields(WikiUserData):
+            value = getattr(self, field.name)
             if interactive:
                 print(text)
-                inputMsg = f"{field} ({value}): "
+                inputMsg = f"{field.name} ({value}): "
                 inputValue = input(inputMsg)
                 if inputValue:
-                    setattr(self, field, inputValue)
+                    setattr(self, field.name, inputValue)
                     value = inputValue
-            text += f"\n  {field}={value}"
-        # encrypt
-        self.encrypt()
+            text += f"\n  {field.name}={value}"
         if not yes:
-            answer = input(
-                f"shall i store credentials for {text}\nto an ini file? yes/no y/n"
-            )
+            answer = input(f"shall i store credentials for {text}\nto an ini file? yes/no y/n")
             yes = "y" in answer or "yes" in answer
         if yes:
             self.save(filePath)
 
-    def encrypt(self, remove: bool = True):
-        """
-        encrypt my clear text password
-
-        Args:
-            remove (bool): if True remove the original password
-        """
-        crypt = Crypt.getRandomCrypt()
-        self.secret = crypt.encrypt(self.password)
-        self.cypher = crypt.cypher.decode()
-        self.salt = crypt.salt.decode()
-        if remove:
-            delattr(self, "password")
-
     def __str__(self):
-        text = f"{self.user} {self.wikiId}"
-        return text
+        return f"{self.user} {self.wikiId}"
 
     @staticmethod
     def getIniPath():
-        home = str(Path.home())
-        path = f"{home}/.mediawiki-japi"
-        return path
+        """
+        get the path for the ini file
+        """
+        return str(Path.home() / ".mediawiki-japi")
 
     @staticmethod
     def iniFilePath(wikiId: str):
+        """
+        get the path for the ini file for the given wikiId
+        """
         user = getpass.getuser()
         iniPath = WikiUser.getIniPath()
-        iniFilePath = f"{iniPath}/{user}_{wikiId}.ini"
-        return iniFilePath
+        return f"{iniPath}/{user}_{wikiId}.ini"
 
-    @staticmethod
-    def ofWikiId(wikiId: str, lenient=False) -> "WikiUser":
+    @classmethod
+    def ofWikiId(cls, wikiId: str, lenient=False) -> "WikiUser":
         """
         create a wikiUser for the given wikiId
 
@@ -166,44 +166,38 @@ class WikiUser(object):
         Returns:
             WikiUser: the wikiUser for this wikiId
         """
-        path = WikiUser.iniFilePath(wikiId)
+        path = cls.iniFilePath(wikiId)
         try:
-            config = WikiUser.readPropertyFile(path)
-        except FileNotFoundError as _e:
-            errMsg = f'the wiki with the wikiID "{wikiId}" does not have a corresponding configuration file ... you might want to create one with the wikiuser command'
-            raise FileNotFoundError(errMsg)
-        wikiUser = WikiUser.ofDict(config, lenient=lenient)
-        return wikiUser
+            config = cls.readPropertyFile(path)
+        except FileNotFoundError:
+            raise FileNotFoundError(f'the wiki with the wikiID "{wikiId}" does not have a corresponding configuration file ... you might want to create one with the wikiuser command')
+        return cls.ofDict(config, lenient=lenient)
 
     def save(self, iniFilePath=None):
         """
         save me to a propertyFile
         """
         if iniFilePath is None:
-            iniPath = WikiUser.getIniPath()
-            if not isdir(iniPath):
-                makedirs(iniPath)
-            iniFilePath = WikiUser.iniFilePath(self.wikiId)
+            iniPath = self.getIniPath()
+            os.makedirs(iniPath, exist_ok=True)
+            iniFilePath = self.iniFilePath(self.wikiId)
 
-        iniFile = open(iniFilePath, "w")
-        isodate = datetime.datetime.now().isoformat()
-        template = """# Mediawiki JAPI credentials for %s
-# created by py-3rdparty-mediawiki WikiUser at %s
-"""
-        content = template % (self.wikiId, isodate)
-        for field in WikiUser.getFields():
-            value = self.__dict__[field]
-            if value is not None:
-                content += "%s=%s\n" % (field, value)
-
-        iniFile.write(content)
-        iniFile.close()
+        with open(iniFilePath, "w") as iniFile:
+            isodate = datetime.datetime.now().isoformat()
+            content = f"# Mediawiki JAPI credentials for {self.wikiId}\n# created by py-3rdparty-mediawiki WikiUser at {isodate}\n"
+            for field in fields(WikiUserData):
+                value = getattr(self, field.name)
+                if value is not None:
+                    content += f"{field.name}={value}\n"
+            iniFile.write(content)
 
     @staticmethod
-    def readPropertyFile(filepath, sep="=", comment_char="#") -> Dict[str,str]:
+    def readPropertyFile(filepath, sep="=", comment_char="#") -> Dict[str, str]:
         """
         Read the file passed as parameter as a properties file.
+
         https://stackoverflow.com/a/31852401/1497139
+
         """
         props = {}
         with open(filepath, "rt") as f:
@@ -216,164 +210,57 @@ class WikiUser(object):
                     props[key] = value
         return props
 
-    @staticmethod
-    def getWikiUsers(lenient: bool = False):
+    @classmethod
+    def getWikiUsers(cls, lenient: bool = False):
+        """
+        get all WikiUsers from the ini files in the iniPath
+        """
         wikiUsers = {}
-        iniPath = WikiUser.getIniPath()
+        iniPath = cls.getIniPath()
         if os.path.isdir(iniPath):
-            with os.scandir(iniPath) as it:
-                for entry in it:
-                    if entry.name.endswith(".ini") and entry.is_file():
-                        try:
-                            config = WikiUser.readPropertyFile(entry.path)
-                            wikiUser = WikiUser.ofDict(config, lenient=lenient)
-                            wikiUsers[wikiUser.wikiId] = wikiUser
-                        except Exception as ex:
-                            print("error in %s: %s" % (entry.path, str(ex)))
+            for entry in os.scandir(iniPath):
+                if entry.name.endswith(".ini") and entry.is_file():
+                    try:
+                        config = cls.readPropertyFile(entry.path)
+                        wikiUser = cls.ofDict(config, lenient=lenient)
+                        wikiUsers[wikiUser.wikiId] = wikiUser
+                    except Exception as ex:
+                        print(f"error in {entry.path}: {str(ex)}")
         return wikiUsers
 
     @classmethod
-    def getFields(cls, encrypted=True):
-        result = []
-        for field in cls.fields:
-            if encrypted or not field.encrypted:
-                if not field.for_password or encrypted:
-                    result.append(field.name)
-        return result
+    def ofDict(cls, userDict:dict, encrypted=True, lenient=False, encrypt=True):
+        """
+        create a WikiUser from the given dictionary
 
-    @staticmethod
-    def ofDict(userDict, encrypted=True, lenient=False, encrypt=True):
-        wikiUser = WikiUser()
-        # fix http\: entries from Java created entries
+        Args:
+        userDict (dict): dictionary with WikiUser properties
+        encrypted(bool): if True the password is encrypted in the dict
+        lenient (bool): if True ignore missing fields
+        encrypt (bool): if True encrypt the password (if not encrypted yet)
+
+        Returns:
+        WikiUser: the WikiUser created from the dictionary
+        """
         if "url" in userDict and userDict["url"] is not None:
             userDict["url"] = userDict["url"].replace("\:", ":")
 
-        for field in WikiUser.getFields(encrypted):
-            if field in userDict:
-                wikiUser.__dict__[field] = userDict[field]
-            else:
-                if not lenient:
-                    raise Exception(f"{field} missing")
-        if not encrypted and encrypt:
-            wikiUser.encrypt()
+        is_encrypted = 'password' not in userDict
+
+        if encrypted != is_encrypted and not lenient:
+            raise Exception("Encryption state mismatch")
+
+        for field in fields(WikiUserData):
+            if field.name not in userDict and not lenient:
+                if field.default is None:
+                    if is_encrypted and field.name in ['cypher', 'secret', 'salt']:
+                        raise Exception(f"{field.name} missing for encrypted data")
+                    elif field.name not in ['cypher', 'secret', 'salt', 'password', 'encrypted']:
+                        raise Exception(f"{field.name} missing")
+
+        wikiUser = cls(**userDict)
+        if not is_encrypted and encrypt:
+            wikiUser.encrypt(wikiUser.password)
         return wikiUser
 
 
-__version__ = Version.version
-__date__ = Version.date
-__updated__ = Version.updated
-DEBUG = False
-
-
-def main(argv=None):  # IGNORE:C0111
-    """
-    WikiUser credential handling
-    """
-
-    if argv is None:
-        argv = sys.argv[1:]
-
-    program_name = os.path.basename(sys.argv[0])
-    program_version = "v%s" % __version__
-    program_build_date = str(__updated__)
-    program_version_message = "%%(prog)s %s (%s)" % (
-        program_version,
-        program_build_date,
-    )
-    program_shortdesc = "WikiUser credential handling"
-    user_name = "Wolfgang Fahl"
-
-    program_license = """%s
-
-  Created by %s on %s.
-  Copyright 2020-2024 Wolfgang Fahl. All rights reserved.
-
-  Licensed under the Apache License 2.0
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Distributed on an "AS IS" basis without warranties
-  or conditions of any kind, either express or implied.
-
-USAGE
-""" % (
-        program_shortdesc,
-        user_name,
-        str(__date__),
-    )
-
-    try:
-        # Setup argument parser
-        parser = ArgumentParser(
-            description=program_license, formatter_class=RawDescriptionHelpFormatter
-        )
-        parser.add_argument(
-            "-d",
-            "--debug",
-            dest="debug",
-            action="count",
-            help="set debug level [default: %(default)s]",
-        )
-        parser.add_argument(
-            "-V", "--version", action="version", version=program_version_message
-        )
-        parser.add_argument("-i", "--interactive", action="store_true")
-        parser.add_argument("-e", "--email", dest="email", help="email of the user")
-        parser.add_argument("-f", "--file", dest="filePath", help="ini-file path")
-        parser.add_argument("-l", "--url", dest="url", help="url of the wiki")
-        parser.add_argument(
-            "-s",
-            "--scriptPath",
-            dest="scriptPath",
-            help="script path default: %(default)s)",
-            default="",
-        )
-        parser.add_argument("-p", "--password", dest="password", help="password")
-        parser.add_argument(
-            "-u",
-            "--user",
-            dest="user",
-            help="os user id default: %(default)s)",
-            default=getpass.getuser(),
-        )
-        parser.add_argument(
-            "-v",
-            "--wikiVersion",
-            dest="version",
-            default="MediaWiki 1.39.1",
-            help="version of the wiki default: %(default)s)",
-        )
-        parser.add_argument("-w", "--wikiId", dest="wikiId", help="wiki Id")
-        parser.add_argument("--smw",dest="is_smw",default="true",help="is this a semantic mediawiki?")
-        parser.add_argument(
-            "-y",
-            "--yes",
-            dest="yes",
-            action="store_true",
-            help="immediately store without asking",
-        )
-        # Process arguments
-        args = parser.parse_args(argv)
-        argsDict = vars(args)
-        wikiuser = WikiUser.ofDict(
-            argsDict, encrypted=False, lenient=True, encrypt=False
-        )
-        wikiuser.interactiveSave(args.yes, args.interactive, args.filePath)
-
-    except KeyboardInterrupt:
-        ### handle keyboard interrupt ###
-        return 1
-    except Exception as e:
-        if DEBUG:
-            raise (e)
-        indent = len(program_name) * " "
-        sys.stderr.write(program_name + ": " + repr(e) + "\n")
-        sys.stderr.write(indent + "  for help use --help")
-        if args.debug:
-            print(traceback.format_exc())
-        return 2
-
-
-if __name__ == "__main__":
-    if DEBUG:
-        sys.argv.append("-d")
-    sys.exit(main())
