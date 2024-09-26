@@ -9,12 +9,12 @@ import unittest
 from contextlib import redirect_stdout
 from io import StringIO
 
-from tests.base_wiki_test import BaseSmwTest
+from tests.base_wiki_test import BaseWikiTest
 from wikibot3rd.wikiclient import WikiClient
 from wikibot3rd.wikipush import WikiPush, mainQuery
 
 
-class TestWikiQuery(BaseSmwTest):
+class TestWikiQuery(BaseWikiTest):
     """
     tests for https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/56
     """

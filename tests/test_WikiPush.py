@@ -11,11 +11,11 @@ import warnings
 from contextlib import redirect_stdout
 
 import wikibot3rd
-from tests.basetest import BaseTest
+from tests.base_wiki_test import BaseWikiTest
 from wikibot3rd.wikipush import WikiPush
 
 
-class TestWikiPush(BaseTest):
+class TestWikiPush(BaseWikiTest):
     """
     test pushing pages including images
     """
