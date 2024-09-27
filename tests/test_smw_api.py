@@ -68,7 +68,7 @@ class TestSMW(BaseWikiTest):
         if self.inPublicCI():
             return [smwclient]
         else:
-            return [smwbot, smwclient]
+            return [smwclient,smwbot]
 
     def testGetEvents(self):
         """text for issue #6 https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/6"""
@@ -658,7 +658,7 @@ class TestSMW(BaseWikiTest):
         """
         test allowing count queries
         """
-        smw = self.getSMWs("smwcopy")[1]
+        smw = self.getSMWs("smwcopy")[0]
         askQuery = """{{#ask: [[Modification date::+]]
 |format=count
 }}"""
