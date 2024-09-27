@@ -77,6 +77,8 @@ class WikiBot(Wiki):
         o = urlparse(self.url)
         self.scheme = o.scheme
         self.netloc = o.netloc
+        if self.debug:
+            print(f"netloc for famil {self.family} is {self.netloc}")
         self.scriptPath = o.path + self.scriptPath
         self.checkFamily()
         if withLogin:
