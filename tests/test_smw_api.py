@@ -56,11 +56,11 @@ class TestSMW(BaseWikiTest):
             print(concept)
         self.assertEqual(concept, "Semantic MediaWiki Cons 2012")
 
-    def getSMWs(self, wikiId="smwcopy"):
+    def getSMWs(self, wikiId="smwcopy",debug:bool=False):
         """get the alternative SMW access instances for the given wiki id"""
         wikiuser = self.getSMW_WikiUser(wikiId)
-        wikibot = WikiBot.ofWikiUser(wikiuser)
-        wikiclient = WikiClient.ofWikiUser(wikiuser)
+        wikibot = WikiBot.ofWikiUser(wikiuser,debug=debug)
+        wikiclient = WikiClient.ofWikiUser(wikiuser,debug=debug)
         smwbot = SMWBot(wikibot.site)
         # https://github.com/wikimedia/pywikibot/blob/master/pywikibot/config.py#L719
         smwclient = SMWClient(wikiclient.getSite())
@@ -281,7 +281,7 @@ class TestSMW(BaseWikiTest):
                 prop,
                 prop,
             )
-            for smw in self.getSMWs("smwcopy"):
+            for smw in self.getSMWs("smwcopy",debug=debug):
                 result = self.getAskResult(smw, ask)
                 if debug:
                     print(f"{prop}: {result}")

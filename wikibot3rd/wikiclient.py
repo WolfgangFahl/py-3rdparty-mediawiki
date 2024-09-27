@@ -243,7 +243,7 @@ class WikiClient(Wiki):
         wiki_id: str, lenient: bool = True, debug: bool = False
     ) -> "WikiClient":
         """Deprecated: Use of_wiki_id instead."""
-        return WikiClient.of_wiki_id(wiki_id, lenient, debug)
+        return WikiClient.of_wiki_id(wiki_id, lenient=lenient, debug=debug)
 
     @staticmethod
     def of_wiki_user(wiki_user: WikiUser) -> "WikiClient":

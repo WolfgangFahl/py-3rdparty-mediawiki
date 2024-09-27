@@ -44,14 +44,15 @@ class WikiBot(Wiki):
         return bots
 
     @staticmethod
-    def ofWikiId(wikiId, lenient=True, debug=False):
+    def ofWikiId(wikiId, lenient:bool=True, debug:bool=False):
         wikiUser = WikiUser.ofWikiId(wikiId, lenient=lenient)
         wikibot = WikiBot(wikiUser, debug=debug)
         return wikibot
 
     @staticmethod
-    def ofWikiUser(wikiUser):
+    def ofWikiUser(wikiUser,debug:bool=False):
         wikibot = WikiBot(wikiUser)
+        wikibot.debug=debug
         return wikibot
 
     def __init__(
