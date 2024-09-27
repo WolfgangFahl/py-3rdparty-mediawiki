@@ -20,7 +20,7 @@ import traceback
 import typing
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, Optional, Tuple
 
 from git import Repo
 from lodstorage.query import Query
@@ -197,16 +197,55 @@ class WikiPush(object):
             pageRecords = self.query_via_mw_api(askQuery, wiki, limit=limit)
         return pageRecords
 
+    def extract_category_and_mainlabel(self,
+            askQuery: str,
+            category_labels: List[str] =  ['Category', 'Kategorie', 'Catégorie', 'Categoría']
+        ) -> Optional[Tuple[str, Optional[str]]]:
+        """
+        Extracts the category pattern and mainlabel from a MediaWiki query, supporting multiple language labels.
+
+        Args:
+            askQuery (str): The query string to be processed.
+            category_labels (List[str], optional): A list of category labels in different languages
+                                                   (default: ['Category', 'Kategorie', 'Catégorie', 'Categoría']).
+
+        Returns:
+            Optional[Tuple[str, Optional[str]]]: A tuple containing the category pattern and
+            the mainlabel if present. Returns None if the query does not match a category pattern.
+        """
+        # Join the list of category labels into a regex pattern
+        labels_pattern = "|".join(re.escape(label) for label in category_labels)
+
+        # Regex to match category queries in specified languages and optionally a mainlabel
+        pattern = rf"\[\[\s*(?:{labels_pattern})\s*:\s*([^\]]+)\s*\]\](?:\s*\|\s*mainlabel\s*=\s*([^\|]+))?"
+        match = re.match(pattern, askQuery.strip())
+
+        if match:
+            category = match.group(1).strip()  # Extract the category pattern
+            mainlabel = match.group(2).strip() if match.group(2) else None  # Extract the mainlabel if present
+            return category, mainlabel
+
+        return None
+
+
     def query_via_mw_api(self, askQuery: str, wiki, limit: int = None) -> Dict:
         # Handle non-SMW wiki (assuming category query)
-        category = askQuery.strip("[]").split(":")[1]
+        category, _ = self.extract_category_and_mainlabel(askQuery)
+        if not category:
+            err_msg=f"non SMW wiki has limited query support ([[Category:+]] and [[Category:someCategory only]] your query: {askQuery} is not supported"
+            raise ValueError(err_msg)
         site = wiki.getSite()
-        pageRecords = {}
-        for page in site.categories[category]:
-            if limit and len(pageRecords) >= limit:
+        # result dict
+        page_records = {}
+        if category == '+':
+            q_page_records=site.allcategories()
+        else:
+            q_page_records=site.categories[category]
+        for page in q_page_records:
+            if limit and len(page_records) >= limit:
                 break
-            pageRecords[page.name] = {"pageTitle": page.name}
-        return pageRecords
+            page_records[page.name] = {"pageTitle": page.name}
+        return page_records
 
     def query(
         self,
