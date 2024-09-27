@@ -59,12 +59,16 @@ class TestSMW(BaseWikiTest):
     def getSMWs(self, wikiId="smwcopy",debug:bool=False):
         """get the alternative SMW access instances for the given wiki id"""
         wikiuser = self.getSMW_WikiUser(wikiId)
-        wikibot = WikiBot.ofWikiUser(wikiuser,debug=debug)
+        if not self.inPublicCI():
+            wikibot = WikiBot.ofWikiUser(wikiuser,debug=debug)
+            smwbot = SMWBot(wikibot.site)
         wikiclient = WikiClient.ofWikiUser(wikiuser,debug=debug)
-        smwbot = SMWBot(wikibot.site)
         # https://github.com/wikimedia/pywikibot/blob/master/pywikibot/config.py#L719
         smwclient = SMWClient(wikiclient.getSite())
-        return [smwbot, smwclient]
+        if self.inPublicCI():
+            return [smwclient]
+        else:
+            return [smwbot, smwclient]
 
     def testGetEvents(self):
         """text for issue #6 https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/6"""
