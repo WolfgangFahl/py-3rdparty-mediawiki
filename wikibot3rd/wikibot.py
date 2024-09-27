@@ -115,15 +115,18 @@ class Family(family.Family):
     }
     def scriptpath(self, code):
        return '%s'
-       
+
     def isPublic(self):
-        return %s   
-        
+        return %s
+
     def version(self, code):
-        return "%s"  # The MediaWiki version used. Very important in most cases. (contrary to documentation)   
+        return "%s"  # The MediaWiki version used. Very important in most cases. (contrary to documentation)
 
     def protocol(self, code):
        return '%s'
+
+    def ignore_certificate_error(self, code):
+       return True
 """
             mw_version = self.wikiUser.version.lower().replace("mediawiki ", "")
             ispublic = "False" if self.wikiUser.user is not None else "True"
