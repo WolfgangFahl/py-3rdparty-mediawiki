@@ -66,7 +66,7 @@ class BaseTest(TestCase):
         """
         are we running in a public Continuous Integration Environment?
         """
-        return getpass.getuser() in ["travis", "runner"]
+        return getpass.getuser() in ["travis", "runner", "wf"]
 
     def inPublicCI(self):
         return BaseTest.isInPublicCI()

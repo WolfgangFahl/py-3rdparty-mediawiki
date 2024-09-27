@@ -246,7 +246,7 @@ class WikiClient(Wiki):
         return WikiClient.of_wiki_id(wiki_id, lenient=lenient, debug=debug)
 
     @staticmethod
-    def of_wiki_user(wiki_user: WikiUser) -> "WikiClient":
+    def of_wiki_user(wiki_user: WikiUser,debug:bool=False) -> "WikiClient":
         """
         Create a WikiClient instance from a WikiUser object.
 
@@ -256,10 +256,10 @@ class WikiClient(Wiki):
         Returns:
             WikiClient: A WikiClient instance for the given WikiUser.
         """
-        wikibot = WikiClient(wiki_user)
+        wikibot = WikiClient(wiki_user,debug=debug)
         return wikibot
 
     @staticmethod
-    def ofWikiUser(wiki_user: WikiUser) -> "WikiClient":
+    def ofWikiUser(wiki_user: WikiUser,debug:bool=False) -> "WikiClient":
         """Deprecated: Use of_wiki_user instead."""
-        return WikiClient.of_wiki_user(wiki_user)
+        return WikiClient.of_wiki_user(wiki_user,debug=debug)

@@ -79,7 +79,7 @@ class WikiBot(Wiki):
         self.scheme = o.scheme
         self.netloc = o.netloc
         if self.debug:
-            print(f"netloc for famil {self.family} is {self.netloc}")
+            print(f"netloc for family {self.family} is {self.netloc}")
         self.scriptPath = o.path + self.scriptPath
         self.checkFamily()
         if withLogin:
