@@ -1,10 +1,10 @@
 import json
 
-from tests.basetest import BaseTest
+from tests.base_wiki_test import BaseWikiTest
 from wikibot3rd.pagehistory import PageHistory
 
 
-class TestPageHistory(BaseTest):
+class TestPageHistory(BaseWikiTest):
     """
     test querying the wiki api for the history of a page
     """
