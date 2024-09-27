@@ -6,12 +6,12 @@ Created on 2024-08-14
 
 import unittest
 
-from tests.basetest import BaseTest
+from tests.base_wiki_test import BaseWikiTest
 from wikibot3rd.wikiclient import WikiClient
 from wikibot3rd.wikipush import WikiPush
 
 
-class TestNonSMW(BaseTest):
+class TestNonSMW(BaseWikiTest):
     """
     Test functionality for non SemanticMediaWiki sites
     according to https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/104
@@ -20,7 +20,7 @@ class TestNonSMW(BaseTest):
     """
 
     def setUp(self, debug=False, profile=True):
-        BaseTest.setUp(self, debug=debug, profile=profile)
+        BaseWikiTest.setUp(self, debug=debug, profile=profile)
         self.wiki_id = "genealogy"
         self.category = "Kategorie:Adressbuch_in_der_Online-Erfassung/fertig"
 

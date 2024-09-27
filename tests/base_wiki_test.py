@@ -8,6 +8,7 @@ import os
 
 from tests.base_test_config import WikiConfig
 from tests.basetest import BaseTest
+from wikibot3rd.wikibot import WikiBot
 from wikibot3rd.wikiuser import WikiUser
 
 
@@ -58,3 +59,10 @@ class BaseWikiTest(BaseTest):
         else:
             wikiUser = WikiUser.ofWikiId(wikiId, lenient=True)
         return wikiUser
+
+    def getSMW_Wiki(self, wikiId="smw"):
+        wikiUser = self.getSMW_WikiUser(wikiId)
+        wikibot = None
+        if wikiUser is not None:
+            wikibot = WikiBot.ofWikiUser(wikiUser)
+        return wikibot

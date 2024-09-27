@@ -41,13 +41,6 @@ class TestWikiBot(BaseWikiTest):
         self.assertEqual(32, len(cypher))
         self.assertEqual(8, len(salt))
 
-    def getSMW_Wiki(self, wikiId="smw"):
-        wikiUser = self.getSMW_WikiUser(wikiId)
-        wikibot = None
-        if wikiUser is not None:
-            wikibot = WikiBot.ofWikiUser(wikiUser)
-        return wikibot
-
     def testWikiBotNoLogin(self):
         """
         test a wikibot3rd where no login is needed
