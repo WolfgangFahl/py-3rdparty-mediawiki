@@ -51,8 +51,7 @@ class WikiBot(Wiki):
 
     @staticmethod
     def ofWikiUser(wikiUser,debug:bool=False):
-        wikibot = WikiBot(wikiUser)
-        wikibot.debug=debug
+        wikibot = WikiBot(wikiUser,debug=debug)
         return wikibot
 
     def __init__(
