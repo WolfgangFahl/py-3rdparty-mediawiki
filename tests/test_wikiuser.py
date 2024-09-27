@@ -8,11 +8,11 @@ import os
 import tempfile
 
 import wikibot3rd.wikiuser_cmd
-from tests.base_wiki_test import BaseSmwTest
+from tests.base_wiki_test import BaseWikiTest
 from wikibot3rd.wikiuser import WikiUser
 
 
-class TestWikiUser(BaseSmwTest):
+class TestWikiUser(BaseWikiTest):
     """
     test for WikiUser handling e.g. credentials and parsing
     user info from Java properties compatible ini file
