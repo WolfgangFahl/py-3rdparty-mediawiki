@@ -162,6 +162,24 @@ class WikiUser(WikiUserData):
 
         return interactive_fields
 
+    def ask_password(self) -> str:
+        """
+        Ask the user for a password twice to ensure it is entered correctly.
+
+        Returns:
+            str: The confirmed password entered by the user.
+        """
+        while True:
+            password = getpass.getpass("Password (hidden): ")
+            if not password:
+                print("Password cannot be empty. Please enter a valid password.")
+                continue
+            confirm_password = getpass.getpass("Confirm Password (hidden): ")
+            if password == confirm_password:
+                return password
+            else:
+                print("Passwords do not match. Please try again.")
+
     def interactiveSave(
         self, yes: bool = False, interactive: bool = False, filePath=None
     ):
@@ -180,11 +198,18 @@ class WikiUser(WikiUserData):
             value = getattr(self, field.name)
             if interactive:
                 print(text)
-                inputMsg = f"{field.name} ({value}): "
-                inputValue = input(inputMsg)
-                if inputValue:
-                    setattr(self, field.name, inputValue)
-                    value = inputValue
+                if field.name == "password":
+                    # Ensure password is provided
+                    if not value:
+                        inputValue = self.ask_password()  # Ask for password twice
+                        self.encrypt(inputValue)  # Encrypt immediately after input
+                        value = "********"  # Placeholder for display purposes
+                else:
+                    inputMsg = f"{field.name} ({value}): "
+                    inputValue = input(inputMsg)
+                    if inputValue:
+                        setattr(self, field.name, inputValue)
+                        value = inputValue
             text += f"\n  {field.name}={value}"
         if not yes:
             answer = input(
@@ -192,7 +217,8 @@ class WikiUser(WikiUserData):
             )
             yes = "y" in answer or "yes" in answer
         if yes:
-            self.save(filePath)
+            ini_path=self.save(filePath)
+            print(f"wikiuser details available at {ini_path}")
 
     def __str__(self):
         return f"{self.user} {self.wikiId}"
@@ -234,9 +260,12 @@ class WikiUser(WikiUserData):
             )
         return cls.ofDict(config, lenient=lenient)
 
-    def save(self, iniFilePath=None):
+    def save(self, iniFilePath=None)->str:
         """
         save me to a propertyFile
+
+        Returns:
+            str: the path of the property file
         """
         if iniFilePath is None:
             iniPath = self.getIniPath()
@@ -251,6 +280,7 @@ class WikiUser(WikiUserData):
                 if value is not None:
                     content += f"{field.name}={value}\n"
             iniFile.write(content)
+        return iniFilePath
 
     @staticmethod
     def readPropertyFile(filepath, sep="=", comment_char="#") -> Dict[str, str]:
