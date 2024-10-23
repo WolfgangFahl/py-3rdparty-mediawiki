@@ -71,10 +71,12 @@ class Crypt(object):
         iv = result[8:16]
         return DES.new(key, DES.MODE_CBC, iv)
 
-    def encrypt(self, msg):
+    def encrypt(self, msg:str):
         """
         encrypt the given message
         """
+        if not msg:
+            ValueError("encrypt needs something to encrypt")
         plaintext_to_encrypt = msg
         # Pad plaintext per RFC 2898 Section 6.1
         padding = 8 - len(plaintext_to_encrypt) % 8
