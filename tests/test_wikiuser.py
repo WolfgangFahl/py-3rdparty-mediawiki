@@ -65,7 +65,9 @@ class TestWikiUser(BaseWikiTest):
                 ]
                 wikibot3rd.wikiuser_cmd.main(args)
         finally:
-            if self.debug:
+            debug=self.debug
+            debug=True
+            if debug:
                 print(open(path, "r").read())
             props = WikiUser.readPropertyFile(path)
             rUser = WikiUser.ofDict(props, encrypted=True)

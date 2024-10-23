@@ -98,6 +98,16 @@ class WikiUserData(WikiCredentials):
     email: str = None
     is_smw: bool = True
 
+    def __post_init__(self):
+        WikiCredentials.__post_init__(self)
+        if isinstance(self.is_smw, str):
+            normalized_value = self.is_smw.strip().lower()
+            if normalized_value in {"yes", "y", "true"}:
+                self.is_smw = True
+            elif normalized_value in {"no", "n", "false"}:
+                self.is_smw = False
+            else:
+                raise ValueError(f"Invalid value for is_smw: {self.is_smw}")
 
 @dataclass
 class WikiUser(WikiUserData):
@@ -294,7 +304,8 @@ class WikiUser(WikiUserData):
         WikiUser: the WikiUser created from the dictionary
         """
         if "url" in userDict and userDict["url"] is not None:
-            userDict["url"] = userDict["url"].replace("\:", ":")
+            # fix broken escapes e.g. http\://waihekepedia.bitplan.com
+            userDict["url"] = userDict["url"].replace(r"\:", ":")
 
         is_encrypted = "password" not in userDict
 

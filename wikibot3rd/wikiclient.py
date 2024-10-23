@@ -236,6 +236,7 @@ class WikiClient(Wiki):
         """
         wiki_user = WikiUser.ofWikiId(wiki_id, lenient=lenient)
         wikibot = WikiClient(wiki_user, debug=debug)
+        wikibot.is_smw_enabled=wiki_user.is_smw
         return wikibot
 
     @staticmethod
@@ -257,6 +258,7 @@ class WikiClient(Wiki):
             WikiClient: A WikiClient instance for the given WikiUser.
         """
         wikibot = WikiClient(wiki_user,debug=debug)
+        wikibot.is_smw_enabled=wiki_user.is_smw
         return wikibot
 
     @staticmethod
