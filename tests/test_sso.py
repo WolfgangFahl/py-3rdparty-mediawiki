@@ -8,17 +8,17 @@ import os
 
 import yaml
 
-from tests.basetest import BaseTest
+from tests.base_wiki_test import BaseWikiTest
 from wikibot3rd.sso import SSO
 
 
-class TestSSO(BaseTest):
+class TestSSO(BaseWikiTest):
     """
     test single sign on
     """
 
     def setUp(self, debug=False, profile=True):
-        BaseTest.setUp(self, debug=debug, profile=profile)
+        BaseWikiTest.setUp(self, debug=debug, profile=profile)
         if not self.inPublicCI():
             db_username, db_password = self.get_credentials()
             self.sso = SSO(
@@ -66,7 +66,7 @@ class TestSSO(BaseTest):
             user = self.sso.get_user(self.wiki_user.user)
             yaml_str = user.to_yaml()
             debug = self.debug
-            # debug=True
+            #debug=True
             if debug:
                 print(yaml_str)
 
