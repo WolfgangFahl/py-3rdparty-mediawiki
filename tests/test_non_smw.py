@@ -38,7 +38,7 @@ class TestNonSMW(BaseWikiTest):
         Example: https://wiki.genealogy.net/Kategorie:Adressbuch_in_der_Online-Erfassung/fertig
         """
         debug=self.debug
-        debug=True
+        #debug=True
         wikipush = WikiPush(self.wiki_id, None, debug=self.debug)
         wikipush.fromWiki = self.wiki_client
 
@@ -62,7 +62,7 @@ class TestNonSMW(BaseWikiTest):
                 for i,page_title in enumerate(pages,start=1):
                     if i<=debug_pages:
                         print(f"{i:3}:{page_title}")
-            self.assertTrue(len(pages) >= expected_pages)
+            self.assertGreaterEqual(len(pages),expected_pages)
 
 
 if __name__ == "__main__":

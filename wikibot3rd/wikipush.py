@@ -184,6 +184,9 @@ class WikiPush(object):
         """
         if wiki is None:
             wiki = self.fromWiki
+        # no wiki no pages e.g. if wikirestore is used without a -s option
+        if wiki is None:
+            pageRecords=[]
 
         if wiki.is_smw_enabled:
             smwClient = SMWClient(
@@ -268,9 +271,6 @@ class WikiPush(object):
         Returns:
             list: a list of pageTitles matching the given askQuery
         """
-        # no wiki no pages e.g. if wikirestore is used without a -s option
-        if wiki is None:
-            return []
         pageRecords = self.queryPages(
             askQuery, wiki, limit, showProgress, queryDivision
         )
