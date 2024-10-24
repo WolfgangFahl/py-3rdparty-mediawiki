@@ -47,7 +47,8 @@ class WikiCredentials:
         Returns:
             bool: True if the credentials are encrypted, False otherwise.
         """
-        return self.password is None
+        encrypted = self.cypher is not None
+        return encrypted
 
     def encrypt(self, password: str):
         """
@@ -93,7 +94,7 @@ class WikiUserData(WikiCredentials):
     wikiId: str = None
     url: str = None
     scriptPath: str = ""
-    version: str = "MediaWiki 1.39.1"
+    version: str = "MediaWiki 1.39.10"
     user: str = None
     email: str = None
     is_smw: bool = True
@@ -337,7 +338,8 @@ class WikiUser(WikiUserData):
             # fix broken escapes e.g. http\://waihekepedia.bitplan.com
             userDict["url"] = userDict["url"].replace(r"\:", ":")
 
-        is_encrypted = "password" not in userDict
+        # is the password currently encrypted?
+        is_encrypted = userDict.get("cypher") is not None
 
         if encrypted != is_encrypted and not lenient:
             raise Exception("Encryption state mismatch")
@@ -363,6 +365,6 @@ class WikiUser(WikiUserData):
                             err_msg += f"\n{field.name} missing"
         if err_msg:
             raise Exception(err_msg)
-        if not is_encrypted and encrypt:
+        if encrypt and not wikiUser.encrypted:
             wikiUser.encrypt(wikiUser.password)
         return wikiUser
