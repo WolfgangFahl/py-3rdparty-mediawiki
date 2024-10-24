@@ -50,6 +50,11 @@ class WikiCredentials:
         encrypted = self.cypher is not None
         return encrypted
 
+    @property
+    def needs_encrypt(self)->bool:
+        needs_encrypt=self.password is not None and not self.encrypted
+        return needs_encrypt
+
     def encrypt(self, password: str):
         """
         Encrypt the given password
@@ -365,6 +370,7 @@ class WikiUser(WikiUserData):
                             err_msg += f"\n{field.name} missing"
         if err_msg:
             raise Exception(err_msg)
-        if encrypt and not wikiUser.encrypted:
+
+        if encrypt and wikiUser.needs_encrypt:
             wikiUser.encrypt(wikiUser.password)
         return wikiUser
