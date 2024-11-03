@@ -903,7 +903,6 @@ class WikiPush(object):
 __version__ = Version.version
 __date__ = Version.date
 __updated__ = Version.updated
-DEBUG = False
 
 
 def mainNuke(argv=None):
@@ -971,13 +970,6 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
         # Setup argument parser
         parser = ArgumentParser(
             description=program_license, formatter_class=RawDescriptionHelpFormatter
-        )
-        parser.add_argument(
-            "-d",
-            "--debug",
-            dest="debug",
-            action="store_true",
-            help="set debug level [default: %(default)s]",
         )
         parser.add_argument(
             "-V", "--version", action="version", version=program_version_message
@@ -1364,8 +1356,6 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
         ### handle keyboard interrupt ###
         return 1
     except Exception as e:
-        if DEBUG:
-            raise (e)
         indent = len(program_name) * " "
         sys.stderr.write(program_name + ": " + repr(e) + "\n")
         sys.stderr.write(indent + "  for help use --help")
@@ -1375,6 +1365,4 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
 
 
 if __name__ == "__main__":
-    if DEBUG:
-        sys.argv.append("-d")
     sys.exit(mainPush())
