@@ -1,6 +1,6 @@
 from tests.basetest import BaseTest
-from wikibot3rd.wikitext import WikiSON
-
+from wikibot3rd.wikitext import WikiSON, WikiMarkup
+import mwclient
 
 class TestWikiSON(BaseTest):
     """
@@ -110,3 +110,30 @@ class TestWikiSON(BaseTest):
                 entity_type, markup = test_param
                 wikison = WikiSON("test page", markup)
                 self.assertRaises(Exception, wikison.get, entity_type)
+
+    def test_issue_111(self):
+        """
+        test add --template option to wikiquery
+
+        """
+        # Create a site object
+        site = mwclient.Site('en.wikipedia.org')
+
+        page_title='John Adams'
+        template="Infobox officeholder"
+        # Get the page
+        page = site.pages[page_title]
+
+        # Get the markup
+        markup = page.text()
+        debug=self.debug
+        if debug:
+            print(markup)
+        # Create WikiSON instance
+        wikison = WikiSON(page_title, markup)
+
+        # Get the Infobox officeholder template
+        infobox_data = wikison.get(template)
+        if debug:
+            print(infobox_data)
+        self.assertTrue(page_title,infobox_data.get("name"))

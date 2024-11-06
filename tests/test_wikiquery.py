@@ -169,6 +169,35 @@ class TestWikiQuery(BaseWikiTest):
         if self.debug:
             print(lod_res)
 
+    def test_issue111(self):
+        """
+        test https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/111
+        add --template option to wikiquery
+        """
+        self.getSMW_WikiUser("wikipedia_en")
+        argv = [
+            "-d",
+            "-s",
+            "wikipedia_en",
+            "-q",
+            "[[Category:Presidents_of_the_United_States]]",
+            "--template",
+            "Infobox officeholder",
+            "--limit",
+            "6",
+            "--format",
+            "json",
+        ]
+        mystdout = StringIO()
+        with redirect_stdout(mystdout):
+            mainQuery(argv)
+        res = mystdout.getvalue()
+        if self.debug:
+            print(res)
+        records=json.loads(res)
+        pass
+
+
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

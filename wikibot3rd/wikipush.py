@@ -93,6 +93,41 @@ class WikiPush(object):
         if self.verbose:
             print(msg, end=end)
 
+    def extract_template_records(self, pageRecords, template: str) -> list:
+        """
+        Extract template records from the given pageRecords using batch page retrieval.
+
+        Args:
+            pageRecords (dict): Dictionary with page titles as keys
+            template (str): Name of the template to extract (e.g., "Infobox officeholder")
+
+        Returns:
+            list[dict]: List of template records, where each record is a dictionary
+                       containing the template parameters. Returns None for pages
+                       where the template is not found.
+
+        Example:
+            >>> pageRecords = {"John Adams": {}, "Thomas Jefferson": {}}
+            >>> records = extract_template_records(pageRecords, "Infobox officeholder")
+        """
+        dod={}
+        page_titles=list(pageRecords.keys())
+        # Get multiple pages at once
+        site=self.fromWiki.get_site()
+        # Process each page
+        for page_title in page_titles:
+            try:
+                page = site.pages[page_title]
+                markup = page.text()
+                wikison = WikiSON(page.name, markup)
+                record = wikison.get(template)
+                if record is not None:
+                    dod[page_title]=record
+            except Exception as ex:
+                # @FIXME - handle errors properly
+                pass
+        return dod
+
     def formatQueryResult(
         self,
         askQuery,
@@ -107,7 +142,7 @@ class WikiPush(object):
         """
         format the query result for the given askQuery.
         Args:
-             askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
+            askQuery(string): Semantic Media Wiki in line query https://www.semantic-mediawiki.org/wiki/Help:Inline_queries
             wiki(wikibot3rd): the wiki to query - use fromWiki if not specified
             limit(int): the limit for the query (optional)
             showProgress(bool): true if progress of the query retrieval should be indicated (default: one dot per 50 records ...)
@@ -122,6 +157,9 @@ class WikiPush(object):
         pageRecords = self.queryPages(
             askQuery, wiki, limit, showProgress, queryDivision
         )
+        if self.args.template:
+            pageRecords=self.extract_template_records(pageRecords,template=self.args.template)
+            pass
         outputFormat = outputFormat.lower()
         if outputFormat == "csv":
             return self.convertToCSV(pageRecords)
@@ -1105,7 +1143,11 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
                 "--entityName",
                 dest="entityName",
                 default="data",
-                help="name of the entites that are queried - only needed for some output formats - default is 'data'",
+                help="name of the entities that are queried - only needed for some output formats - default is 'data'",
+            )
+            parser.add_argument(
+                "--template",
+                help="name of template to extract the data from - the query needs to have a pagetitle mainlabel and retrieve pages",
             )
         elif mode == "wikiupload":
             parser.add_argument(
@@ -1207,25 +1249,51 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
 
         if mode == "wikipush":
             wikipush = WikiPush(
-                args.source, args.target, login=args.login, debug=args.debug
+                args.source,
+                args.target,
+                login=args.login,
+                debug=args.debug
             )
             queryWiki = wikipush.fromWiki
         elif mode == "wikibackup":
-            wikipush = WikiPush(args.source, None, login=args.login, debug=args.debug)
+            wikipush = WikiPush(
+                args.source,
+                None,
+                login=args.login,
+                debug=args.debug
+            )
             queryWiki = wikipush.fromWiki
         elif mode == "wikiquery":
-            wikipush = WikiPush(args.source, None, login=args.login, debug=args.debug)
+            wikipush = WikiPush(
+                args.source,
+                None,
+                login=args.login,
+                debug=args.debug
+            )
             queryWiki = wikipush.fromWiki
         elif mode == "wikiupload":
-            wikipush = WikiPush(None, args.target, debug=args.debug)
+            wikipush = WikiPush(
+                None,
+                args.target,
+                debug=args.debug
+            )
         elif mode == "wikirestore":
             wikipush = WikiPush(
-                args.source, args.target, login=args.login, debug=args.debug
+                args.source,
+                args.target,
+                login=args.login,
+                debug=args.debug
             )
             queryWiki = wikipush.fromWiki
         else:
-            wikipush = WikiPush(None, args.target, debug=args.debug)
+            wikipush = WikiPush(
+                None,
+                args.target,
+                debug=args.debug
+            )
             queryWiki = wikipush.toWiki
+        # make the full args available to wikipush
+        wikipush.args=args
         if mode == "wikiupload":
             wikipush.upload(args.files, args.force)
         else:
