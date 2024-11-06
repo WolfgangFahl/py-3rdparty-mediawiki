@@ -18,7 +18,7 @@ import re
 import sys
 import traceback
 import typing
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -61,6 +61,7 @@ class WikiPush(object):
         """
         self.verbose = verbose
         self.debug = debug
+        self.args = Namespace()
         self.fromWiki = None
         self.toWiki = None
 
