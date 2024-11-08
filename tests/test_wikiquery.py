@@ -3,8 +3,9 @@ Created on 2021-02-16
 
 @author: wf
 """
-import re
+
 import json
+import re
 import unittest
 from contextlib import redirect_stdout
 from io import StringIO
@@ -192,17 +193,16 @@ class TestWikiQuery(BaseWikiTest):
         with redirect_stdout(mystdout):
             mainQuery(argv)
         text = mystdout.getvalue()
-        debug=self.debug
-        #debug=True
-        json_text = re.search(r'\{.*', text, re.DOTALL).group(0)
+        debug = self.debug
+        # debug=True
+        json_text = re.search(r"\{.*", text, re.DOTALL).group(0)
         if debug:
             print(json_text)
-        records=json.loads(json_text)
-        self.assertGreaterEqual(len(records["data"]),3)
+        records = json.loads(json_text)
+        self.assertGreaterEqual(len(records["data"]), 3)
         for record in records["data"]:
             self.assertIn("name", record)
         pass
-
 
 
 if __name__ == "__main__":

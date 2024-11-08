@@ -5,6 +5,7 @@ Created on 2021-02-16
 """
 
 import sys
+
 import wikibot3rd.wikipush
 
 if __name__ == "__main__":

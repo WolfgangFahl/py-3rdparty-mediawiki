@@ -66,7 +66,7 @@ class TestSSO(BaseWikiTest):
             user = self.sso.get_user(self.wiki_user.user)
             yaml_str = user.to_yaml()
             debug = self.debug
-            #debug=True
+            # debug=True
             if debug:
                 print(yaml_str)
 

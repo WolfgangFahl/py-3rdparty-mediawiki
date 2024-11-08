@@ -44,14 +44,14 @@ class WikiBot(Wiki):
         return bots
 
     @staticmethod
-    def ofWikiId(wikiId, lenient:bool=True, debug:bool=False):
+    def ofWikiId(wikiId, lenient: bool = True, debug: bool = False):
         wikiUser = WikiUser.ofWikiId(wikiId, lenient=lenient)
         wikibot = WikiBot(wikiUser, debug=debug)
         return wikibot
 
     @staticmethod
-    def ofWikiUser(wikiUser,debug:bool=False):
-        wikibot = WikiBot(wikiUser,debug=debug)
+    def ofWikiUser(wikiUser, debug: bool = False):
+        wikibot = WikiBot(wikiUser, debug=debug)
         return wikibot
 
     def __init__(
@@ -77,7 +77,7 @@ class WikiBot(Wiki):
         o = urlparse(self.url)
         self.scheme = o.scheme
         self.netloc = o.netloc
-        msg=f"netloc for family {self.family} is {self.netloc} derived from url {self.url}"
+        msg = f"netloc for family {self.family} is {self.netloc} derived from url {self.url}"
         if self.debug:
             print(msg)
         self.scriptPath = o.path + self.scriptPath

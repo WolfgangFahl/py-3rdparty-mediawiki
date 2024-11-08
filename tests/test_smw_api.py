@@ -56,19 +56,19 @@ class TestSMW(BaseWikiTest):
             print(concept)
         self.assertEqual(concept, "Semantic MediaWiki Cons 2012")
 
-    def getSMWs(self, wikiId="smwcopy",debug:bool=False):
+    def getSMWs(self, wikiId="smwcopy", debug: bool = False):
         """get the alternative SMW access instances for the given wiki id"""
         wikiuser = self.getSMW_WikiUser(wikiId)
         if not self.inPublicCI():
-            wikibot = WikiBot.ofWikiUser(wikiuser,debug=debug)
+            wikibot = WikiBot.ofWikiUser(wikiuser, debug=debug)
             smwbot = SMWBot(wikibot.site)
-        wikiclient = WikiClient.ofWikiUser(wikiuser,debug=debug)
+        wikiclient = WikiClient.ofWikiUser(wikiuser, debug=debug)
         # https://github.com/wikimedia/pywikibot/blob/master/pywikibot/config.py#L719
         smwclient = SMWClient(wikiclient.getSite())
         if self.inPublicCI():
             return [smwclient]
         else:
-            return [smwclient,smwbot]
+            return [smwclient, smwbot]
 
     def testGetEvents(self):
         """text for issue #6 https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/6"""
@@ -285,7 +285,7 @@ class TestSMW(BaseWikiTest):
                 prop,
                 prop,
             )
-            for smw in self.getSMWs("smwcopy",debug=debug):
+            for smw in self.getSMWs("smwcopy", debug=debug):
                 result = self.getAskResult(smw, ask)
                 if debug:
                     print(f"{prop}: {result}")

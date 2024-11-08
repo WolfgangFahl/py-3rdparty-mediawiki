@@ -31,7 +31,7 @@ from wikibot3rd.selector import Selector
 from wikibot3rd.smw import SMWClient
 from wikibot3rd.version import Version
 from wikibot3rd.wikiclient import WikiClient
-from wikibot3rd.wikitext import WikiSON,WikiMarkup
+from wikibot3rd.wikitext import WikiMarkup, WikiSON
 
 
 class WikiPush(object):
@@ -62,7 +62,7 @@ class WikiPush(object):
         self.verbose = verbose
         self.debug = debug
         self.args = Namespace()
-        self.args.template=None
+        self.args.template = None
         self.fromWiki = None
         self.toWiki = None
 
@@ -112,10 +112,10 @@ class WikiPush(object):
             >>> pageRecords = {"John Adams": {}, "Thomas Jefferson": {}}
             >>> records = extract_template_records(pageRecords, "Infobox officeholder")
         """
-        dod={}
-        page_titles=list(pageRecords.keys())
+        dod = {}
+        page_titles = list(pageRecords.keys())
         # Get multiple pages at once
-        site=self.fromWiki.get_site()
+        site = self.fromWiki.get_site()
         # Process each page
         for page_title in page_titles:
             try:
@@ -162,7 +162,9 @@ class WikiPush(object):
             askQuery, wiki, limit, showProgress, queryDivision
         )
         if self.args.template:
-            pageRecords=self.extract_template_records(pageRecords,template=self.args.template)
+            pageRecords = self.extract_template_records(
+                pageRecords, template=self.args.template
+            )
             pass
         outputFormat = outputFormat.lower()
         if outputFormat == "csv":
@@ -228,7 +230,7 @@ class WikiPush(object):
             wiki = self.fromWiki
         # no wiki no pages e.g. if wikirestore is used without a -s option
         if wiki is None:
-            pageRecords=[]
+            pageRecords = []
 
         if wiki.is_smw_enabled:
             smwClient = SMWClient(
@@ -242,10 +244,16 @@ class WikiPush(object):
             pageRecords = self.query_via_mw_api(askQuery, wiki, limit=limit)
         return pageRecords
 
-    def extract_category_and_mainlabel(self,
-            askQuery: str,
-            category_labels: List[str] =  ['Category', 'Kategorie', 'Catégorie', 'Categoría']
-        ) -> Optional[Tuple[str, Optional[str]]]:
+    def extract_category_and_mainlabel(
+        self,
+        askQuery: str,
+        category_labels: List[str] = [
+            "Category",
+            "Kategorie",
+            "Catégorie",
+            "Categoría",
+        ],
+    ) -> Optional[Tuple[str, Optional[str]]]:
         """
         Extracts the category pattern and mainlabel from a MediaWiki query, supporting multiple language labels.
 
@@ -267,25 +275,26 @@ class WikiPush(object):
 
         if match:
             category = match.group(1).strip()  # Extract the category pattern
-            mainlabel = match.group(2).strip() if match.group(2) else None  # Extract the mainlabel if present
+            mainlabel = (
+                match.group(2).strip() if match.group(2) else None
+            )  # Extract the mainlabel if present
             return category, mainlabel
 
         return None
-
 
     def query_via_mw_api(self, askQuery: str, wiki, limit: int = None) -> Dict:
         # Handle non-SMW wiki (assuming category query)
         category, _ = self.extract_category_and_mainlabel(askQuery)
         if not category:
-            err_msg=f"non SMW wiki has limited query support ([[Category:+]] and [[Category:someCategory only]] your query: {askQuery} is not supported"
+            err_msg = f"non SMW wiki has limited query support ([[Category:+]] and [[Category:someCategory only]] your query: {askQuery} is not supported"
             raise ValueError(err_msg)
         site = wiki.getSite()
         # result dict
         page_records = {}
-        if category == '+':
-            q_page_records=site.allcategories()
+        if category == "+":
+            q_page_records = site.allcategories()
         else:
-            q_page_records=site.categories[category]
+            q_page_records = site.categories[category]
         for page in q_page_records:
             if limit and len(page_records) >= limit:
                 break
@@ -1253,51 +1262,27 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
 
         if mode == "wikipush":
             wikipush = WikiPush(
-                args.source,
-                args.target,
-                login=args.login,
-                debug=args.debug
+                args.source, args.target, login=args.login, debug=args.debug
             )
             queryWiki = wikipush.fromWiki
         elif mode == "wikibackup":
-            wikipush = WikiPush(
-                args.source,
-                None,
-                login=args.login,
-                debug=args.debug
-            )
+            wikipush = WikiPush(args.source, None, login=args.login, debug=args.debug)
             queryWiki = wikipush.fromWiki
         elif mode == "wikiquery":
-            wikipush = WikiPush(
-                args.source,
-                None,
-                login=args.login,
-                debug=args.debug
-            )
+            wikipush = WikiPush(args.source, None, login=args.login, debug=args.debug)
             queryWiki = wikipush.fromWiki
         elif mode == "wikiupload":
-            wikipush = WikiPush(
-                None,
-                args.target,
-                debug=args.debug
-            )
+            wikipush = WikiPush(None, args.target, debug=args.debug)
         elif mode == "wikirestore":
             wikipush = WikiPush(
-                args.source,
-                args.target,
-                login=args.login,
-                debug=args.debug
+                args.source, args.target, login=args.login, debug=args.debug
             )
             queryWiki = wikipush.fromWiki
         else:
-            wikipush = WikiPush(
-                None,
-                args.target,
-                debug=args.debug
-            )
+            wikipush = WikiPush(None, args.target, debug=args.debug)
             queryWiki = wikipush.toWiki
         # make the full args available to wikipush
-        wikipush.args=args
+        wikipush.args = args
         if mode == "wikiupload":
             wikipush.upload(args.files, args.force)
         else:

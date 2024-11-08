@@ -71,7 +71,7 @@ class Crypt(object):
         iv = result[8:16]
         return DES.new(key, DES.MODE_CBC, iv)
 
-    def encrypt(self, msg:str):
+    def encrypt(self, msg: str):
         """
         encrypt the given message
         """

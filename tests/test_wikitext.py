@@ -1,6 +1,8 @@
-from tests.basetest import BaseTest
-from wikibot3rd.wikitext import WikiSON, WikiMarkup
 import mwclient
+
+from tests.basetest import BaseTest
+from wikibot3rd.wikitext import WikiMarkup, WikiSON
+
 
 class TestWikiSON(BaseTest):
     """
@@ -117,16 +119,16 @@ class TestWikiSON(BaseTest):
 
         """
         # Create a site object
-        site = mwclient.Site('en.wikipedia.org')
+        site = mwclient.Site("en.wikipedia.org")
 
-        page_title='John Adams'
-        template="Infobox officeholder"
+        page_title = "John Adams"
+        template = "Infobox officeholder"
         # Get the page
         page = site.pages[page_title]
 
         # Get the markup
         markup = page.text()
-        debug=self.debug
+        debug = self.debug
         if debug:
             print(markup)
         # Create WikiSON instance
@@ -136,4 +138,4 @@ class TestWikiSON(BaseTest):
         infobox_data = wikison.get(template)
         if debug:
             print(infobox_data)
-        self.assertTrue(page_title,infobox_data.get("name"))
+        self.assertTrue(page_title, infobox_data.get("name"))

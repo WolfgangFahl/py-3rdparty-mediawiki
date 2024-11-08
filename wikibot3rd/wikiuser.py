@@ -51,8 +51,8 @@ class WikiCredentials:
         return encrypted
 
     @property
-    def needs_encrypt(self)->bool:
-        needs_encrypt=self.password is not None and not self.encrypted
+    def needs_encrypt(self) -> bool:
+        needs_encrypt = self.password is not None and not self.encrypted
         return needs_encrypt
 
     def encrypt(self, password: str):
@@ -114,6 +114,7 @@ class WikiUserData(WikiCredentials):
                 self.is_smw = False
             else:
                 raise ValueError(f"Invalid value for is_smw: {self.is_smw}")
+
 
 @dataclass
 class WikiUser(WikiUserData):
@@ -223,7 +224,7 @@ class WikiUser(WikiUserData):
             )
             yes = "y" in answer or "yes" in answer
         if yes:
-            ini_path=self.save(filePath)
+            ini_path = self.save(filePath)
             print(f"wikiuser details available at {ini_path}")
 
     def __str__(self):
@@ -266,7 +267,7 @@ class WikiUser(WikiUserData):
             )
         return cls.ofDict(config, lenient=lenient)
 
-    def save(self, iniFilePath=None)->str:
+    def save(self, iniFilePath=None) -> str:
         """
         save me to a propertyFile
 
