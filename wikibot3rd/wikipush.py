@@ -31,7 +31,7 @@ from wikibot3rd.selector import Selector
 from wikibot3rd.smw import SMWClient
 from wikibot3rd.version import Version
 from wikibot3rd.wikiclient import WikiClient
-from wikibot3rd.wikitext import WikiSON
+from wikibot3rd.wikitext import WikiSON,WikiMarkup
 
 
 class WikiPush(object):
@@ -62,6 +62,7 @@ class WikiPush(object):
         self.verbose = verbose
         self.debug = debug
         self.args = Namespace()
+        self.args.template=None
         self.fromWiki = None
         self.toWiki = None
 
@@ -120,12 +121,14 @@ class WikiPush(object):
             try:
                 page = site.pages[page_title]
                 markup = page.text()
-                wikison = WikiSON(page.name, markup)
-                record = wikison.get(template)
-                if record is not None:
-                    dod[page_title]=record
+                wiki_markup = WikiMarkup(page.name, markup)
+                records = wiki_markup.extract_template(template)
+                for i, record in enumerate(records):
+                    if record is not None:
+                        key = f"{page_title}/{i}" if i > 0 else page_title
+                        dod[key] = record
             except Exception as ex:
-                # @FIXME - handle errors properly
+                print(f"❌ {page_title}: {str(ex)}", file=sys.stderr)
                 pass
         return dod
 
