@@ -39,7 +39,9 @@ dependencies = [
 	# https://pypi.org/project/bcrypt/
 	"bcrypt>=4.1.2",
 	# https://pypi.org/project/shutup/
-	"shutup>=0.2.0"
+	"shutup>=0.2.0",
+	# https://pypi.org/project/tqdm/
+	"tqdm>=4.67.0"
 ]
 
 requires-python = ">=3.9"

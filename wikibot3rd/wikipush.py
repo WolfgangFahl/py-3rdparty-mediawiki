@@ -4,7 +4,7 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 """
-
+from tqdm import tqdm
 import shutup
 
 shutup.please()
@@ -117,7 +117,7 @@ class WikiPush(object):
         # Get multiple pages at once
         site = self.fromWiki.get_site()
         # Process each page
-        for page_title in page_titles:
+        for page_title in tqdm(page_titles, disable=not self.args.showProgress):
             try:
                 page = site.pages[page_title]
                 markup = page.text()
@@ -163,7 +163,8 @@ class WikiPush(object):
         )
         if self.args.template:
             pageRecords = self.extract_template_records(
-                pageRecords, template=self.args.template
+                pageRecords,
+                template=self.args.template
             )
             pass
         outputFormat = outputFormat.lower()
@@ -1147,6 +1148,9 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
                 "-s", "--source", dest="source", help="source wiki id", required=True
             )
             parser.add_argument(
+                "-o", "--output", help="output file path"
+            )
+            parser.add_argument(
                 "--format",
                 dest="format",
                 default="json",
@@ -1245,7 +1249,7 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
                 default=1,
                 dest="queryDivision",
                 type=int,
-                help="divide query into equidistant subintervals to limit the result size of the individual queries",
+                help="Divide the query into equidistant subintervals to limit the result size of the individual queries",
                 required=False,
             )
         if mode in ["wikiquery"]:
@@ -1315,7 +1319,11 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
                         title=args.title,
                     )
                     if formatedQueryResults:
-                        print(formatedQueryResults)
+                        if args.output:
+                            with open(args.output, 'w') as output_file:
+                                print(formatedQueryResults, file=output_file)
+                        else:
+                            print(formatedQueryResults)
                     else:
                         print(f"Format {args.format} is not supported.")
                 else:
