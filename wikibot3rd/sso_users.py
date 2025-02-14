@@ -5,11 +5,9 @@ Created on 2025-02-14
 """
 
 import os
-
 import yaml
-
+import logging
 from wikibot3rd.sso import SSO
-
 
 class Sso_Users:
     """
@@ -25,23 +23,37 @@ class Sso_Users:
             debug(bool): if True enable debug mode
         """
         self.debug = debug
+        self.is_available = False
         credentials_path = f"~/.solutions/{solution_name}/sso_credentials.yaml"
-        self.get_credentials(credentials_path=credentials_path)
-        self.sso = SSO(
-            self.server_url,
-            self.wiki_id,
-            db_username=self.db_username,
-            db_password=self.db_password,
-            debug=debug,
-        )
-        self.port_avail = self.sso.check_port()
+        try:
+            self.get_credentials(credentials_path=credentials_path)
+            self.sso = SSO(
+                self.server_url,
+                self.wiki_id,
+                db_username=self.db_username,
+                db_password=self.db_password,
+                debug=debug,
+            )
+            self.port_avail = self.sso.check_port()
+            self.is_available = True
+        except FileNotFoundError:
+            logging.warning(f"SSO credentials file not found at {credentials_path}")
+        except Exception as ex:
+            logging.warning(f"SSO initialization failed: {str(ex)}")
 
     def check_password(self, username: str, password: str) -> bool:
         """
         check the password
         """
-        is_valid = self.sso.check_credentials(username=username, password=password)
-        return is_valid
+        if not self.is_available:
+            logging.error(f"Password check failed for user {username}: SSO not available")
+            return False
+        try:
+            is_valid = self.sso.check_credentials(username=username, password=password)
+            return is_valid
+        except Exception as ex:
+            logging.error(f"Password check failed for user {username}: {str(ex)}")
+            return False
 
     def get_credentials(self, credentials_path: str):
         """
