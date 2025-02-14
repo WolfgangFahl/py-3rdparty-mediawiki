@@ -1,20 +1,22 @@
-'''
+"""
 Created on 2025-02-14
 
 @author: wf
-'''
+"""
+
 import os
+
 import yaml
+
 from wikibot3rd.sso import SSO
+
 
 class Sso_Users:
     """
     Single Sign on User handling
     """
 
-    def __init__(self,
-                 solution_name: str,
-                 debug: bool = False):
+    def __init__(self, solution_name: str, debug: bool = False):
         """
         construct the SsoUsers environment
 
@@ -38,9 +40,7 @@ class Sso_Users:
         """
         check the password
         """
-        is_valid = self.sso.check_credentials(
-            username=username,
-            password=password)
+        is_valid = self.sso.check_credentials(username=username, password=password)
         return is_valid
 
     def get_credentials(self, credentials_path: str):

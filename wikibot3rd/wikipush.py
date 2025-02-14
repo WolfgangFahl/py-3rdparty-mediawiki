@@ -4,8 +4,9 @@ Created on 2020-10-29
   @copyright:  Wolfgang Fahl. All rights reserved.
 
 """
-from tqdm import tqdm
+
 import shutup
+from tqdm import tqdm
 
 shutup.please()
 import datetime
@@ -163,8 +164,7 @@ class WikiPush(object):
         )
         if self.args.template:
             pageRecords = self.extract_template_records(
-                pageRecords,
-                template=self.args.template
+                pageRecords, template=self.args.template
             )
             pass
         outputFormat = outputFormat.lower()
@@ -1147,9 +1147,7 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
             parser.add_argument(
                 "-s", "--source", dest="source", help="source wiki id", required=True
             )
-            parser.add_argument(
-                "-o", "--output", help="output file path"
-            )
+            parser.add_argument("-o", "--output", help="output file path")
             parser.add_argument(
                 "--format",
                 dest="format",
@@ -1320,7 +1318,7 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
                     )
                     if formatedQueryResults:
                         if args.output:
-                            with open(args.output, 'w') as output_file:
+                            with open(args.output, "w") as output_file:
                                 print(formatedQueryResults, file=output_file)
                         else:
                             print(formatedQueryResults)
