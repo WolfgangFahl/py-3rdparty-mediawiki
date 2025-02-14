@@ -15,6 +15,7 @@ class Sso_Users:
     def __init__(self,
                  server_url:str,
                  wiki_id: str,
+                 credentials_path:str,
                  debug: bool = False):
         """
         construct the SsoUsers environment
@@ -23,7 +24,7 @@ class Sso_Users:
             debug(bool): if True enable debug mode
         """
         debug = debug
-        self.get_credentials()
+        self.get_credentials(credentials_path=credentials_path)
         self.sso = SSO(
             server_url,
             wiki_id,
@@ -37,7 +38,9 @@ class Sso_Users:
         """
         check the password
         """
-        is_valid = self.sso.check_credentials(username=username, password=password)
+        is_valid = self.sso.check_credentials(
+            username=username,
+            password=password)
         return is_valid
 
     def get_credentials(self,credentials_path:str):
