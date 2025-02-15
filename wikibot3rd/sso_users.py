@@ -14,19 +14,23 @@ class Sso_Users:
     Single Sign on User handling
     """
 
-    def __init__(self, solution_name: str, debug: bool = False):
+    def __init__(self, solution_name: str, debug: bool = False, credentials_path: str = None):
         """
         construct the SsoUsers environment
 
         Args:
             solution_name(str): name of the solution to derive credentials path from
             debug(bool): if True enable debug mode
+            credentials_path(str): optional override for credentials file path (for testing)
         """
         self.debug = debug
         self.is_available = False
-        credentials_path = f"~/.solutions/{solution_name}/sso_credentials.yaml"
+
+        # Allow override for testing
+        self.credentials_path = credentials_path or self.get_default_credentials_path(solution_name)
+
         try:
-            self.get_credentials(credentials_path=credentials_path)
+            self.get_credentials()
             self.sso = SSO(
                 self.server_url,
                 self.wiki_id,
@@ -37,29 +41,21 @@ class Sso_Users:
             self.port_avail = self.sso.check_port()
             self.is_available = True
         except FileNotFoundError:
-            logging.warning(f"SSO credentials file not found at {credentials_path}")
+            logging.warning(f"SSO credentials file not found at {self.credentials_path}")
         except Exception as ex:
             logging.warning(f"SSO initialization failed: {str(ex)}")
 
-    def check_password(self, username: str, password: str) -> bool:
+    def get_default_credentials_path(self, solution_name: str) -> str:
         """
-        check the password
+        Returns the default credentials file path.
         """
-        if not self.is_available:
-            logging.error(f"Password check failed for user {username}: SSO not available")
-            return False
-        try:
-            is_valid = self.sso.check_credentials(username=username, password=password)
-            return is_valid
-        except Exception as ex:
-            logging.error(f"Password check failed for user {username}: {str(ex)}")
-            return False
+        return os.path.expanduser(f"~/.solutions/{solution_name}/sso_credentials.yaml")
 
-    def get_credentials(self, credentials_path: str):
+    def get_credentials(self):
         """
-        get the database credentials
+        Get the database credentials from the credential file.
         """
-        credentials_file = os.path.expanduser(credentials_path)
+        credentials_file = os.path.expanduser(self.credentials_path)
         with open(credentials_file, "r") as file:
             credentials = yaml.safe_load(file)
         self.db_username = credentials["username"]
