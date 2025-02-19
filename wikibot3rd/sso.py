@@ -222,7 +222,7 @@ class SSO:
             )
             # JOIN query: Fetch user data and sysop status
             sql_query = """
-            SELECT u.*, 
+            SELECT u.*,
                    COUNT(ug.ug_group) AS is_sysop
             FROM `user` u
             LEFT JOIN `user_groups` ug ON u.user_id = ug.ug_user AND ug.ug_group = 'sysop'

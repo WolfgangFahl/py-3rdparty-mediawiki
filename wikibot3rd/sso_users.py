@@ -14,7 +14,10 @@ class Sso_Users:
     Single Sign on User handling
     """
 
-    def __init__(self, solution_name: str, debug: bool = False, credentials_path: str = None):
+    def __init__(self,
+        solution_name: str,
+        debug: bool = False,
+        credentials_path: str = None):
         """
         construct the SsoUsers environment
 
@@ -41,9 +44,11 @@ class Sso_Users:
             self.port_avail = self.sso.check_port()
             self.is_available = True
         except FileNotFoundError:
-            logging.warning(f"SSO credentials file not found at {self.credentials_path}")
+            msg=f"SSO credentials file not found at {self.credentials_path}"
+            logging.warning(msg)
         except Exception as ex:
-            logging.warning(f"SSO initialization failed: {str(ex)}")
+            msg=f"SSO initialization failed: {str(ex)}"
+            logging.warning(msg)
 
     def get_default_credentials_path(self, solution_name: str) -> str:
         """
@@ -63,3 +68,29 @@ class Sso_Users:
         self.secret = credentials["secret"]
         self.server_url = credentials["server_url"]
         self.wiki_id = credentials["wiki_id"]
+
+    def check_password(self, username: str, password: str) -> bool:
+        """
+        Check if the given username and password are valid by delegating to SSO
+
+        Args:
+            username (str): The username to check
+            password (str): The password to verify
+
+        Returns:
+            bool: True if credentials are valid, False otherwise
+        """
+        ok=False
+        if not self.is_available:
+            logging.warning("SSO is not available - password check failed")
+
+        elif not self.port_avail:
+            logging.warning(f"Database port on {self.server_url} is not accessible")
+        else:
+            try:
+                ok=self.sso.check_credentials(username, password)
+            except Exception as ex:
+                if self.debug:
+                    logging.error(f"Password check failed: {str(ex)}")
+        return ok
+
