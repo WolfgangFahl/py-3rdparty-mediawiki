@@ -1026,6 +1026,13 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
         parser.add_argument(
             "-V", "--version", action="version", version=program_version_message
         )
+        parser.add_argument(
+            "-d",
+            "--debug",
+            dest="debug",
+            action="store_true",
+            help="set debug [default: %(default)s]",
+        )
         if mode == "wikipush":
             parser.add_argument(
                 "-l",
