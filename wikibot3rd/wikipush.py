@@ -496,7 +496,7 @@ class WikiPush(object):
                     end="",
                 )
 
-                result = self.edit_page_content(page_title, modify, force, context)
+                result = self.edit_page_content(page_title, modify=modify, force=force, context=context)
                 self.log(result)
 
             except Exception as ex:
