@@ -35,8 +35,8 @@ class Sso_Users:
         try:
             self.get_credentials()
             self.sso = SSO(
-                self.server_url,
-                self.wiki_id,
+                host=self.server_url,
+                database=self.database,
                 db_username=self.db_username,
                 db_password=self.db_password,
                 debug=debug,
@@ -67,7 +67,10 @@ class Sso_Users:
         self.db_password = credentials["password"]
         self.secret = credentials["secret"]
         self.server_url = credentials["server_url"]
+        self.database=credentials.get("database")
         self.wiki_id = credentials["wiki_id"]
+        if not self.database:
+            self.database=self.wiki_id
 
     def check_password(self, username: str, password: str) -> bool:
         """
