@@ -178,6 +178,31 @@ class WikiClient(Wiki):
         """Deprecated: Use save_page instead."""
         self.save_page(pageTitle, pageContent, pageSummary)
 
+    def get_site_info(self, props: str = "general") -> Dict[str, Any]:
+        """
+        Fetch site information using the MediaWiki API.
+
+        Args:
+            props: The properties to fetch (default: "general").
+                  Common values: "general", "statistics", "namespaces", etc.
+
+        Returns:
+            A dictionary containing the requested site information.
+        """
+        params = {
+            "action": "query",
+            "meta": "siteinfo",
+            "siprop": props,
+            "format": "json",
+        }
+        site = self.get_site()
+        data = site.api(**params)
+        if props in ["general", "statistics"]:
+            site_info = data["query"][props]
+        else:
+            site_info = data["query"]
+        return site_info
+
     def get_site_statistics(self) -> Dict[str, Any]:
         """
         Fetch site statistics using the MediaWiki API.
@@ -185,16 +210,8 @@ class WikiClient(Wiki):
         Returns:
             A dictionary containing the site statistics.
         """
-        params = {
-            "action": "query",
-            "meta": "siteinfo",
-            "siprop": "statistics",
-            "format": "json",
-        }
-        site = self.get_site()
-        data = site.api(**params)
-        statistics = data["query"]["statistics"]
-        return statistics
+        stats = self.get_site_info(props="statistics")
+        return stats
 
     def getSiteStatistics(self) -> Dict[str, Any]:
         """Deprecated: Use get_site_statistics instead."""
