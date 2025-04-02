@@ -340,6 +340,7 @@ class WikiUser(WikiUserData):
         Returns:
         WikiUser: the WikiUser created from the dictionary
         """
+        wikiUser=None
         if "url" in userDict and userDict["url"] is not None:
             # fix broken escapes e.g. http\://waihekepedia.bitplan.com
             userDict["url"] = userDict["url"].replace(r"\:", ":")
