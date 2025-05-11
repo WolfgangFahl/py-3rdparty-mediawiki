@@ -1277,6 +1277,8 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
         elif mode == "wikibackup":
             wikipush = WikiPush(args.source, None, login=args.login, debug=args.debug)
             queryWiki = wikipush.fromWiki
+            if args.query is None:
+                args.query="[[modification date::+]]"
         elif mode == "wikiquery":
             wikipush = WikiPush(args.source, None, login=args.login, debug=args.debug)
             queryWiki = wikipush.fromWiki
