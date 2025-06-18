@@ -13,7 +13,7 @@ import traceback
 from typing import Dict, Optional
 
 import mysql.connector
-from lodstorage.yamlable import lod_storable
+from basemkit.yamlable import lod_storable
 from mysql.connector import pooling
 
 

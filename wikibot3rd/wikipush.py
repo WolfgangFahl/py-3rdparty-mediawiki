@@ -232,17 +232,17 @@ class WikiPush(object):
         # no wiki no pages e.g. if wikirestore is used without a -s option
         if wiki is None:
             pageRecords = []
-
-        if wiki.is_smw_enabled:
-            smwClient = SMWClient(
-                wiki.getSite(),
-                showProgress=showProgress,
-                queryDivision=queryDivision,
-                debug=self.debug,
-            )
-            pageRecords = smwClient.query(askQuery, limit=limit)
         else:
-            pageRecords = self.query_via_mw_api(askQuery, wiki, limit=limit)
+            if wiki.is_smw_enabled:
+                smwClient = SMWClient(
+                    wiki.getSite(),
+                    showProgress=showProgress,
+                    queryDivision=queryDivision,
+                    debug=self.debug,
+                )
+                pageRecords = smwClient.query(askQuery, limit=limit)
+            else:
+                pageRecords = self.query_via_mw_api(askQuery, wiki, limit=limit)
         return pageRecords
 
     def extract_category_and_mainlabel(
@@ -1334,14 +1334,15 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
                     else:
                         print(f"Format {args.format} is not supported.")
                 else:
-                    pages = wikipush.query(
-                        query,
-                        wiki=queryWiki,
-                        pageField=args.pageField,
-                        limit=args.limit,
-                        showProgress=args.showProgress,
-                        queryDivision=args.queryDivision,
-                    )
+                    if query is not None:
+                        pages = wikipush.query(
+                            query,
+                            wiki=queryWiki,
+                            pageField=args.pageField,
+                            limit=args.limit,
+                            showProgress=args.showProgress,
+                            queryDivision=args.queryDivision,
+                        )
             if pages is None:
                 if mode == "wikiquery":
                     # we are finished
