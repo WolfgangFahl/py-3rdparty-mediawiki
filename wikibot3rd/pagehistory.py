@@ -1,14 +1,23 @@
-from typing import List, Union
+from dataclasses import field
+from typing import List, Union, Optional
 
-from lodstorage.jsonable import JSONAble
-
+from basemkit.yamlable import lod_storable
 from wikibot3rd.wikiclient import WikiClient
 
 
-class PageRevision(JSONAble):
+@lod_storable
+class PageRevision:
     """
     Represents the metadata of a mediawiki page revision
     """
+    revid: int = 0
+    parentid: Optional[int] = None
+    user: Optional[str] = None
+    anon: Optional[str] = None
+    userid: Optional[int] = None
+    timestamp: Optional[str] = None
+    size: Optional[int] = None
+    comment: Optional[str] = None
 
     @classmethod
     def getSamples(cls):
@@ -38,25 +47,21 @@ class PageRevision(JSONAble):
         props = ", ".join([f"{k}={str(v)}" for k, v in self.__dict__.items()])
         return f"{self.__class__.__name__}({props})"
 
-
+@lod_storable
 class PageHistory:
     """
     Represents the history of a page
     """
+    pageTitle: str
+    wikiId: str
+    debug: bool = False
+    wikiClient: WikiClient = field(init=False)
+    page: object = field(init=False)
+    revisions: List[PageRevision] = field(init=False)
 
-    def __init__(self, pageTitle: str, wikiId: str, debug: bool = False):
-        """
-        Constructor
-
-        Args:
-            pageTitle(str): name of the page
-            wikiId(str): id of the wiki the page is located
-            debug(bool): If True show debug messages
-        """
-        self.debug = debug
-        self.pageTitle = pageTitle
-        self.wikiClient = WikiClient.ofWikiId(wikiId, debug=self.debug)
-        self.page = self.wikiClient.getPage(pageTitle)
+    def __post_init__(self):
+        self.wikiClient = WikiClient.ofWikiId(self.wikiId, debug=self.debug)
+        self.page = self.wikiClient.getPage(self.pageTitle)
         self.revisions = self._getRevisions()
 
     def _getRevisions(self) -> List[PageRevision]:
@@ -70,8 +75,7 @@ class PageHistory:
         for revisionRecord in self.page.revisions(
             prop="ids|timestamp|user|userid|comment|size"
         ):
-            revision = PageRevision()
-            revision.fromDict(revisionRecord)
+            revision = PageRevision.from_dict(revisionRecord)
             revisions.append(revision)
         return revisions
 
@@ -86,28 +90,18 @@ class PageHistory:
         return len(self.revisions) > 0
 
     def getFirstUser(
-        self, reverse: bool = False, limitedUserGroup: List[str] = None
-    ) -> Union[str, None]:
+        self, reverse: bool = False, limitedUserGroup: Optional[List[str]] = None
+    ) -> Optional[str]:
         """
-        Returns the first user in the revisions
-
-        Args:
-            reverse(bool): If False start the search at the oldest entry. Otherwise, search from the newest to the oldest revision
-            limitedUserGroup(list): limit the search to the given list. If None all users will be considered.
-
-        Returns:
-            str username that matches the search criterion
+        Returns the first user in the revision list matching the criteria
         """
-        revisions = self.revisions
-        revisions.sort(key=lambda r: int(getattr(r, "revid", 0)))
+        revisions = sorted(self.revisions, key=lambda r: int(getattr(r, "revid", 0)))
         if reverse:
-            revisions = reversed(revisions)
+            revisions = list(reversed(revisions))
         for revision in revisions:
             user = getattr(revision, "user", None)
             if user is None:
                 continue
-            if limitedUserGroup is None:
-                return user
-            elif user in limitedUserGroup:
+            if limitedUserGroup is None or user in limitedUserGroup:
                 return user
         return None

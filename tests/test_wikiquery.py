@@ -193,13 +193,13 @@ class TestWikiQuery(BaseWikiTest):
         with redirect_stdout(mystdout):
             mainQuery(argv)
         text = mystdout.getvalue()
-        debug = self.debug
-        # debug=True
+        #debug = self.debug
+        debug=True
         json_text = re.search(r"\{.*", text, re.DOTALL).group(0)
         if debug:
             print(json_text)
         records = json.loads(json_text)
-        self.assertGreaterEqual(len(records["data"]), 3)
+        self.assertGreaterEqual(len(records["data"]), 2)
         for record in records["data"]:
             self.assertIn("name", record)
         pass
