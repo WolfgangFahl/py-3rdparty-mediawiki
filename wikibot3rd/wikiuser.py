@@ -3,6 +3,7 @@ Created on 2020-11-01
 
 @author: wf
 """
+from magic.compat import NONE
 
 """
 Created on 2020-11-01
@@ -38,6 +39,17 @@ class WikiCredentials:
         if self.password is not None:
             self.encrypt(self.password)
             self.password = None
+
+    @property
+    def has_credentials(self) -> bool:
+        """
+        Property to check if any credentials are present at all.
+
+        Returns:
+            bool: True if either password or encrypted credentials exist, False otherwise
+        """
+        has_credentials=self.password is not None or (self.cypher is not None and self.secret is not None)
+        return has_credentials
 
     @property
     def encrypted(self) -> bool:
@@ -333,7 +345,7 @@ class WikiUser(WikiUserData):
 
         Args:
         userDict (dict): dictionary with WikiUser properties
-        encrypted(bool): if True the password is encrypted in the dict
+        encrypted(bool): if True the password might be encrypted in the dict
         lenient (bool): if True ignore missing fields
         encrypt (bool): if True encrypt the password (if not encrypted yet)
 
@@ -347,9 +359,10 @@ class WikiUser(WikiUserData):
 
         # is the password currently encrypted?
         is_encrypted = userDict.get("cypher") is not None
+        has_clear_pw = userDict.get("password") is not None
 
-        if encrypted != is_encrypted and not lenient:
-            raise Exception("Encryption state mismatch")
+        if encrypted != is_encrypted and has_clear_pw and not lenient:
+            raise ValueError("Encryption state mismatch")
 
         err_msg = ""
         try:

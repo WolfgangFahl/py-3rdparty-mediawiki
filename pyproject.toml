@@ -21,9 +21,9 @@ dependencies = [
 	# https://pypi.org/project/pybasemkit/
 	# https://github.com/WolfgangFahl/pybasemkit
 	# Python base module kit: YAML/JSON I/O, structured logging, CLI tooling, shell execution, and remote pydevd debug support.
-	"pybasemkit>=0.0.3",
+	"pybasemkit>=0.0.5",
 	# https://pypi.org/project/pyLodStorage/
-    "pyLodStorage>=0.16.4",
+    "pyLodStorage>=0.17.0",
 	# https://pypi.org/project/GitPython/
 	'gitpython',
 	# https://pypi.org/project/Jinja2/
@@ -33,19 +33,19 @@ dependencies = [
     # https://pypi.org/project/pycryptodome/
     'pycryptodome>=3.20.0',
     # https://pypi.org/project/mwclient/
-    'mwclient>=0.10.1',
+    'mwclient>=0.11.0',
     # https://pypi.org/project/mwparserfromhell/
-    'mwparserfromhell>=0.6.5',
+    'mwparserfromhell>=0.7.2',
     # https://pypi.org/project/wikitextparser/
-    'wikitextparser>=0.54.0',
+    'wikitextparser>=0.56.4',
     # mysql-connector-python 8.3.0
-    'mysql-connector-python>=8.3.0',
+    'mysql-connector-python>=9.4.0',
 	# https://pypi.org/project/bcrypt/
-	"bcrypt>=4.1.2",
+	"bcrypt>=4.3.0",
 	# https://pypi.org/project/shutup/
 	"shutup>=0.2.0",
 	# https://pypi.org/project/tqdm/
-	"tqdm>=4.67.0"
+	"tqdm>=4.67.1"
 ]
 
 requires-python = ">=3.10"
