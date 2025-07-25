@@ -3,13 +3,6 @@ Created on 2020-11-01
 
 @author: wf
 """
-from magic.compat import NONE
-
-"""
-Created on 2020-11-01
-
-@author: wf
-"""
 
 import datetime
 import getpass
