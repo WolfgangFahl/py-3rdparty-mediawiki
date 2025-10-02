@@ -30,6 +30,8 @@ dependencies = [
     'jinja2',
     # https://pypi.org/project/pywikibot/
     'pywikibot>=8.2',
+    #https://pypi.org/project/requests/
+    'requests>=2.32.5',
     # https://pypi.org/project/pycryptodome/
     'pycryptodome>=3.20.0',
     # https://pypi.org/project/mwclient/

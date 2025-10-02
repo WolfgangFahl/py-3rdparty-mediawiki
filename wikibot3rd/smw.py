@@ -8,11 +8,12 @@ import re
 import sys
 from datetime import datetime, timezone
 from urllib.parse import unquote
-
-import pywikibot
-
+import requests
 
 class PrintRequest(object):
+    """
+    print Request object
+    """
     debug = False
     """
     construct the given print request
@@ -624,43 +625,49 @@ class SMWBot(SMW):
         pass
 
     def submit(self, parameters):
-        """submit the request with the given parameters
+        """
+        Submit the request with the given parameters directly to the MediaWiki API.
+
         Args:
-            parameters(list): the parameters to use for the SMW API request
+            parameters (dict): parameters to use for the SMW API request
+
         Returns:
             dict: the submit result
         """
-        if not "Request" in sys.modules:
-            from pywikibot.data.api import Request
-
-        request = Request(site=self.site, parameters=parameters)
-        result = None
+        api_url = f"{self.site}/api.php"  # self.site = base wiki URL, e.g. https://example.org/w
         try:
-            result = request.submit()
-        except pywikibot.exceptions.TimeoutError as _toe:
-            msg = f"submit for {self.site} failed due to pywikibot TimeoutError"
-            raise Exception(msg)
-            pass
-        return result
+            response = requests.post(api_url, data=parameters, timeout=30)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.Timeout:
+            raise Exception(f"submit for {self.site} failed due to Timeout")
+        except requests.exceptions.RequestException as e:
+            raise Exception(f"submit for {self.site} failed: {e}")
+
 
     def info(self):
         """see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
-        parameters = {"action": "smwinfo"}
-        return self.submit(parameters)
+        return self.submit({"action": "smwinfo"})
+
 
     def rawquery(self, ask: str, limit=None):
         """
-         send a query see https://www.semantic-mediawiki.org/wiki/Help:Inline_queries#Parser_function_.23ask
+        Send a query to Semantic MediaWiki API
+        https://www.semantic-mediawiki.org/wiki/Help:Inline_queries#Parser_function_.23ask
 
         Args:
-            ask(str): the SMW ASK query as it would be used in MediaWiki markup
+            ask (str): the SMW ASK query as it would be used in MediaWiki markup
+            limit (int, optional): maximum results
+
+        Returns:
+            dict: query result
         """
-        # allow usage of original Wiki ask content - strip all non needed parts
         fixedAsk = self.fixAsk(ask)
-        # set parameters for request
         parameters = {"action": "ask", "query": fixedAsk}
-        result = self.submit(parameters)
-        return result
+        if limit is not None:
+            parameters["limit"] = limit
+        return self.submit(parameters)
+
 
     def query(self, ask, limit=None):
         """
