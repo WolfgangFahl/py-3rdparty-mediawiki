@@ -103,7 +103,7 @@ class WikiClient(Wiki):
         """
         ex = self.try_login()
         if ex and self.debug:
-            print(f"Login failed: {ex}")
+            print(f"❌ Login failed: {ex}")
         success = ex is None
         return success
 

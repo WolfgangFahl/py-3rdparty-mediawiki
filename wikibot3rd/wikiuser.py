@@ -41,7 +41,9 @@ class WikiCredentials:
         Returns:
             bool: True if either password or encrypted credentials exist, False otherwise
         """
-        has_credentials=self.password is not None or (self.cypher is not None and self.secret is not None)
+        has_credentials = self.password is not None or (
+            self.cypher is not None and self.secret is not None
+        )
         return has_credentials
 
     @property
@@ -345,7 +347,7 @@ class WikiUser(WikiUserData):
         Returns:
         WikiUser: the WikiUser created from the dictionary
         """
-        wikiUser=None
+        wikiUser = None
         if "url" in userDict and userDict["url"] is not None:
             # fix broken escapes e.g. http\://waihekepedia.bitplan.com
             userDict["url"] = userDict["url"].replace(r"\:", ":")

@@ -496,7 +496,9 @@ class WikiPush(object):
                     end="",
                 )
 
-                result = self.edit_page_content(page_title, modify=modify, force=force, context=context)
+                result = self.edit_page_content(
+                    page_title, modify=modify, force=force, context=context
+                )
                 self.log(result)
 
             except Exception as ex:
@@ -1278,7 +1280,7 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
             wikipush = WikiPush(args.source, None, login=args.login, debug=args.debug)
             queryWiki = wikipush.fromWiki
             if args.query is None:
-                args.query="[[modification date::+]]"
+                args.query = "[[modification date::+]]"
         elif mode == "wikiquery":
             wikipush = WikiPush(args.source, None, login=args.login, debug=args.debug)
             queryWiki = wikipush.fromWiki

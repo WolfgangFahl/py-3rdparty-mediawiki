@@ -8,12 +8,15 @@ import re
 import sys
 from datetime import datetime, timezone
 from urllib.parse import unquote
+
 import requests
+
 
 class PrintRequest(object):
     """
     print Request object
     """
+
     debug = False
     """
     construct the given print request
@@ -644,11 +647,9 @@ class SMWBot(SMW):
         except requests.exceptions.RequestException as e:
             raise Exception(f"submit for {self.site} failed: {e}")
 
-
     def info(self):
         """see https://www.semantic-mediawiki.org/wiki/Help:API:smwinfo"""
         return self.submit({"action": "smwinfo"})
-
 
     def rawquery(self, ask: str, limit=None):
         """
@@ -667,7 +668,6 @@ class SMWBot(SMW):
         if limit is not None:
             parameters["limit"] = limit
         return self.submit(parameters)
-
 
     def query(self, ask, limit=None):
         """

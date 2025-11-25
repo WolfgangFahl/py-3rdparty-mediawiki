@@ -1,7 +1,8 @@
 from dataclasses import field
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 from basemkit.yamlable import lod_storable
+
 from wikibot3rd.wikiclient import WikiClient
 
 
@@ -10,6 +11,7 @@ class PageRevision:
     """
     Represents the metadata of a mediawiki page revision
     """
+
     revid: int = 0
     parentid: Optional[int] = None
     user: Optional[str] = None
@@ -47,11 +49,13 @@ class PageRevision:
         props = ", ".join([f"{k}={str(v)}" for k, v in self.__dict__.items()])
         return f"{self.__class__.__name__}({props})"
 
+
 @lod_storable
 class PageHistory:
     """
     Represents the history of a page
     """
+
     pageTitle: str
     wikiId: str
     debug: bool = False
