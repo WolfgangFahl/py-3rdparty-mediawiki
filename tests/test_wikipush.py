@@ -196,7 +196,11 @@ class TestWikiPush(BaseWikiTest):
         """
         test starting backup from the command line
         """
-        argv = ["-s", "smwcopy", "-q", "[[modification date::+]]"]
+        # modification date::+
+        # would give full 400+ entries we will use
+        # modification date::>2024-12-13 11:44:40
+        # to limit to 4 entries as of 2025-11-27
+        argv = ["-s", "smwcopy", "-q", "[[modification date::>2024-12-13 11:44:40]]"]
         wikibot3rd.wikipush.mainBackup(argv)
 
     def testWikiPush(self):

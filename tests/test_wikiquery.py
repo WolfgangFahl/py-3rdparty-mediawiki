@@ -195,8 +195,8 @@ class TestWikiQuery(BaseWikiTest):
         with redirect_stdout(mystdout):
             mainQuery(argv)
         text = mystdout.getvalue()
-        # debug = self.debug
-        debug = True
+        debug = self.debug
+        #debug = True
         json_text = re.search(r"\{.*", text, re.DOTALL).group(0)
         if debug:
             print(json_text)
