@@ -4,11 +4,14 @@ Created on 2020-03-24
 @author: wf
 """
 
+from datetime import datetime
 import re
 import sys
+import textwrap
 from os.path import isfile
 from urllib.parse import urlparse
 
+from wikibot3rd.version import Version
 from wikibot3rd.wiki import Wiki
 from wikibot3rd.wikiuser import WikiUser
 
@@ -100,53 +103,70 @@ class WikiBot(Wiki):
     def checkFamily(self):
         """
         check if a valid family file exists and if not create it
-
-        watch out for https://stackoverflow.com/questions/76612838/how-to-work-with-custom-wikibase-using-pywikibot
-        8.2 changes that might break old family files
         """
         iniFile = WikiUser.iniFilePath(self.wikiUser.wikiId)
         famfile = iniFile.replace(".ini", ".py")
+
         if not isfile(famfile):
-            print("creating family file %s" % famfile)
-            template = """# -*- coding: utf-8  -*-
-from pywikibot import family
+            print(f"creating family file {famfile}")
 
-class Family(family.Family):
-    name = '%s'
-    langs = {
-        'en': '%s',
-    }
-    def scriptpath(self, code):
-       return '%s'
-
-    def isPublic(self):
-        return %s
-
-    def version(self, code):
-        return "%s"  # The MediaWiki version used. Very important in most cases. (contrary to documentation)
-
-    def protocol(self, code):
-       return '%s'
-
-    def ignore_certificate_error(self, code):
-       return True
-"""
             mw_version = self.wikiUser.version.lower().replace("mediawiki ", "")
             ispublic = "False" if self.wikiUser.user is not None else "True"
-            code = template % (
-                self.family,
-                self.netloc,
-                self.scriptPath,
-                ispublic,
-                mw_version,
-                self.scheme,
+
+            # PYWIKIBOT FLAW:
+            # Pywikibot's default behavior is `return self.scriptpath() + '/api.php'`.
+            # If scriptpath is '/', this results in `'//api.php'`.
+            # urllib3 interprets URLs starting with `//` as "scheme-relative", taking
+            # `api.php` as the HOSTNAME instead of the path.
+            # We strip the slash here to explicitly generate `/api.php`.
+            clean_path = self.scriptPath.rstrip("/")
+
+            timestamp = datetime.now().isoformat()
+
+            code = textwrap.dedent(
+                f"""\
+                # -*- coding: utf-8  -*-
+                # generated at {timestamp} by {Version.name}/{Version.version}
+                from pywikibot import family
+
+                class Family(family.Family):
+                    name = '{self.family}'
+                    langs = {{
+                        'en': '{self.netloc}',
+                    }}
+
+                    def scriptpath(self, code):
+                        return '{self.scriptPath}'
+
+                    # Workaround for Pywikibot flaw:
+                    # Without this, scriptpath '/' + '/api.php' becomes '//api.php',
+                    # which causes urllib3 to try connecting to host 'api.php'.
+                    def apipath(self, code):
+                        return '{clean_path}/api.php'
+
+                    def isPublic(self):
+                        return {ispublic}
+
+                    def version(self, code):
+                        return "{mw_version}"
+
+                    def protocol(self, code):
+                        return '{self.scheme}'
+
+                    def hostname(self, code):
+                        return '{self.netloc}'
+
+                    def ignore_certificate_error(self, code):
+                        return True
+            """
             )
             with open(famfile, "w") as py_file:
                 py_file.write(code)
+
         self.register_family_file(self.family, famfile)
         if self.wikiUser.user:
             pywikibot.config.usernames[self.family]["en"] = self.wikiUser.user
-        # config2.authenticate[self.netloc] = (self.user,self.getPassword())
+
         self.site = pywikibot.Site("en", self.family)
 
     def login(self):

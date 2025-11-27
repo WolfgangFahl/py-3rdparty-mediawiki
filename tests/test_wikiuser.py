@@ -9,10 +9,10 @@ import tempfile
 import unittest
 
 from basemkit.basetest import Basetest
-from wikibot3rd.wikiuser import WikiUser
-import wikibot3rd.wikiuser_cmd
 
+import wikibot3rd.wikiuser_cmd
 from tests.base_wiki_test import BaseWikiTest
+from wikibot3rd.wikiuser import WikiUser
 
 
 class TestWikiUser(BaseWikiTest):
@@ -68,7 +68,7 @@ class TestWikiUser(BaseWikiTest):
                 wikibot3rd.wikiuser_cmd.main(args)
         finally:
             debug = self.debug
-            #debug = True
+            # debug = True
             if debug:
                 with open(path, "r") as f:
                     print(f.read())

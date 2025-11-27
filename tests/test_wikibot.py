@@ -34,7 +34,7 @@ class TestWikiBot(BaseWikiTest):
         c = Crypt.getRandomCrypt()
         cypher = c.cypher.decode()
         salt = c.salt.decode()
-        debug=self.debug
+        debug = self.debug
         # debug=True
         if debug:
             print(cypher)
@@ -56,7 +56,8 @@ class TestWikiBot(BaseWikiTest):
         """
         test collecting all bots for which credentials have been set up
         """
-        bots = WikiBot.getBots(name="url", valueExpr="www.*\.org")
+        # all .org endpoint excluding openresearch
+        bots = WikiBot.getBots(name="url", valueExpr=r"www(?![.]openresearch[.]org).*[.]org")
         for bot in bots.values():
             print(bot)
             if bot.site is not None:
