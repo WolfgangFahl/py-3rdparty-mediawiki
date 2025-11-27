@@ -33,7 +33,7 @@ class TestDuckInterface(BaseWikiTest):
         """
         wikiId = "orcopy"
         debug = self.debug
-        debug = True
+        # debug = True
         for wiki in self.getWikis(wikiId):
             if debug:
                 print(wiki)

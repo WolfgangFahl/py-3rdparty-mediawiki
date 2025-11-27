@@ -34,8 +34,9 @@ class TestWikiBot(BaseWikiTest):
         c = Crypt.getRandomCrypt()
         cypher = c.cypher.decode()
         salt = c.salt.decode()
-        self.debug = True
-        if self.debug:
+        debug=self.debug
+        # debug=True
+        if debug:
             print(cypher)
             print(salt)
         self.assertEqual(32, len(cypher))

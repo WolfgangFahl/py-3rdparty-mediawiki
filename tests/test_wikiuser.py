@@ -6,10 +6,13 @@ Created on 2020-11-01
 
 import os
 import tempfile
+import unittest
 
-import wikibot3rd.wikiuser_cmd
-from tests.base_wiki_test import BaseWikiTest
+from basemkit.basetest import Basetest
 from wikibot3rd.wikiuser import WikiUser
+import wikibot3rd.wikiuser_cmd
+
+from tests.base_wiki_test import BaseWikiTest
 
 
 class TestWikiUser(BaseWikiTest):
@@ -18,12 +21,11 @@ class TestWikiUser(BaseWikiTest):
     user info from Java properties compatible ini file
     """
 
+    @unittest.skipIf(Basetest.inPublicCI(), "target wikis not public")
     def testWikiUser(self):
         """
         test the wiki user handling
         """
-        if self.inPublicCI():
-            return
         wikiUsers = WikiUser.getWikiUsers()
         for wikiUser in wikiUsers.values():
             if self.debug:
@@ -66,9 +68,10 @@ class TestWikiUser(BaseWikiTest):
                 wikibot3rd.wikiuser_cmd.main(args)
         finally:
             debug = self.debug
-            debug = True
+            #debug = True
             if debug:
-                print(open(path, "r").read())
+                with open(path, "r") as f:
+                    print(f.read())
             props = WikiUser.readPropertyFile(path)
             rUser = WikiUser.ofDict(props, encrypted=True)
             self.assertEqual(password, rUser.getPassword())

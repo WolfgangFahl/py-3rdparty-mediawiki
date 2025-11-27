@@ -252,7 +252,7 @@ class TestSMW(BaseWikiTest):
         Support more datatypes
         """
         debug = self.debug
-        debug = True
+        # debug = True
         # https://www.semantic-mediawiki.org/wiki/Help:List_of_datatypes
         properties = [
             "Has annotation uri",

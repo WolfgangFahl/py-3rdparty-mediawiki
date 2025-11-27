@@ -148,7 +148,7 @@ class TestWikiPush(BaseWikiTest):
 }}"""
         pages = wikipush.query(ask, pageField="Event")
         debug = self.debug
-        debug = True
+        #debug = True
         if debug:
             print(pages)
             print(len(pages))
