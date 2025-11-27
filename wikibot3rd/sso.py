@@ -217,7 +217,7 @@ class SSO:
                 print(f"Database error: {ex}")
                 traceback.print_exc()
         finally:
-            if connection and connection.is_connected():
+            if connection:
                 connection.close()
         return user_record
 
