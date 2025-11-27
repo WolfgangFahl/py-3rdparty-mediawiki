@@ -12,10 +12,8 @@ import socket
 import traceback
 from typing import Dict, Optional
 
-import mysql.connector
 from basemkit.yamlable import lod_storable
-from mysql.connector import pooling
-
+import pymysql
 
 @lod_storable
 class User:
@@ -65,7 +63,6 @@ class SSO:
         sql_port: int = 3306,
         db_username: Optional[str] = None,
         db_password: Optional[str] = None,
-        with_pool: bool = True,
         timeout: float = 3,
         debug: Optional[bool] = False,
     ):
@@ -89,26 +86,6 @@ class SSO:
         self.db_username = db_username
         self.db_password = db_password
         self.debug = debug
-        self.pool = self.get_pool() if with_pool else None
-
-    def get_pool(self) -> pooling.MySQLConnectionPool:
-        """
-        Creates a connection pool for the database.
-
-        Returns:
-            MySQLConnectionPool: A pool of database connections.
-        """
-        pool_config = {
-            "pool_name": "mypool",
-            "pool_size": 2,
-            "host": self.host,
-            "user": self.db_username,
-            "port": self.sql_port,
-            "password": self.db_password,
-            "database": self.database,
-            "raise_on_warnings": True,
-        }
-        return pooling.MySQLConnectionPool(**pool_config)
 
     def check_port(self) -> bool:
         """
@@ -210,18 +187,18 @@ class SSO:
             mw_username(str): the Mediawiki username
         """
         user_record = None
+        connection = None
         try:
-            connection = (
-                self.pool.get_connection()
-                if self.pool
-                else mysql.connector.connect(
-                    host=self.host,
-                    port=self.sql_port,
-                    user=self.db_username,
-                    password=self.db_password,
-                    database=self.database,
-                )
+            connection = pymysql.connect(
+                host=self.host,
+                port=self.sql_port,
+                user=self.db_username,
+                password=self.db_password,
+                database=self.database,
+                charset='utf8mb4',
+                cursorclass=pymysql.cursors.DictCursor
             )
+
             # JOIN query: Fetch user data and sysop status
             sql_query = """
             SELECT u.*,
@@ -231,7 +208,10 @@ class SSO:
             WHERE u.user_name = %s
             GROUP BY u.user_id
             """
-            user_record = self.query(connection, sql_query, (mw_username,))
+            with connection.cursor() as cursor:
+                cursor.execute(sql_query, (mw_username,))
+                user_record = cursor.fetchone()
+
         except Exception as ex:
             if self.debug:
                 print(f"Database error: {ex}")
