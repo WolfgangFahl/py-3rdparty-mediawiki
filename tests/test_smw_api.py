@@ -645,9 +645,9 @@ class TestSMW(BaseWikiTest):
                 }}
                 """,
         }
+        debug = True
         self.debug = True
         smw = self.getSMWs("cr")[1]
-        debug = True
         for name, ask in queries.items():
             result = self.getAskResult(smw, ask, limit=5)
             if debug:
