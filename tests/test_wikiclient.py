@@ -4,17 +4,17 @@ Created on 2020-11-02
 @author: wf
 """
 
-from tests.basetest import BaseTest
+from basemkit.basetest import Basetest
 from wikibot3rd.wikiclient import WikiClient
 
 
-class TestWikiClient(BaseTest):
+class TestWikiClient(Basetest):
     """
     test Wiki client handling with mwclient library
     """
 
     def setUp(self, debug=False, profile=True):
-        BaseTest.setUp(self, debug=debug, profile=profile)
+        Basetest.setUp(self, debug=debug, profile=profile)
         self.clients = WikiClient.get_clients().values()
 
     def optLogin(self, client):
