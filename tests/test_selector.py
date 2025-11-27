@@ -8,17 +8,17 @@ import logging
 import sys
 import unittest
 
-from tests.basetest import BaseTest
+from basemkit.basetest import Basetest
 from wikibot3rd.selector import Selector
 
 
-class TestSelector(BaseTest):
+class TestSelector(Basetest):
     """
     Test the selector GUI e.g. checking if the correct selection is returned and all GUI elements work accordingly
     """
 
     def setUp(self):
-        BaseTest.setUp(self)
+        Basetest.setUp(self)
         self.LOGGER = logging.getLogger(self.__class__.__name__)
         self.LOGGER.setLevel(logging.INFO)
         handler = logging.StreamHandler(sys.stdout)

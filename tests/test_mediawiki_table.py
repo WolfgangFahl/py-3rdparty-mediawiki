@@ -7,11 +7,11 @@ Created on 2020-08-21
 import unittest
 from datetime import date, datetime
 
-from tests.basetest import BaseTest
+from basemkit.basetest import Basetest
 from wikibot3rd.mwTable import MediaWikiTable
 
 
-class Test_MediaWikiTable(BaseTest):
+class Test_MediaWikiTable(Basetest):
     """
     test mediawiki table creation
     """
