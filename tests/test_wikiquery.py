@@ -7,6 +7,7 @@ Created on 2021-02-16
 import json
 import re
 import unittest
+from collections import Counter
 from contextlib import redirect_stdout
 from io import StringIO
 
@@ -176,16 +177,17 @@ class TestWikiQuery(BaseWikiTest):
         add --template option to wikiquery
         """
         self.getSMW_WikiUser("wikipedia_en")
+        limit=10
         argv = [
             "-d",
             "-s",
             "wikipedia_en",
             "-q",
-            "[[Category:Presidents_of_the_United_States]]",
+            "[[Category:19th-century_presidents_of_the_United_States]]",
             "--template",
             "Infobox officeholder",
             "--limit",
-            "6",
+            f"{limit}",
             "--format",
             "json",
         ]
@@ -199,12 +201,11 @@ class TestWikiQuery(BaseWikiTest):
         if debug:
             print(json_text)
         records = json.loads(json_text)
-        self.assertGreaterEqual(len(records["data"]), 2)
+        self.assertGreaterEqual(len(records["data"]), limit)
+        key_counter = Counter()
         for record in records["data"]:
-            self.assertIn("name", record)
-        pass
-
-
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()
+            key_counter.update(record.keys())
+        if debug:
+            print(key_counter.most_common())
+        common_keys = {k for k, v in key_counter.items() if v >= limit * 0.9}
+        for k in ['image','caption','office', 'party', 'birth_date','death_date']: self.assertIn(k, common_keys)

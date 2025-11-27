@@ -1,10 +1,10 @@
 import mwclient
 
-from tests.basetest import BaseTest
-from wikibot3rd.wikitext import WikiMarkup, WikiSON
+from basemkit.basetest import Basetest
+from wikibot3rd.wikitext import  WikiSON
 
 
-class TestWikiSON(BaseTest):
+class TestWikiSON(Basetest):
     """
     tests WikiSON
     """
