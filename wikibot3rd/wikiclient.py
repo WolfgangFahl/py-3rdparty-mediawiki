@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
 from mwclient import Site
-
+from wikibot3rd.version import Version
 from wikibot3rd.wiki import Wiki
 from wikibot3rd.wikiuser import WikiUser
 
@@ -44,7 +44,13 @@ class WikiClient(Wiki):
             host = o.netloc
             path = o.path + self.wiki_user.scriptPath
             path = f"{path}/"
-            self.site = Site(host=host, path=path, scheme=scheme)
+            user_agent = f"{Version.name}/{Version.version}"
+            self.site = Site(
+                host=host,
+                path=path,
+                scheme=scheme,
+                clients_useragent=user_agent
+            )
         return self.site
 
     def getSite(self) -> Site:
