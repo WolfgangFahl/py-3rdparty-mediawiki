@@ -103,6 +103,7 @@ class SSO:
             "pool_size": 2,
             "host": self.host,
             "user": self.db_username,
+            "port": self.sql_port,
             "password": self.db_password,
             "database": self.database,
             "raise_on_warnings": True,
@@ -215,6 +216,7 @@ class SSO:
                 if self.pool
                 else mysql.connector.connect(
                     host=self.host,
+                    port=self.sql_port,
                     user=self.db_username,
                     password=self.db_password,
                     database=self.database,

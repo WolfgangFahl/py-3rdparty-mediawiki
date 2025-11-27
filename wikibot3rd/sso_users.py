@@ -43,6 +43,7 @@ class Sso_Users:
                 database=self.database,
                 db_username=self.db_username,
                 db_password=self.db_password,
+                sql_port=self.sql_port,
                 debug=debug,
             )
             self.port_avail = self.sso.check_port()
@@ -58,7 +59,8 @@ class Sso_Users:
         """
         Returns the default credentials file path.
         """
-        return os.path.expanduser(f"~/.solutions/{solution_name}/sso_credentials.yaml")
+        credentials_path=os.path.expanduser(f"~/.solutions/{solution_name}/sso_credentials.yaml")
+        return credentials_path
 
     def get_credentials(self):
         """
@@ -71,6 +73,8 @@ class Sso_Users:
         self.db_password = credentials["password"]
         self.secret = credentials["secret"]
         self.server_url = credentials["server_url"]
+        # allow to set different port if any e.g. for docker or tunnel
+        self.sql_port = int(credentials.get("local_port", 3306))
         self.database = credentials.get("database")
         self.wiki_id = credentials["wiki_id"]
         if not self.database:
