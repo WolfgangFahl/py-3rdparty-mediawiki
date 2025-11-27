@@ -5,6 +5,7 @@ Created on 2020-11-02
 """
 
 from basemkit.basetest import Basetest
+
 from wikibot3rd.wikiclient import WikiClient
 
 

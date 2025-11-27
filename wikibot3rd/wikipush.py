@@ -17,6 +17,7 @@ import json
 import os
 import re
 import sys
+import time
 import traceback
 import typing
 from argparse import ArgumentParser, Namespace, RawDescriptionHelpFormatter
@@ -96,6 +97,14 @@ class WikiPush(object):
         if self.verbose:
             print(msg, end=end)
 
+    def throttle(self):
+        """
+        make sure the --throttle parameter is accounted for with an
+        according sleep
+        """
+        if hasattr(self.args, "throttle") and self.args.throttle:
+            time.sleep(self.args.throttle)
+
     def extract_template_records(self, pageRecords, template: str) -> list:
         """
         Extract template records from the given pageRecords using batch page retrieval.
@@ -120,6 +129,7 @@ class WikiPush(object):
         # Process each page
         for page_title in tqdm(page_titles, disable=not self.args.showProgress):
             try:
+                self.throttle()
                 page = site.pages[page_title]
                 markup = page.text()
                 wiki_markup = WikiMarkup(page.name, markup)
@@ -611,6 +621,7 @@ class WikiPush(object):
 
             except Exception as ex:
                 self.show_exception(ex)
+            self.throttle()
         if git:
             gitPath = "%s/.git" % backupPath
             if not os.path.isdir(gitPath):
@@ -695,6 +706,7 @@ class WikiPush(object):
             except Exception as ex:
                 self.show_exception(ex)
                 failed.append(pageTitle)
+            self.throttle()
         return failed
 
     def push(self, pageTitles, force=False, ignore=False, withImages=False) -> list:
@@ -1034,6 +1046,13 @@ def main(argv=None, mode="wikipush"):  # IGNORE:C0111
             dest="debug",
             action="store_true",
             help="set debug [default: %(default)s]",
+        )
+        parser.add_argument(
+            "--throttle",
+            dest="throttle",
+            type=float,
+            default=0.0,
+            help="Time in seconds to sleep between requests to comply with API limits (default: %(default)s)",
         )
         if mode == "wikipush":
             parser.add_argument(

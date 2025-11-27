@@ -9,6 +9,7 @@ import sys
 import unittest
 
 from basemkit.basetest import Basetest
+
 from wikibot3rd.selector import Selector
 
 

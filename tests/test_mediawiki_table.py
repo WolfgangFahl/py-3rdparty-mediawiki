@@ -8,6 +8,7 @@ import unittest
 from datetime import date, datetime
 
 from basemkit.basetest import Basetest
+
 from wikibot3rd.mwTable import MediaWikiTable
 
 

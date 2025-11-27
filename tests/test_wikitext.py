@@ -1,7 +1,7 @@
 import mwclient
-
 from basemkit.basetest import Basetest
-from wikibot3rd.wikitext import  WikiSON
+
+from wikibot3rd.wikitext import WikiSON
 
 
 class TestWikiSON(Basetest):
