@@ -11,6 +11,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 
 from tests.base_wiki_test import BaseWikiTest
+from basemkit.basetest import Basetest
 from wikibot3rd.wikiclient import WikiClient
 from wikibot3rd.wikipush import WikiPush, mainQuery
 
@@ -155,12 +156,11 @@ class TestWikiQuery(BaseWikiTest):
         self.assertTrue(isinstance(lod_res, list))
         self.assertTrue(isinstance(lod_res[0], dict))
 
+    @unittest.skipIf(Basetest.inPublicCI(),"target test wiki not public")
     def testIssue66(self):
         """
         test TypeError("'dict_values' object is not subscriptable")
         """
-        if self.inPublicCI():
-            return
         wikiId = "wgt"
         wikiClient = self.getWikiClient(wikiId)
         wikiClient.login()

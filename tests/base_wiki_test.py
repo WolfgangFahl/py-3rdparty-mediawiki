@@ -1,24 +1,25 @@
 """
-Created on 26.09.2024
+Created on 2024-09-26
 
 @author: wf
 """
 
 import os
 
+from basemkit.basetest import Basetest
+
 from tests.base_test_config import WikiConfig
-from tests.basetest import BaseTest
 from wikibot3rd.wikibot import WikiBot
 from wikibot3rd.wikiuser import WikiUser
 
 
-class BaseWikiTest(BaseTest):
+class BaseWikiTest(Basetest):
     """
     Base (Semantic) Mediawiki tests
     """
 
     def setUp(self, debug=False, profile=True):
-        BaseTest.setUp(self, debug=debug, profile=profile)
+        Basetest.setUp(self, debug=debug, profile=profile)
 
     def getWikiUser(self, wikiId: str = None) -> WikiUser:
         """

@@ -59,7 +59,9 @@ class Sso_Users:
         """
         Returns the default credentials file path.
         """
-        credentials_path=os.path.expanduser(f"~/.solutions/{solution_name}/sso_credentials.yaml")
+        credentials_path = os.path.expanduser(
+            f"~/.solutions/{solution_name}/sso_credentials.yaml"
+        )
         return credentials_path
 
     def get_credentials(self):
