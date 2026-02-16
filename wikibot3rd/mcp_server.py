@@ -287,16 +287,10 @@ def get_category_members_impl(
     Returns:
         List of member page titles.
     """
-    if not category.startswith("Category:"):
-        category = f"Category:{category}"
-
     client = get_wiki_client(wiki_id)
     site = client.get_site()
     cat = site.categories[category]
-    try:
-        members = list(cat.members(limit=limit))
-    except TypeError:
-        members = list(cat.members())
+    members = list(cat.members())[:limit]
     return [m.name for m in members]
 
 
