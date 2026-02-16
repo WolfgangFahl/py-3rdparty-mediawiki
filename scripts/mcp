@@ -1,0 +1,130 @@
+#!/bin/bash
+# WF 2026-02-16
+# Setup MCP server for py-3rdparty-mediawiki
+
+# Source bash messaging functions
+MESSAGES_LIB="$HOME/source/bash/mp/bash_messages"
+if [ -f "$MESSAGES_LIB" ]; then
+    source "$MESSAGES_LIB" || {
+        echo "Error sourcing $MESSAGES_LIB"
+        exit 1
+    }
+else
+    # Fallback functions if bash_messages not available
+    blue='\033[0;34m'
+    red='\033[0;31m'
+    green='\033[0;32m'
+    yellow='\033[1;33m'
+    endColor='\033[0m'
+    color_msg() { echo -e "${1}$2${endColor}"; }
+    error() { color_msg "$red" "✗ Error: $1" 1>&2; exit 1; }
+    success() { color_msg "$green" "✓ $1"; }
+    action() { color_msg "$blue" "➜ $1"; }
+    warn() { color_msg "$yellow" "⚠ $1"; }
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+CONFIG_DIR="$HOME/.config/opencode"
+CONFIG_FILE="$CONFIG_DIR/opencode.json"
+
+#
+# show usage
+#
+usage() {
+    cat << EOF
+usage: $0 [-h|--help]
+  -h|--help: show this usage
+
+This script sets up the MCP server for py-3rdparty-mediawiki.
+It will:
+1. Install py-3rdparty-mediawiki with MCP support
+2. Configure opencode to use the wikibot MCP server
+EOF
+}
+
+#
+# Install package with MCP support
+#
+install_mcp() {
+    action "Installing py-3rdparty-mediawiki with MCP support..."
+    pip install -e ".[mcp]" --quiet
+    success "Installed"
+}
+
+#
+# Configure opencode
+#
+configure_opencode() {
+    action "Configuring opencode MCP server..."
+    mkdir -p "$CONFIG_DIR"
+
+    if [ -f "$CONFIG_FILE" ]; then
+        warn "Existing opencode.json found - backing up"
+        cp "$CONFIG_FILE" "$CONFIG_FILE.bak"
+    fi
+
+    cat > "$CONFIG_FILE" << CONFIGEOF
+{
+  "\$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "wikibot": {
+      "type": "local",
+      "command": ["python", "-m", "wikibot3rd.mcp_server"],
+      "enabled": true,
+      "environment": {
+        "PYTHONPATH": "$PROJECT_DIR"
+      }
+    }
+  }
+}
+CONFIGEOF
+    success "Created $CONFIG_FILE"
+}
+
+#
+# Test MCP server
+#
+test_mcp() {
+    action "Testing MCP server..."
+    python -c "from wikibot3rd.mcp_server import list_wikis_impl; print('   MCP server OK - wikis:', [w['wikiId'] for w in list_wikis_impl()])" 2>/dev/null || echo "   Note: MCP server needs wiki credentials to list wikis"
+}
+
+#
+# show final message
+#
+show_result() {
+    cat << EOF
+
+=== Setup complete! ===
+
+To use with opencode, run:
+  opencode
+
+Then ask things like:
+  'What wikis can I access with wikibot?'
+  'Get the Main Page from the media wiki'
+EOF
+}
+
+# commandline option
+while [ "$1" != "" ]
+do
+    option=$1
+    shift
+    case $option in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            error "invalid option $option"
+            ;;
+    esac
+done
+
+action "=== Setting up MCP server for py-3rdparty-mediawiki ==="
+install_mcp
+configure_opencode
+test_mcp
+show_result

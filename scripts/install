@@ -1,3 +1,23 @@
 #!/bin/bash
 # WF 2020-03-25
-pip install .
+# WF 2025-01-01 - added MCP option
+
+# Parse options
+INSTALL_MCP=false
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --mcp) INSTALL_MCP=true ;;
+        -h|--help) 
+            echo "Usage: $0 [--mcp]"
+            echo "  --mcp    Install with MCP dependencies"
+            exit 0
+            ;;
+    esac
+    shift
+done
+
+if [ "$INSTALL_MCP" = true ]; then
+    pip install -e ".[mcp]"
+else
+    pip install .
+fi

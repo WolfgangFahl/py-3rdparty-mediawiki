@@ -12,8 +12,9 @@ import socket
 import traceback
 from typing import Dict, Optional
 
-from basemkit.yamlable import lod_storable
 import pymysql
+from basemkit.yamlable import lod_storable
+
 
 @lod_storable
 class User:
@@ -195,8 +196,8 @@ class SSO:
                 user=self.db_username,
                 password=self.db_password,
                 database=self.database,
-                charset='utf8mb4',
-                cursorclass=pymysql.cursors.DictCursor
+                charset="utf8mb4",
+                cursorclass=pymysql.cursors.DictCursor,
             )
 
             # JOIN query: Fetch user data and sysop status

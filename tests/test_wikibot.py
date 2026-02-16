@@ -57,7 +57,9 @@ class TestWikiBot(BaseWikiTest):
         test collecting all bots for which credentials have been set up
         """
         # all .org endpoint excluding openresearch
-        bots = WikiBot.getBots(name="url", valueExpr=r"www(?![.]openresearch[.]org).*[.]org")
+        bots = WikiBot.getBots(
+            name="url", valueExpr=r"www(?![.]openresearch[.]org).*[.]org"
+        )
         for bot in bots.values():
             print(bot)
             if bot.site is not None:

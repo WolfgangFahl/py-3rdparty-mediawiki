@@ -4,10 +4,10 @@ Created on 2020-03-24
 @author: wf
 """
 
-from datetime import datetime
 import re
 import sys
 import textwrap
+from datetime import datetime
 from os.path import isfile
 from urllib.parse import urlparse
 

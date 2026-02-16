@@ -85,6 +85,9 @@ repository = "https://wiki.bitplan.com/index.php/Py-3rdparty-mediawiki"
 test = [
   "green",
 ]
+mcp = [
+  "fastmcp>=2.0.0",
+]
 
 [tool.hatch.build.targets.wheel]
 only-include = ["wikibot3rd","wikibot3rd_examples"]
@@ -103,3 +106,4 @@ wikiquery = "wikibot3rd.wikipush:mainQuery"
 wikiupload = "wikibot3rd.wikipush:mainUpload"
 wikirestore = "wikibot3rd.wikipush:mainRestore"
 wikiuser = "wikibot3rd.wikiuser_cmd:main"
+wikibot-mcp = "wikibot3rd.mcp_server:main"

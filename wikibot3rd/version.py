@@ -15,7 +15,7 @@ class Version(object):
     name = "py-3rdparty-mediawiki"
     version = wikibot3rd.__version__
     date = "2020-10-31"
-    updated = "2025-11-27"
+    updated = "2026-02-16"
 
     authors = "Wolfgang Fahl, Tim Holzheim"
 
