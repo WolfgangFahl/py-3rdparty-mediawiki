@@ -43,7 +43,7 @@ def get_wiki_client(wiki_id: str) -> WikiClient:
     if wiki_user is None:
         raise ValueError(f"Wiki '{wiki_id}' not found in configuration")
     client = WikiClient.of_wiki_user(wiki_user)
-    
+
     # Auto-login if credentials are available
     if wiki_user.user and wiki_user.getPassword():
         try:
@@ -51,7 +51,7 @@ def get_wiki_client(wiki_id: str) -> WikiClient:
         except Exception:
             # Login failed, but continue anyway (some wikis allow read without login)
             pass
-    
+
     return client
 
 
@@ -104,9 +104,9 @@ def format_search_result(result: Any) -> Dict[str, str]:
         snippet = ""
 
     return {
-        "title": title,
-        "pageid": pageid,
-        "snippet": snippet,
+        "title": str(title),
+        "pageid": str(pageid),
+        "snippet": str(snippet) if snippet else "",
     }
 
 
@@ -227,7 +227,10 @@ def search_page_by_prefix_impl(wiki_id: str, prefix: str, limit: int = 10) -> Li
     """
     client = get_wiki_client(wiki_id)
     site = client.get_site()
-    results = site.search(prefix, limit=limit, what="prefix")
+    try:
+        results = site.search(prefix, limit=limit, what="prefix")
+    except Exception:
+        results = site.search(prefix, limit=limit)
     return [r.name for r in results]
 
 
@@ -248,18 +251,26 @@ def get_page_history_impl(
     client = get_wiki_client(wiki_id)
     page = client.get_page(page_title)
     revisions = page.revisions(limit=limit, prop="content|timestamp|user")
-    return [
-        format_revision(
-            {
+    result = []
+    for rev in revisions:
+        if isinstance(rev, dict):
+            rev_data = {
+                "revid": rev.get("revid", 0),
+                "parentid": rev.get("parentid", 0),
+                "timestamp": str(rev.get("timestamp", "")),
+                "user": rev.get("user", ""),
+                "*": rev.get("*", ""),
+            }
+        else:
+            rev_data = {
                 "revid": rev.revid,
                 "parentid": rev.parentid,
                 "timestamp": str(rev.timestamp),
                 "user": rev.user,
                 "*": rev.text if hasattr(rev, "text") else "",
             }
-        )
-        for rev in revisions
-    ]
+        result.append(format_revision(rev_data))
+    return result
 
 
 def get_category_members_impl(
@@ -603,7 +614,7 @@ def get_page_markup(wiki_id: str, page_title: str) -> str:
 
 
 @mcp.tool()
-def search_page(wiki_id: str, query: str, limit: int = 10) -> List[Dict[str, str]]:
+def search_page(wiki_id: str, query: str, limit: int = 10) -> List[Dict[str, Any]]:
     """Search wiki page titles and contents."""
     return search_page_impl(wiki_id, query, limit)
 

@@ -69,7 +69,7 @@ class TestMCPServer(BaseWikiTest):
         result = format_search_result(mock_result)
 
         self.assertEqual(result["title"], "Search Result")
-        self.assertEqual(result["pageid"], 123)
+        self.assertEqual(result["pageid"], "123")
 
     def test_get_wiki_client_not_found(self):
         """Test that ValueError is raised for unknown wiki."""
