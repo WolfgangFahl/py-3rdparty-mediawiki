@@ -28,7 +28,7 @@ PREVIEW_STORE: Dict[str, Dict[str, Any]] = {}
 
 def get_wiki_client(wiki_id: str) -> WikiClient:
     """
-    Get a WikiClient for the given wiki ID.
+    Get a WikiClient for the given wiki ID and login if credentials are available.
 
     Args:
         wiki_id: The wiki identifier.
@@ -42,7 +42,17 @@ def get_wiki_client(wiki_id: str) -> WikiClient:
     wiki_user = WikiUser.ofWikiId(wiki_id, lenient=False)
     if wiki_user is None:
         raise ValueError(f"Wiki '{wiki_id}' not found in configuration")
-    return WikiClient.of_wiki_user(wiki_user)
+    client = WikiClient.of_wiki_user(wiki_user)
+    
+    # Auto-login if credentials are available
+    if wiki_user.user and wiki_user.getPassword():
+        try:
+            client.login()
+        except Exception:
+            # Login failed, but continue anyway (some wikis allow read without login)
+            pass
+    
+    return client
 
 
 def format_page(page: Any) -> Dict[str, Any]:
