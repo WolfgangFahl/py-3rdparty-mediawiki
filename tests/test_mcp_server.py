@@ -210,6 +210,28 @@ class TestMCPServer(BaseWikiTest):
             with self.assertRaises(ValueError):
                 set_wiki_impl("nonexistent.wiki.org")
 
+    def test_update_section_zero_replaces_content(self):
+        """Test that update_section with section 0 replaces top content."""
+        from wikibot3rd.wikiclient import WikiClient
+
+        mock_client = WikiClient.__new__(WikiClient)
+        mock_page = MagicMock()
+
+        def mock_get_page(page_title):
+            return mock_page
+
+        mock_client.get_page = mock_get_page
+        mock_client.save_page(
+            page_title="Test Page",
+            page_content="New top content",
+            page_summary="Test update",
+            section="0",
+        )
+
+        mock_page.edit.assert_called_once_with(
+            "New top content", "Test update", section="0"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -134,7 +134,12 @@ def list_wikis_impl() -> List[Dict[str, str]]:
     List all configured wikis the bot can access.
 
     Returns:
-        List of dicts with wikiId, url, user for each wiki.
+        List of dicts with:
+        - wikiId: unique identifier for the wiki
+        - url: base URL of the wiki
+        - user: bot username
+        - filePath: path to the .ini config file (e.g. $USER_<wikiId>.ini)
+          Contains encrypted credentials; edit with wikiuser command line tool
     """
     wikis = []
     for wiki_user in WikiUser.getWikiUsers().values():
@@ -143,6 +148,7 @@ def list_wikis_impl() -> List[Dict[str, str]]:
                 "wikiId": wiki_user.wikiId,
                 "url": wiki_user.url,
                 "user": wiki_user.user or "",
+                "filePath": wiki_user.filePath or "",
             }
         )
     return wikis
@@ -741,7 +747,17 @@ def get_wiki_info_impl(wiki_id: str) -> Dict[str, Any]:
 
 @mcp.tool()
 def list_wikis() -> List[Dict[str, str]]:
-    """List all configured wikis."""
+    """
+    List all configured wikis.
+
+    Returns:
+        List of dicts with:
+        - wikiId: unique identifier for the wiki
+        - url: base URL of the wiki
+        - user: bot username
+        - filePath: path to the .ini config file (e.g. $USER_<wikiId>.ini)
+          Contains encrypted credentials; edit with wikiuser command line tool
+    """
     return list_wikis_impl()
 
 

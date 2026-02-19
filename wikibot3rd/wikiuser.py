@@ -328,6 +328,7 @@ class WikiUser(WikiUserData):
                     try:
                         config = cls.readPropertyFile(entry.path)
                         wikiUser = cls.ofDict(config, lenient=lenient)
+                        wikiUser.filePath = entry.path
                         wikiUsers[wikiUser.wikiId] = wikiUser
                     except Exception as ex:
                         print(f"error in {entry.path}: {str(ex)}")
