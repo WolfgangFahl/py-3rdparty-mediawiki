@@ -166,7 +166,13 @@ class WikiClient(Wiki):
         """Deprecated: Use get_page instead."""
         return self.get_page(pageTitle)
 
-    def save_page(self, page_title: str, page_content: str, page_summary: str) -> None:
+    def save_page(
+        self,
+        page_title: str,
+        page_content: str,
+        page_summary: str,
+        section: Optional[str] = None,
+    ) -> None:
         """
         Save a page with given title and content.
 
@@ -174,9 +180,11 @@ class WikiClient(Wiki):
             page_title: The title of the page.
             page_content: The new content of the page.
             page_summary: A summary of the changes made.
+            section: Section to edit. None for full page, "0" for top section,
+                or section number (e.g., "1", "2"). Use "new" to create a new section.
         """
-        new_page = self.get_page(page_title)
-        new_page.edit(page_content, page_summary)
+        page = self.get_page(page_title)
+        page.edit(page_content, page_summary, section=section)
 
     def savePage(self, pageTitle: str, pageContent: str, pageSummary: str) -> None:
         """Deprecated: Use save_page instead."""

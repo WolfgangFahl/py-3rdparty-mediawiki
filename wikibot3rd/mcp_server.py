@@ -8,7 +8,7 @@ Allows AI assistants (Claude, Cursor, ChatGPT) to interact with wikis.
 """
 
 import uuid
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 try:
     from fastmcp import FastMCP
@@ -294,6 +294,146 @@ def get_category_members_impl(
     return [m.name for m in members]
 
 
+def get_page_sections_impl(wiki_id: str, page_title: str) -> List[Dict[str, Any]]:
+    """
+    Get all sections in a wiki page.
+
+    Args:
+        wiki_id: The wiki identifier.
+        page_title: Title of the page.
+
+    Returns:
+        List of sections with index, title, and line number.
+    """
+    client = get_wiki_client(wiki_id)
+    site = client.get_site()
+    page = client.get_page(page_title)
+    content = page.text() if hasattr(page, "text") else ""
+
+    sections = []
+    lines = content.splitlines()
+    for i, line in enumerate(lines):
+        if line.strip().startswith("==") and "==" in line[2:]:
+            title = line.strip("= ").strip()
+            level = line.count("=") // 2 - 1
+            sections.append(
+                {
+                    "index": len(sections),
+                    "title": title,
+                    "level": level,
+                    "line": i + 1,
+                }
+            )
+
+    return sections
+
+
+def get_section_content_impl(
+    wiki_id: str, page_title: str, section: str
+) -> Dict[str, Any]:
+    """
+    Get the content of a specific section.
+
+    Args:
+        wiki_id: The wiki identifier.
+        page_title: Title of the page.
+        section: Section index ("0" for top section, "1", "2", etc.).
+
+    Returns:
+        Dict with section content.
+    """
+    client = get_wiki_client(wiki_id)
+    site = client.get_site()
+    page = client.get_page(page_title)
+    content = page.text() if hasattr(page, "text") else ""
+
+    lines = content.splitlines()
+    section_start = -1
+    section_end = len(lines)
+
+    current_section = -1
+    for i, line in enumerate(lines):
+        if line.strip().startswith("==") and "==" in line[2:]:
+            current_section += 1
+            if str(current_section) == section:
+                section_start = i + 1
+            elif section_start >= 0:
+                section_end = i
+                break
+
+    if section_start < 0:
+        raise ValueError(f"Section {section} not found in page {page_title}")
+
+    section_content = "\n".join(lines[section_start:section_end])
+
+    return {
+        "section": section,
+        "content": section_content,
+        "line_start": section_start + 1,
+        "line_end": section_end,
+    }
+
+
+def update_section_impl(
+    wiki_id: str,
+    page_title: str,
+    section: str,
+    content: str,
+    summary: str = "",
+) -> Dict[str, Any]:
+    """
+    Update a specific section of a wiki page.
+
+    Args:
+        wiki_id: The wiki identifier.
+        page_title: Title of the page.
+        section: Section index to update ("0", "1", "2", etc.).
+        content: New section content.
+        summary: Edit summary/commit message.
+
+    Returns:
+        Dict with success status.
+    """
+    client = get_wiki_client(wiki_id)
+    client.save_page(page_title, content, summary, section=section)
+    return {
+        "success": True,
+        "title": page_title,
+        "section": section,
+        "message": f"Section {section} of '{page_title}' updated successfully",
+    }
+
+
+def create_section_impl(
+    wiki_id: str,
+    page_title: str,
+    title: str,
+    content: str,
+    summary: str = "",
+) -> Dict[str, Any]:
+    """
+    Create a new section on a wiki page.
+
+    Args:
+        wiki_id: The wiki identifier.
+        page_title: Title of the page.
+        title: Title of the new section.
+        content: Content of the new section.
+        summary: Edit summary/commit message.
+
+    Returns:
+        Dict with success status.
+    """
+    client = get_wiki_client(wiki_id)
+    client.save_page(page_title, content, summary, section="new")
+    return {
+        "success": True,
+        "title": page_title,
+        "section_title": title,
+        "message": f"New section '{title}' added to '{page_title}' successfully",
+    }
+
+
 def get_revision_impl(
     wiki_id: str, page_title: str, revision_id: int
 ) -> Dict[str, Any]:
@@ -431,7 +571,11 @@ def undelete_page_impl(
 
 
 def preview_edit_impl(
-    wiki_id: str, page_title: str, content: str, summary: str = ""
+    wiki_id: str,
+    page_title: str,
+    content: str,
+    summary: str = "",
+    section: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Preview an edit without committing. Returns a token for commit.
@@ -441,6 +585,8 @@ def preview_edit_impl(
         page_title: Title of the page.
         content: Proposed page content.
         summary: Edit summary.
+        section: Section to edit. None for full page, "0" for top section,
+            or section number. Use "new" to create a new section.
 
     Returns:
         Dict with preview info and commit token.
@@ -449,6 +595,10 @@ def preview_edit_impl(
     page = client.get_page(page_title)
     old_content = page.text() if hasattr(page, "text") else ""
 
+    if section is not None and section != "new":
+        section_data = get_section_content_impl(wiki_id, page_title, section)
+        old_content = section_data.get("content", "")
+
     token = str(uuid.uuid4())
     PREVIEW_STORE[token] = {
         "wiki_id": wiki_id,
@@ -456,6 +606,7 @@ def preview_edit_impl(
         "content": content,
         "summary": summary,
         "old_content": old_content,
+        "section": section,
     }
 
     diff = generate_diff(old_content, content)
@@ -467,6 +618,7 @@ def preview_edit_impl(
         "new_content": content,
         "diff": diff,
         "summary": summary,
+        "section": section,
         "message": "Use commit_edit with the token to apply this edit",
     }
 
@@ -491,13 +643,17 @@ def commit_edit_impl(wiki_id: str, page_title: str, token: str) -> Dict[str, Any
         raise ValueError("Token does not match wiki_id or page_title")
 
     client = get_wiki_client(wiki_id)
-    client.save_page(page_title, preview["content"], preview["summary"])
+    section = preview.get("section")
+    client.save_page(
+        page_title, preview["content"], preview["summary"], section=section
+    )
 
     del PREVIEW_STORE[token]
 
     return {
         "success": True,
         "title": page_title,
+        "section": section,
         "message": f"Edit committed to '{page_title}'",
     }
 
@@ -634,6 +790,18 @@ def get_category_members(wiki_id: str, category: str, limit: int = 10) -> List[s
 
 
 @mcp.tool()
+def get_page_sections(wiki_id: str, page_title: str) -> List[Dict[str, Any]]:
+    """Get all sections in a wiki page."""
+    return get_page_sections_impl(wiki_id, page_title)
+
+
+@mcp.tool()
+def get_section_content(wiki_id: str, page_title: str, section: str) -> Dict[str, Any]:
+    """Get the content of a specific section."""
+    return get_section_content_impl(wiki_id, page_title, section)
+
+
+@mcp.tool()
 def get_revision(wiki_id: str, page_title: str, revision_id: int) -> Dict[str, Any]:
     """Get a specific revision of a page."""
     return get_revision_impl(wiki_id, page_title, revision_id)
@@ -656,6 +824,30 @@ def update_page(
 
 
 @mcp.tool()
+def update_section(
+    wiki_id: str,
+    page_title: str,
+    section: str,
+    content: str,
+    summary: str = "",
+) -> Dict[str, Any]:
+    """Update a specific section of a wiki page."""
+    return update_section_impl(wiki_id, page_title, section, content, summary)
+
+
+@mcp.tool()
+def create_section(
+    wiki_id: str,
+    page_title: str,
+    title: str,
+    content: str,
+    summary: str = "",
+) -> Dict[str, Any]:
+    """Create a new section on a wiki page."""
+    return create_section_impl(wiki_id, page_title, title, content, summary)
+
+
+@mcp.tool()
 def delete_page(wiki_id: str, page_title: str, reason: str = "") -> Dict[str, Any]:
     """Delete a wiki page."""
     return delete_page_impl(wiki_id, page_title, reason)
@@ -669,10 +861,14 @@ def undelete_page(wiki_id: str, page_title: str, reason: str = "") -> Dict[str, 
 
 @mcp.tool()
 def preview_edit(
-    wiki_id: str, page_title: str, content: str, summary: str = ""
+    wiki_id: str,
+    page_title: str,
+    content: str,
+    summary: str = "",
+    section: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Preview an edit without committing."""
-    return preview_edit_impl(wiki_id, page_title, content, summary)
+    return preview_edit_impl(wiki_id, page_title, content, summary, section)
 
 
 @mcp.tool()

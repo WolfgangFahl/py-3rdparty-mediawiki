@@ -160,7 +160,7 @@ class TestMCPServer(BaseWikiTest):
             self.assertTrue(result["success"])
             self.assertEqual(result["title"], "Test Page")
             mock_client.save_page.assert_called_once_with(
-                "Test Page", "New content", "Test edit"
+                "Test Page", "New content", "Test edit", section=None
             )
             self.assertNotIn(token, PREVIEW_STORE)
 
