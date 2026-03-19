@@ -905,6 +905,27 @@ def get_wiki_info(wiki_id: str) -> Dict[str, Any]:
     return get_wiki_info_impl(wiki_id)
 
 
+def get_page_html_impl(wiki_id: str, page_title: str) -> str:
+    """
+    Get the HTML content for a wiki page.
+
+    Args:
+        wiki_id: The wiki identifier.
+        page_title: Title of the page to retrieve HTML for.
+
+    Returns:
+        The HTML content of the specified page.
+    """
+    client = get_wiki_client(wiki_id)
+    return client.get_html(page_title)
+
+
+@mcp.tool()
+def get_page_html(wiki_id: str, page_title: str) -> str:
+    """Get the HTML content for a wiki page."""
+    return get_page_html_impl(wiki_id, page_title)
+
+
 def main():
     """Run the MCP server."""
     mcp.run()
