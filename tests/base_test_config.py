@@ -37,6 +37,12 @@ class WikiConfig:
                 "scriptPath": "",
                 "version": "MediaWiki 1.35.5",
             },
+            "wiki": {
+                "email": "noreply@nouser.com",
+                "url": "https://wiki.bitplan.com",
+                "scriptPath": "",
+                "version": "MediaWiki 1.39.7",
+            },
             "genealogy": {
                 "email": "noreply@nouser.com",
                 "url": "https://wiki.genealogy.net",
