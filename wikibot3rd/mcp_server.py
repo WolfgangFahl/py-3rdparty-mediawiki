@@ -17,6 +17,7 @@ except ImportError:
         "fastmcp is required for MCP server. Install with: pip install py-3rdparty-mediawiki[mcp]"
     )
 
+from wikibot3rd.smw import SMWClient
 from wikibot3rd.version import Version
 from wikibot3rd.wikiclient import WikiClient
 from wikibot3rd.wikiuser import WikiUser
@@ -924,6 +925,27 @@ def get_page_html_impl(wiki_id: str, page_title: str) -> str:
 def get_page_html(wiki_id: str, page_title: str) -> str:
     """Get the HTML content for a wiki page."""
     return get_page_html_impl(wiki_id, page_title)
+
+
+@mcp.tool()
+def smw_query(wiki_id: str, query: str, limit: int = 20) -> Dict[str, Any]:
+    """
+    Execute a Semantic MediaWiki (SMW) ask query.
+
+    Args:
+        wiki_id: The wiki identifier.
+        query: The SMW ask query (e.g., "[[Category:MyCategory]]").
+        limit: Maximum number of results (default 20).
+
+    Returns:
+        Dict mapping page titles to their property values.
+        Example: {"Page Name": {"Has property": "value", ...}, ...}
+    """
+    client = get_wiki_client(wiki_id)
+    site = client.get_site()
+    smw_client = SMWClient(site)
+    query_result = smw_client.query(query, limit=limit)
+    return query_result
 
 
 def main():
