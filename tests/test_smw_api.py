@@ -199,14 +199,12 @@ class TestSMW(BaseWikiTest):
     # issue https://github.com/WolfgangFahl/py-3rdparty-mediawiki/issues/3
     # see https://www.semantic-mediawiki.org/wiki/User:WolfgangFahl/Workdocumentation_2020-06-01
     def testSMWAskwWithEmptyLink(self):
-        ask = """
-        {{#ask: [[Category:Event]]
-|mainlabel=Event
-|?Has_local_chair=chair
+        ask = """{{#ask: [[Concept:Event]]
+|?Has_local_chair
 |format=table
 }}
         """
-        for smw in self.getSMWs("orcopy"):
+        for smw in self.getSMWs("cr"):
             result = self.getAskResult(smw, ask)
             self.assertTrue(len(result) > 7)
 

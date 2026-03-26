@@ -111,6 +111,16 @@ class WikiClient(Wiki):
         success = ex is None
         return success
 
+    @property
+    def is_logged_in(self) -> bool:
+        """
+        Check whether the current session is authenticated.
+
+        Returns:
+            True if logged in, False otherwise.
+        """
+        return self._is_logged_in
+
     def get_wiki_markup(self, page_title: str) -> str:
         """
         Get the wiki markup for a given page title.

@@ -130,11 +130,8 @@ class TestMCPServer(BaseWikiTest):
 
     def test_commit_edit_success(self):
         """Test committing a previewed edit."""
-        from wikibot3rd.mcp_server import (
-            PREVIEW_STORE,
-            commit_edit_impl,
-            preview_edit_impl,
-        )
+        from wikibot3rd.mcp_server import (PREVIEW_STORE, commit_edit_impl,
+                                           preview_edit_impl)
 
         mock_client = MagicMock()
         mock_page = MagicMock()
@@ -209,6 +206,112 @@ class TestMCPServer(BaseWikiTest):
 
             with self.assertRaises(ValueError):
                 set_wiki_impl("nonexistent.wiki.org")
+
+    def test_is_logged_in_impl(self):
+        """Test is_logged_in_impl returns the client's login state."""
+        from wikibot3rd.mcp_server import _client_cache, is_logged_in_impl
+
+        mock_client = MagicMock()
+        mock_client.is_logged_in = True
+        _client_cache["test.wiki.org"] = mock_client
+
+        result = is_logged_in_impl("test.wiki.org")
+
+        self.assertTrue(result)
+        _client_cache.pop("test.wiki.org", None)
+
+    def test_login_impl_success(self):
+        """Test login_impl returns success when login works."""
+        from wikibot3rd.mcp_server import _client_cache, login_impl
+
+        mock_wiki_user = MagicMock()
+        mock_wiki_user.user = "bot"
+        mock_wiki_user.getPassword.return_value = "secret"
+
+        mock_client = MagicMock()
+        mock_client.is_logged_in = True
+
+        with patch("wikibot3rd.mcp_server.WikiUser") as mock_wu_class:
+            mock_wu_class.ofWikiId.return_value = mock_wiki_user
+            with patch("wikibot3rd.mcp_server.WikiClient") as mock_client_class:
+                mock_client_class.of_wiki_user.return_value = mock_client
+                _client_cache.pop("test.wiki.org", None)
+
+                result = login_impl("test.wiki.org")
+
+                self.assertTrue(result["success"])
+                self.assertIn("test.wiki.org", result["message"])
+
+    def test_login_impl_no_credentials(self):
+        """Test login_impl raises ValueError when no credentials are set."""
+        from wikibot3rd.mcp_server import _client_cache, login_impl
+
+        mock_wiki_user = MagicMock()
+        mock_wiki_user.user = None
+        mock_wiki_user.getPassword.return_value = None
+
+        with patch("wikibot3rd.mcp_server.WikiUser") as mock_wu_class:
+            mock_wu_class.ofWikiId.return_value = mock_wiki_user
+            _client_cache.pop("test.wiki.org", None)
+
+            with self.assertRaises(ValueError) as ctx:
+                login_impl("test.wiki.org")
+
+            self.assertIn("no credentials", str(ctx.exception))
+
+    def test_call_mediawiki_api_requires_login(self):
+        """Test call_mediawiki_api raises PermissionError when not logged in."""
+        from wikibot3rd.mcp_server import call_mediawiki_api_impl
+
+        mock_client = MagicMock()
+        mock_client.is_logged_in = False
+
+        with patch("wikibot3rd.mcp_server.get_wiki_client", return_value=mock_client):
+            with self.assertRaises(PermissionError) as ctx:
+                call_mediawiki_api_impl(
+                    "test.wiki.org", {"action": "query", "list": "recentchanges"}
+                )
+            self.assertIn("Not logged in", str(ctx.exception))
+
+    def test_call_mediawiki_api_success(self):
+        """Test call_mediawiki_api passes params to site.api and returns result."""
+        from wikibot3rd.mcp_server import call_mediawiki_api_impl
+
+        mock_client = MagicMock()
+        mock_client.is_logged_in = True
+        mock_site = MagicMock()
+        mock_site.api.return_value = {"query": {"recentchanges": [{"title": "Test"}]}}
+        mock_client.get_site.return_value = mock_site
+
+        with patch("wikibot3rd.mcp_server.get_wiki_client", return_value=mock_client):
+            result = call_mediawiki_api_impl(
+                "test.wiki.org",
+                {"action": "query", "list": "recentchanges", "rclimit": 5},
+            )
+
+        mock_site.api.assert_called_once_with("query", list="recentchanges", rclimit=5)
+        self.assertIn("query", result)
+
+    def test_call_mediawiki_api_limit(self):
+        """Test call_mediawiki_api truncates oversized list results."""
+        from wikibot3rd.mcp_server import call_mediawiki_api_impl
+
+        mock_client = MagicMock()
+        mock_client.is_logged_in = True
+        mock_site = MagicMock()
+        mock_site.api.return_value = {
+            "query": {"recentchanges": [{"title": f"Page{i}"} for i in range(200)]}
+        }
+        mock_client.get_site.return_value = mock_site
+
+        with patch("wikibot3rd.mcp_server.get_wiki_client", return_value=mock_client):
+            result = call_mediawiki_api_impl(
+                "test.wiki.org",
+                {"action": "query", "list": "recentchanges"},
+                limit=10,
+            )
+
+        self.assertEqual(len(result["query"]["recentchanges"]), 10)
 
     def test_update_section_zero_replaces_content(self):
         """Test that update_section with section 0 replaces top content."""

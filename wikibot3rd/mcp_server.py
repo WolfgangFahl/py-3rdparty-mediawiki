@@ -27,9 +27,13 @@ mcp = FastMCP("py-3rdparty-mediawiki")
 PREVIEW_STORE: Dict[str, Dict[str, Any]] = {}
 
 
+_client_cache: Dict[str, WikiClient] = {}
+
+
 def get_wiki_client(wiki_id: str) -> WikiClient:
     """
     Get a WikiClient for the given wiki ID and login if credentials are available.
+    Clients are cached per wiki_id so that login state is preserved across calls.
 
     Args:
         wiki_id: The wiki identifier.
@@ -40,6 +44,9 @@ def get_wiki_client(wiki_id: str) -> WikiClient:
     Raises:
         ValueError: If the wiki is not found.
     """
+    if wiki_id in _client_cache:
+        return _client_cache[wiki_id]
+
     wiki_user = WikiUser.ofWikiId(wiki_id, lenient=False)
     if wiki_user is None:
         raise ValueError(f"Wiki '{wiki_id}' not found in configuration")
@@ -53,6 +60,7 @@ def get_wiki_client(wiki_id: str) -> WikiClient:
             # Login failed, but continue anyway (some wikis allow read without login)
             pass
 
+    _client_cache[wiki_id] = client
     return client
 
 
@@ -946,6 +954,144 @@ def smw_query(wiki_id: str, query: str, limit: int = 20) -> Dict[str, Any]:
     smw_client = SMWClient(site)
     query_result = smw_client.query(query, limit=limit)
     return query_result
+
+
+def is_logged_in_impl(wiki_id: str) -> bool:
+    """
+    Check whether the current session for a given wiki is authenticated.
+
+    Args:
+        wiki_id: The wiki identifier.
+
+    Returns:
+        True if logged in, False otherwise.
+    """
+    client = get_wiki_client(wiki_id)
+    return client.is_logged_in
+
+
+def login_impl(wiki_id: str) -> Dict[str, Any]:
+    """
+    Explicitly log in to a wiki.
+
+    Args:
+        wiki_id: The wiki identifier.
+
+    Returns:
+        Dict with success status and message.
+
+    Raises:
+        ValueError: If the wiki is not found or has no credentials configured.
+    """
+    wiki_user = WikiUser.ofWikiId(wiki_id, lenient=False)
+    if wiki_user is None:
+        raise ValueError(f"Wiki '{wiki_id}' not found in configuration")
+    if not wiki_user.user or not wiki_user.getPassword():
+        raise ValueError(
+            f"Wiki '{wiki_id}' has no credentials configured. "
+            "Use the wikiuser command line tool to set up credentials."
+        )
+    # Evict cached client so a fresh login attempt is made
+    _client_cache.pop(wiki_id, None)
+    client = get_wiki_client(wiki_id)
+    if client.is_logged_in:
+        return {
+            "success": True,
+            "wiki_id": wiki_id,
+            "message": f"Logged in to '{wiki_id}' successfully",
+        }
+    else:
+        return {
+            "success": False,
+            "wiki_id": wiki_id,
+            "message": f"Login to '{wiki_id}' failed. Check credentials.",
+        }
+
+
+def call_mediawiki_api_impl(
+    wiki_id: str, params: Dict[str, Any], limit: int = 500
+) -> Dict[str, Any]:
+    """
+    Generic pass-through to the MediaWiki Action API.
+
+    Args:
+        wiki_id: The wiki identifier.
+        params: Raw MediaWiki API parameters as a dict.
+            Must include at least "action". Example::
+
+                {
+                    "action": "query",
+                    "list": "recentchanges",
+                    "rcprop": "title|ids|sizes|user",
+                    "rclimit": 10
+                }
+
+        limit: Maximum number of items returned in list results (default 500).
+
+    Returns:
+        Raw API response dict.
+
+    Raises:
+        PermissionError: If the session is not authenticated.
+        ValueError: If no "action" key is present in params.
+    """
+    client = get_wiki_client(wiki_id)
+    if not client.is_logged_in:
+        raise PermissionError(f"Not logged in to wiki '{wiki_id}'. Call login() first.")
+    if "action" not in params:
+        raise ValueError("params must contain an 'action' key")
+
+    action = params.pop("action")
+    result = client.get_site().api(action, **params)
+
+    # Apply limit to list-style results to avoid oversized responses
+    for key, value in result.items():
+        if isinstance(value, dict):
+            for sub_key, sub_value in value.items():
+                if isinstance(sub_value, list) and len(sub_value) > limit:
+                    result[key][sub_key] = sub_value[:limit]
+        elif isinstance(value, list) and len(value) > limit:
+            result[key] = value[:limit]
+
+    return result
+
+
+@mcp.tool()
+def is_logged_in(wiki_id: str) -> bool:
+    """Check whether the current session for a given wiki is authenticated."""
+    return is_logged_in_impl(wiki_id)
+
+
+@mcp.tool()
+def login(wiki_id: str) -> Dict[str, Any]:
+    """
+    Explicitly log in to a wiki.
+
+    Returns a dict with success (bool) and message (str).
+    Credentials must be configured via the wikiuser command line tool.
+    """
+    return login_impl(wiki_id)
+
+
+@mcp.tool()
+def call_mediawiki_api(
+    wiki_id: str, params: Dict[str, Any], limit: int = 500
+) -> Dict[str, Any]:
+    """
+    Generic pass-through to the MediaWiki Action API.
+
+    Requires an authenticated session (call login() first if needed).
+
+    Args:
+        wiki_id: The wiki identifier.
+        params: Raw MediaWiki API parameters as a dict, e.g.
+            {"action": "query", "list": "recentchanges", "rcprop": "title|ids|sizes|user", "rclimit": 10}
+        limit: Cap on the number of items in list results (default 500).
+
+    Returns:
+        Raw API response dict.
+    """
+    return call_mediawiki_api_impl(wiki_id, params, limit)
 
 
 def main():
