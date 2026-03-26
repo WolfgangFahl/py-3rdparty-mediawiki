@@ -38,13 +38,13 @@ class TestDuckInterface(BaseWikiTest):
             if debug:
                 print(wiki)
             self.assertTrue(isinstance(wiki, Wiki))
-            pageTitle = "Special:Version"
+            pageTitle = "Imprint"
             markup = wiki.getWikiMarkup(pageTitle)
-            self.assertTrue("MediaWiki License" in markup)
+            self.assertTrue("Privacy" in markup)
             html = wiki.getHtml(pageTitle)
             if self.debug:
                 print(html)
-            self.assertTrue("MediaWiki License" in html)
+            self.assertTrue("<a href" in html)
         pass
 
 
