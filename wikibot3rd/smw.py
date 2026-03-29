@@ -73,7 +73,7 @@ class PrintRequest(object):
         elif self.typeid == "_qty":
             pass
         elif self.typeid == "_num":
-            value = int(value)
+            value = float(value)
         elif self.typeid == "_dat":
             if "timestamp" in value:
                 ts = int(value["timestamp"])
@@ -425,7 +425,7 @@ class SMWClient(SMW):
             lenSubinterval = (end - start) / numIntervals
             for n in range(numIntervals):
                 if self.showProgress:
-                    print(f"Query {n+1}/{numIntervals}:")
+                    print(f"Query {n + 1}/{numIntervals}:")
                 tempLowerBound = calcIntervalBound(start, n)
                 tempUpperBound = (
                     calcIntervalBound(start, n + 1) if (n + 1 < numIntervals) else end
