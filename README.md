@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/github/license/WolfgangFahl/py-3rdparty-mediawiki.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![BITPlan](http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/198px-BITPlanLogoFontLessTransparent.png)](http://www.bitplan.com)
 
-Python wrapper for mwclient with improvements for 3rd party wikis. Also known as the **[Wikipush Toolkit](https://www.semantic-mediawiki.org/wiki/Wikipush_Toolkit)** — a set of tools for automating SMW page content handling using Python and a command line, presented at SMWCon Fall 2020.
+Python wrapper for mwclient with improvements for 3rd party wikis. Also known as the **[Wikipush Toolkit](https://www.semantic-mediawiki.org/wiki/Wikipush_Toolkit)** — a set of tools for automating MediaWiki page content handling using Python and a command line, presented at SMWCon Fall 2020. Works with any MediaWiki wiki: SMW wikis are queried natively; non-SMW wikis are supported by faking SMW-style queries for categories, enabling page pushing from wikis without Semantic MediaWiki installed.
 
 ## Installation
 
@@ -102,7 +102,10 @@ shall i store jd smw? yes/no y/n
 * [Python](https://www.python.org/)
 * [mwclient](https://github.com/mwclient/mwclient)
 * [pyLoDStorage](https://github.com/WolfgangFahl/pyLoDStorage)
-* [Wikipush Toolkit (SMWCon Fall 2020)](https://www.semantic-mediawiki.org/wiki/Wikipush_Toolkit)
+* [Wikipush Toolkit — SMWCon Fall 2020 talk](https://www.semantic-mediawiki.org/wiki/Wikipush_Toolkit)
+* [SMWCon Fall 2020](https://www.semantic-mediawiki.org/wiki/SMWCon_Fall_2020)
+* [PyPI](https://pypi.org/project/py-3rdparty-mediawiki/)
+* [API Documentation](https://WolfgangFahl.github.io/py-3rdparty-mediawiki/)
 
 ## Documentation
 [Wiki](https://wiki.bitplan.com/index.php/Py-3rdparty-mediawiki)
