@@ -10,6 +10,8 @@ Allows AI assistants (Claude, Cursor, ChatGPT) to interact with wikis.
 import uuid
 from typing import Any, Dict, List, Optional
 
+import wikitextparser as wtp
+
 try:
     from fastmcp import FastMCP
 except ImportError:
@@ -311,88 +313,108 @@ def get_category_members_impl(
 
 def get_page_sections_impl(wiki_id: str, page_title: str) -> List[Dict[str, Any]]:
     """
-    Get all sections in a wiki page.
+    Get all sections in a wiki page, using MediaWiki's authoritative section
+    numbering (the very numbering the edit API expects).
+
+    The returned ``index`` is exactly what you pass as ``section_number`` to
+    get_section_content / update_section / preview_edit, so reads and writes
+    can never disagree. Section 0 (the page lead, before the first heading) is
+    implicit and not listed; listed sections start at index 1 (first heading).
+    Every heading level counts (``=``, ``==``, ``===`` ...), unlike the old
+    hand-rolled scan which skipped single-``=`` headings and corrupted edits.
 
     Args:
         wiki_id: The wiki identifier.
         page_title: Title of the page.
 
     Returns:
-        List of sections with index, title, and line number.
+        List of sections, each with: index (MediaWiki section number, int when
+        numeric), title, level, and line (1-based source line of the heading).
     """
     client = get_wiki_client(wiki_id)
-    site = client.get_site()
     page = client.get_page(page_title)
-    content = page.text() if hasattr(page, "text") else ""
+    text = page.text() if hasattr(page, "text") else ""
 
+    parsed = wtp.parse(text)
     sections = []
-    lines = content.splitlines()
-    for i, line in enumerate(lines):
-        if line.strip().startswith("==") and "==" in line[2:]:
-            title = line.strip("= ").strip()
-            level = line.count("=") // 2 - 1
-            sections.append(
-                {
-                    "index": len(sections),
-                    "title": title,
-                    "level": level,
-                    "line": i + 1,
-                }
-            )
+    for index, section in enumerate(parsed.sections):
+        if section.title is None:
+            # index 0 is the page lead (no heading) - implicit, not listed
+            continue
+        line_no = text[: section.span[0]].count("\n") + 1
+        sections.append(
+            {
+                "index": index,
+                "title": section.title.strip(),
+                "level": section.level,
+                "line": line_no,
+            }
+        )
 
     return sections
 
 
 def get_section_content_impl(
-    wiki_id: str, page_title: str, section: str
+    wiki_id: str, page_title: str, section_number: str
 ) -> Dict[str, Any]:
     """
-    Get the content of a specific section.
+    Get the raw wikitext of a specific section, using MediaWiki's authoritative
+    section numbering.
 
     Args:
         wiki_id: The wiki identifier.
         page_title: Title of the page.
-        section: Section index ("0" for top section, "1", "2", etc.).
+        section_number: MediaWiki section number as returned by
+            get_page_sections. 0 = page lead (before the first heading);
+            1 = first heading; 2 = second heading; ... A heading *name*
+            (e.g. "Introduction") is also accepted and resolved to its number.
 
     Returns:
-        Dict with section content.
+        Dict with section_number, title (None for the lead), and content (the
+        section's raw wikitext including its heading - exactly what the edit
+        API replaces when you write the same section_number back).
     """
     client = get_wiki_client(wiki_id)
-    site = client.get_site()
     page = client.get_page(page_title)
-    content = page.text() if hasattr(page, "text") else ""
+    text = page.text() if hasattr(page, "text") else ""
 
-    lines = content.splitlines()
-    section_start = -1
-    section_end = len(lines)
+    parsed = wtp.parse(text)
+    sections = parsed.sections
 
-    current_section = -1
-    for i, line in enumerate(lines):
-        if line.strip().startswith("==") and "==" in line[2:]:
-            current_section += 1
-            if str(current_section) == section:
-                section_start = i + 1
-            elif section_start >= 0:
-                section_end = i
-                break
-
-    if section_start < 0:
-        raise ValueError(f"Section {section} not found in page {page_title}")
-
-    section_content = "\n".join(lines[section_start:section_end])
+    sec = str(section_number)
+    if sec.isdigit():
+        idx = int(sec)
+        if idx < 0 or idx >= len(sections):
+            raise ValueError(
+                f"Section {section_number} not found in page {page_title}"
+            )
+        section = sections[idx]
+    else:
+        # resolve a header name to its MediaWiki section number
+        idx, section = next(
+            (
+                (i, s)
+                for i, s in enumerate(sections)
+                if s.title is not None and s.title.strip() == section_number
+            ),
+            (None, None),
+        )
+        if section is None:
+            raise ValueError(
+                f"Section '{section_number}' not found in page {page_title}"
+            )
 
     return {
-        "section": section,
-        "content": section_content,
-        "line_start": section_start + 1,
-        "line_end": section_end,
+        "section_number": str(idx),
+        "title": section.title.strip() if section.title is not None else None,
+        "content": section.string,
     }
 
 
 def update_section_impl(
     wiki_id: str,
     page_title: str,
-    section: str,
+    section_number: str,
     content: str,
     summary: str = "",
 ) -> Dict[str, Any]:
@@ -402,7 +424,9 @@ def update_section_impl(
     Args:
         wiki_id: The wiki identifier.
         page_title: Title of the page.
-        section: Section index to update ("0", "1", "2", etc.).
+        section_number: MediaWiki section number as returned by
+            get_page_sections. 0 = page lead (before the first heading);
+            1 = first heading; 2 = second heading; ...
         content: New section content.
         summary: Edit summary/commit message.
 
@@ -410,12 +434,14 @@ def update_section_impl(
         Dict with success status.
     """
     client = get_wiki_client(wiki_id)
-    client.save_page(page_title, content, summary, section=section)
+    client.save_page(page_title, content, summary, section=section_number)
     return {
         "success": True,
         "title": page_title,
-        "section": section,
-        "message": f"Section {section} of '{page_title}' updated successfully",
+        "section_number": section_number,
+        "message": (
+            f"Section {section_number} of '{page_title}' updated successfully"
+        ),
     }
 
 
@@ -590,7 +616,7 @@ def preview_edit_impl(
     page_title: str,
     content: str,
     summary: str = "",
-    section: Optional[str] = None,
+    section_number: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Preview an edit without committing. Returns a token for commit.
@@ -600,8 +626,10 @@ def preview_edit_impl(
         page_title: Title of the page.
         content: Proposed page content.
         summary: Edit summary.
-        section: Section to edit. None for full page, "0" for top section,
-            or section number. Use "new" to create a new section.
+        section_number: MediaWiki section number as returned by
+            get_page_sections. None for the full page; 0 = page lead (before
+            the first heading); 1 = first heading; ... Use "new" to create a
+            new section.
 
     Returns:
         Dict with preview info and commit token.
@@ -610,8 +638,10 @@ def preview_edit_impl(
     page = client.get_page(page_title)
     old_content = page.text() if hasattr(page, "text") else ""
 
-    if section is not None and section != "new":
-        section_data = get_section_content_impl(wiki_id, page_title, section)
+    if section_number is not None and section_number != "new":
+        section_data = get_section_content_impl(
+            wiki_id, page_title, section_number
+        )
         old_content = section_data.get("content", "")
 
     token = str(uuid.uuid4())
@@ -621,7 +651,7 @@ def preview_edit_impl(
         "content": content,
         "summary": summary,
         "old_content": old_content,
-        "section": section,
+        "section": section_number,
     }
 
     diff = generate_diff(old_content, content)
@@ -633,7 +663,7 @@ def preview_edit_impl(
         "new_content": content,
         "diff": diff,
         "summary": summary,
-        "section": section,
+        "section_number": section_number,
         "message": "Use commit_edit with the token to apply this edit",
     }
 
@@ -821,9 +851,16 @@ def get_page_sections(wiki_id: str, page_title: str) -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
-def get_section_content(wiki_id: str, page_title: str, section: str) -> Dict[str, Any]:
-    """Get the content of a specific section."""
-    return get_section_content_impl(wiki_id, page_title, section)
+def get_section_content(
+    wiki_id: str, page_title: str, section_number: str
+) -> Dict[str, Any]:
+    """Get the raw wikitext of a specific section.
+
+    section_number is the MediaWiki section number from get_page_sections:
+    0 = page lead (before the first heading); 1 = first heading; 2 = second;
+    ... A heading name is also accepted and resolved to its number.
+    """
+    return get_section_content_impl(wiki_id, page_title, section_number)
 
 
 @mcp.tool()
@@ -852,12 +889,20 @@ def update_page(
 def update_section(
     wiki_id: str,
     page_title: str,
-    section: str,
+    section_number: str,
     content: str,
     summary: str = "",
 ) -> Dict[str, Any]:
-    """Update a specific section of a wiki page."""
-    return update_section_impl(wiki_id, page_title, section, content, summary)
+    """Update a specific section of a wiki page.
+
+    section_number is the MediaWiki section number from get_page_sections:
+    0 = page lead (before the first heading); 1 = first heading; 2 = second;
+    ... Reads and writes use the same numbering, so the index you read back
+    from get_page_sections is the index you write here.
+    """
+    return update_section_impl(
+        wiki_id, page_title, section_number, content, summary
+    )
 
 
 @mcp.tool()
@@ -890,10 +935,17 @@ def preview_edit(
     page_title: str,
     content: str,
     summary: str = "",
-    section: Optional[str] = None,
+    section_number: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Preview an edit without committing."""
-    return preview_edit_impl(wiki_id, page_title, content, summary, section)
+    """Preview an edit without committing.
+
+    section_number (optional) is the MediaWiki section number from
+    get_page_sections: None = full page; 0 = page lead; 1 = first heading;
+    ... Use "new" to create a new section.
+    """
+    return preview_edit_impl(
+        wiki_id, page_title, content, summary, section_number
+    )
 
 
 @mcp.tool()

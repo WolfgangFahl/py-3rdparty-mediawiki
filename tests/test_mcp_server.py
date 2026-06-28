@@ -335,6 +335,64 @@ class TestMCPServer(BaseWikiTest):
             "New top content", "Test update", section="0"
         )
 
+    def test_section_numbering_matches_mediawiki(self):
+        """
+        Regression for #133: read-side section numbering must match the
+        MediaWiki edit numbering used by update_section, including single-=
+        (H1) headings and 0 = page lead. Previously the read side skipped
+        single-= headings, so update_section wrote to the wrong section.
+        """
+        from wikibot3rd.mcp_server import (get_page_sections_impl,
+                                           get_section_content_impl)
+
+        wikitext = (
+            "lead text\n"
+            "= Problems =\n"
+            "p\n"
+            "== Alpha ==\n"
+            "a\n"
+            "== Beta ==\n"
+            "b\n"
+            "= Effort =\n"
+            "e\n"
+        )
+        mock_client = MagicMock()
+        mock_page = MagicMock()
+        mock_page.text.return_value = wikitext
+        mock_client.get_page.return_value = mock_page
+
+        with patch(
+            "wikibot3rd.mcp_server.get_wiki_client", return_value=mock_client
+        ):
+            sections = get_page_sections_impl("test.wiki.org", "Test Page")
+
+            # MediaWiki numbering: 0=lead (implicit), 1=Problems, 2=Alpha,
+            # 3=Beta, 4=Effort - single-= headings are counted.
+            self.assertEqual(
+                [(s["index"], s["title"]) for s in sections],
+                [(1, "Problems"), (2, "Alpha"), (3, "Beta"), (4, "Effort")],
+            )
+
+            # Every reported index must round-trip: the content fetched for
+            # that index is the section whose heading we listed.
+            for s in sections:
+                got = get_section_content_impl(
+                    "test.wiki.org", "Test Page", str(s["index"])
+                )
+                self.assertEqual(got["section_number"], str(s["index"]))
+                self.assertEqual(got["title"], s["title"])
+                # content includes the heading (what edit replaces)
+                self.assertIn(f"= {s['title']} =", got["content"])
+
+            # 'Beta' (a == heading) must be section 3, not 1 - the old bug.
+            beta = next(s for s in sections if s["title"] == "Beta")
+            self.assertEqual(beta["index"], 3)
+
+            # section 0 is the lead (before the first heading)
+            lead = get_section_content_impl("test.wiki.org", "Test Page", "0")
+            self.assertEqual(lead["content"], "lead text\n")
+            self.assertIsNone(lead["title"])
+
 
 if __name__ == "__main__":
     unittest.main()
