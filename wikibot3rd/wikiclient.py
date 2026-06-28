@@ -190,8 +190,9 @@ class WikiClient(Wiki):
             page_title: The title of the page.
             page_content: The new content of the page.
             page_summary: A summary of the changes made.
-            section: Section to edit. None for full page, "0" for top section,
-                or section number (e.g., "1", "2"). Use "new" to create a new section.
+            section: MediaWiki section number to edit. None for the full page;
+                "0" = page lead (before the first heading); "1" = first heading;
+                "2" = second heading; ... Use "new" to create a new section.
         """
         page = self.get_page(page_title)
         page.edit(page_content, page_summary, section=section)
