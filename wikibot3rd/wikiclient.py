@@ -182,7 +182,8 @@ class WikiClient(Wiki):
         page_content: str,
         page_summary: str,
         section: Optional[str] = None,
-    ) -> None:
+        **kwargs: Any,
+    ) -> Any:
         """
         Save a page with given title and content.
 
@@ -193,9 +194,15 @@ class WikiClient(Wiki):
             section: MediaWiki section number to edit. None for the full page;
                 "0" = page lead (before the first heading); "1" = first heading;
                 "2" = second heading; ... Use "new" to create a new section.
+            **kwargs: extra parameters passed through to the MediaWiki edit API,
+                e.g. basetimestamp for compare-and-swap edit-conflict detection.
+
+        Returns:
+            The page object after the edit (its last_rev_time reflects the new revision).
         """
         page = self.get_page(page_title)
-        page.edit(page_content, page_summary, section=section)
+        page.edit(page_content, page_summary, section=section, **kwargs)
+        return page
 
     def savePage(self, pageTitle: str, pageContent: str, pageSummary: str) -> None:
         """Deprecated: Use save_page instead."""

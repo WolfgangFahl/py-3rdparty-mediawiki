@@ -7,9 +7,11 @@ MCP (Model Context Protocol) Server for py-3rdparty-mediawiki.
 Allows AI assistants (Claude, Cursor, ChatGPT) to interact with wikis.
 """
 
+import time
 import uuid
 from typing import Any, Dict, List, Optional
 
+import mwclient.errors
 import wikitextparser as wtp
 
 try:
@@ -30,6 +32,121 @@ PREVIEW_STORE: Dict[str, Dict[str, Any]] = {}
 
 
 _client_cache: Dict[str, WikiClient] = {}
+
+# Compare-and-swap (CAS) base-revision tracking - issue #134.
+# Maps "<wiki_id>:<page_title>" to the MediaWiki basetimestamp (YYYYMMDDHHMMSS)
+# of the page revision that was current when this session last READ the page.
+# Updates pass this as basetimestamp so the MediaWiki API rejects writes
+# against a stale base with an editconflict instead of silently losing
+# concurrent edits (lost-update problem).
+_page_base: Dict[str, str] = {}
+
+
+def _base_keys(wiki_id: str, page_title: str, page: Any = None) -> List[str]:
+    """
+    CAS map keys for a page: the title as passed and (if resolvable) the
+    normalized page name, so reads and writes match regardless of the
+    space/underscore/capitalization variant used.
+    """
+    keys = [f"{wiki_id}:{page_title}"]
+    name = getattr(page, "name", None)
+    if name and name != page_title:
+        keys.append(f"{wiki_id}:{name}")
+    return keys
+
+
+def _record_base(wiki_id: str, page_title: str, page: Any) -> None:
+    """
+    Record the page's current revision timestamp as the CAS base for
+    subsequent updates in this session. Call on every page READ.
+    """
+    last_rev_time = getattr(page, "last_rev_time", None)
+    # mwclient delivers last_rev_time as time.struct_time; anything else
+    # (e.g. a mock or None for a missing page) cannot be a CAS base
+    if isinstance(last_rev_time, (time.struct_time, tuple)):
+        base = time.strftime("%Y%m%d%H%M%S", last_rev_time)
+        for key in _base_keys(wiki_id, page_title, page):
+            _page_base[key] = base
+
+
+def _get_base(wiki_id: str, page_title: str, page: Any = None) -> Optional[str]:
+    """Get the recorded CAS base timestamp for a page, or None if never read."""
+    for key in _base_keys(wiki_id, page_title, page):
+        base = _page_base.get(key)
+        if base:
+            return base
+    return None
+
+
+def _current_rev_timestamp(page: Any) -> Optional[str]:
+    """
+    Fetch the page's current head-revision timestamp (YYYYMMDDHHMMSS),
+    or None if it cannot be determined (missing page, mock, API oddity).
+    """
+    try:
+        rev = next(page.revisions(prop="timestamp", api_chunk_size=1))
+        ts = rev.get("timestamp")
+        if isinstance(ts, (time.struct_time, tuple)):
+            return time.strftime("%Y%m%d%H%M%S", ts)
+    except (StopIteration, TypeError):
+        pass
+    return None
+
+
+def _cas_save(
+    client: WikiClient,
+    wiki_id: str,
+    page_title: str,
+    content: str,
+    summary: str,
+    section: Optional[str] = None,
+) -> None:
+    """
+    Save a page with compare-and-swap semantics (issue #134):
+    require a prior read in this session and refuse the write when the page
+    has changed since that read, instead of silently losing the concurrent
+    edit (lost-update).
+
+    The conflict check is done CLIENT-SIDE by comparing the current head
+    revision against the base recorded at read time. This is essential:
+    MediaWiki suppresses basetimestamp edit conflicts when the intervening
+    revision is by the SAME user, and human + agent typically share one bot
+    account - so the server-side check alone can never catch exactly the
+    case that matters. basetimestamp is still passed as defense in depth
+    for different-user races between our check and the write.
+
+    Raises:
+        ValueError: if the page was never read in this session, or on an
+            edit conflict (with instructions to re-read and reconcile).
+    """
+    page = client.get_page(page_title)
+    base = _get_base(wiki_id, page_title, page)
+    if base is None:
+        raise ValueError(
+            f"CAS: '{page_title}' was not read in this session - "
+            f"read it (get_page/get_page_markup) immediately before updating, "
+            f"then base your edit on that content"
+        )
+    current = _current_rev_timestamp(page)
+    if current is not None and current > base:
+        raise ValueError(
+            f"edit conflict: '{page_title}' was changed since this session "
+            f"read it (base {base}, current {current}) - re-read the page, "
+            f"reconcile your change with the current content, then update again"
+        )
+    try:
+        saved_page = client.save_page(
+            page_title, content, summary, section=section, basetimestamp=base
+        )
+    except (mwclient.errors.EditError, mwclient.errors.APIError) as e:
+        if "editconflict" in str(e).lower():
+            raise ValueError(
+                f"edit conflict: '{page_title}' was changed since this session "
+                f"read it (base {base}) - re-read the page, reconcile your "
+                f"change with the current content, then update again"
+            )
+        raise
+    _record_base(wiki_id, page_title, saved_page)
 
 
 def get_wiki_client(wiki_id: str) -> WikiClient:
@@ -194,7 +311,10 @@ def get_page_impl(wiki_id: str, page_title: str) -> Dict[str, Any]:
     """
     client = get_wiki_client(wiki_id)
     page = client.get_page(page_title)
-    return format_page(page)
+    page_data = format_page(page)
+    # page.text() (inside format_page) populates last_rev_time - record after
+    _record_base(wiki_id, page_title, page)
+    return page_data
 
 
 def get_page_markup_impl(wiki_id: str, page_title: str) -> str:
@@ -209,7 +329,11 @@ def get_page_markup_impl(wiki_id: str, page_title: str) -> str:
         Raw wikitext content.
     """
     client = get_wiki_client(wiki_id)
-    return client.get_wiki_markup(page_title)
+    page = client.get_page(page_title)
+    markup: str = page.text()
+    # page.text() populates last_rev_time - record after
+    _record_base(wiki_id, page_title, page)
+    return markup
 
 
 def search_page_impl(wiki_id: str, query: str, limit: int = 10) -> List[Dict[str, str]]:
@@ -334,6 +458,8 @@ def get_page_sections_impl(wiki_id: str, page_title: str) -> List[Dict[str, Any]
     client = get_wiki_client(wiki_id)
     page = client.get_page(page_title)
     text = page.text() if hasattr(page, "text") else ""
+    # page.text() populates last_rev_time - record after
+    _record_base(wiki_id, page_title, page)
 
     parsed = wtp.parse(text)
     sections = []
@@ -377,6 +503,8 @@ def get_section_content_impl(
     client = get_wiki_client(wiki_id)
     page = client.get_page(page_title)
     text = page.text() if hasattr(page, "text") else ""
+    # page.text() populates last_rev_time - record after
+    _record_base(wiki_id, page_title, page)
 
     parsed = wtp.parse(text)
     sections = parsed.sections
@@ -434,7 +562,7 @@ def update_section_impl(
         Dict with success status.
     """
     client = get_wiki_client(wiki_id)
-    client.save_page(page_title, content, summary, section=section_number)
+    _cas_save(client, wiki_id, page_title, content, summary, section=section_number)
     return {
         "success": True,
         "title": page_title,
@@ -529,9 +657,20 @@ def create_page_impl(
 
     Returns:
         Dict with success status and page info.
+
+    Raises:
+        ValueError: if the page already exists (no overwrite-via-create) - issue #134.
     """
     client = get_wiki_client(wiki_id)
-    client.save_page(page_title, content, summary)
+    page = client.get_page(page_title)
+    if getattr(page, "exists", False):
+        raise ValueError(
+            f"CAS: page '{page_title}' already exists - "
+            f"read it (get_page/get_page_markup) and use update_page to change it; "
+            f"create_page never overwrites existing content"
+        )
+    saved_page = client.save_page(page_title, content, summary)
+    _record_base(wiki_id, page_title, saved_page)
     return {
         "success": True,
         "title": page_title,
@@ -553,9 +692,13 @@ def update_page_impl(
 
     Returns:
         Dict with success status.
+
+    Raises:
+        ValueError: if the page was not read in this session or on an
+            edit conflict with a concurrent change (CAS - issue #134).
     """
     client = get_wiki_client(wiki_id)
-    client.save_page(page_title, content, summary)
+    _cas_save(client, wiki_id, page_title, content, summary)
     return {
         "success": True,
         "title": page_title,
@@ -637,6 +780,8 @@ def preview_edit_impl(
     client = get_wiki_client(wiki_id)
     page = client.get_page(page_title)
     old_content = page.text() if hasattr(page, "text") else ""
+    # page.text() populates last_rev_time - record after
+    _record_base(wiki_id, page_title, page)
 
     if section_number is not None and section_number != "new":
         section_data = get_section_content_impl(
@@ -689,9 +834,20 @@ def commit_edit_impl(wiki_id: str, page_title: str, token: str) -> Dict[str, Any
 
     client = get_wiki_client(wiki_id)
     section = preview.get("section")
-    client.save_page(
-        page_title, preview["content"], preview["summary"], section=section
-    )
+    if section == "new":
+        # appending a new section cannot destroy existing content - no CAS needed
+        client.save_page(
+            page_title, preview["content"], preview["summary"], section=section
+        )
+    else:
+        _cas_save(
+            client,
+            wiki_id,
+            page_title,
+            preview["content"],
+            preview["summary"],
+            section=section,
+        )
 
     del PREVIEW_STORE[token]
 
@@ -978,6 +1134,11 @@ def get_page_html_impl(wiki_id: str, page_title: str) -> str:
         The HTML content of the specified page.
     """
     client = get_wiki_client(wiki_id)
+    page = client.get_page(page_title)
+    # page.text() populates last_rev_time so the html read records a CAS base
+    if getattr(page, "exists", False):
+        page.text()
+    _record_base(wiki_id, page_title, page)
     return client.get_html(page_title)
 
 

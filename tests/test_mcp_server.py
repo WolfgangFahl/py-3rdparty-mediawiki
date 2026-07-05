@@ -129,13 +129,19 @@ class TestMCPServer(BaseWikiTest):
             self.assertEqual(result["new_content"], "New content")
 
     def test_commit_edit_success(self):
-        """Test committing a previewed edit."""
-        from wikibot3rd.mcp_server import (PREVIEW_STORE, commit_edit_impl,
-                                           preview_edit_impl)
+        """Test committing a previewed edit (CAS: preview records the base)."""
+        import time
 
+        from wikibot3rd.mcp_server import (PREVIEW_STORE, _page_base,
+                                           commit_edit_impl, preview_edit_impl)
+
+        _page_base.clear()
+        base_time = time.strptime("20260705120000", "%Y%m%d%H%M%S")
         mock_client = MagicMock()
         mock_page = MagicMock()
         mock_page.text.return_value = "Old content"
+        mock_page.name = "Test Page"
+        mock_page.last_rev_time = base_time
         mock_client.get_page.return_value = mock_page
 
         with patch("wikibot3rd.mcp_server.get_wiki_client", return_value=mock_client):
@@ -156,8 +162,13 @@ class TestMCPServer(BaseWikiTest):
 
             self.assertTrue(result["success"])
             self.assertEqual(result["title"], "Test Page")
+            # CAS (#134): the commit must pass the basetimestamp recorded at preview
             mock_client.save_page.assert_called_once_with(
-                "Test Page", "New content", "Test edit", section=None
+                "Test Page",
+                "New content",
+                "Test edit",
+                section=None,
+                basetimestamp="20260705120000",
             )
             self.assertNotIn(token, PREVIEW_STORE)
 
@@ -392,6 +403,155 @@ class TestMCPServer(BaseWikiTest):
             lead = get_section_content_impl("test.wiki.org", "Test Page", "0")
             self.assertEqual(lead["content"], "lead text\n")
             self.assertIsNone(lead["title"])
+
+
+class TestMCPServerCAS(BaseWikiTest):
+    """
+    Compare-and-swap (CAS) tests for issue #134: update_page must never
+    silently overwrite a concurrent edit (lost-update), a write requires a
+    prior read in the session, and create_page never overwrites an
+    existing page.
+    """
+
+    def setUp(self, debug=False, profile=True):
+        super().setUp(debug=debug, profile=profile)
+        import time
+
+        from wikibot3rd.mcp_server import _page_base
+
+        _page_base.clear()
+        self.base_time = time.strptime("20260705120000", "%Y%m%d%H%M%S")
+        self.mock_client = MagicMock()
+        self.mock_page = MagicMock()
+        self.mock_page.name = "Test Page"
+        self.mock_page.text.return_value = "Old content"
+        self.mock_page.last_rev_time = self.base_time
+        self.mock_page.exists = True
+        self.mock_client.get_page.return_value = self.mock_page
+
+    def test_update_requires_prior_read(self):
+        """CAS: an update without a prior read in the session is refused."""
+        from wikibot3rd.mcp_server import update_page_impl
+
+        with patch(
+            "wikibot3rd.mcp_server.get_wiki_client", return_value=self.mock_client
+        ):
+            with self.assertRaises(ValueError) as context:
+                update_page_impl(
+                    "test.wiki.org", "Test Page", "New content", "summary"
+                )
+            self.assertIn("was not read in this session", str(context.exception))
+            self.mock_client.save_page.assert_not_called()
+
+    def test_update_passes_read_time_basetimestamp(self):
+        """CAS: update passes the basetimestamp recorded at READ time."""
+        from wikibot3rd.mcp_server import get_page_impl, update_page_impl
+
+        with patch(
+            "wikibot3rd.mcp_server.get_wiki_client", return_value=self.mock_client
+        ):
+            get_page_impl("test.wiki.org", "Test Page")
+            update_page_impl("test.wiki.org", "Test Page", "New content", "summary")
+            self.mock_client.save_page.assert_called_once_with(
+                "Test Page",
+                "New content",
+                "summary",
+                section=None,
+                basetimestamp="20260705120000",
+            )
+
+    def test_update_detects_same_user_conflict_client_side(self):
+        """
+        CAS: a concurrent edit is detected CLIENT-SIDE by comparing the head
+        revision to the read-time base. Essential because MediaWiki
+        suppresses basetimestamp editconflicts for the SAME user, and human +
+        agent typically share one bot account.
+        """
+        import time
+
+        from wikibot3rd.mcp_server import get_page_impl, update_page_impl
+
+        with patch(
+            "wikibot3rd.mcp_server.get_wiki_client", return_value=self.mock_client
+        ):
+            get_page_impl("test.wiki.org", "Test Page")
+            # someone (same user!) edited after our read
+            newer = time.strptime("20260705120500", "%Y%m%d%H%M%S")
+            self.mock_page.revisions.return_value = iter([{"timestamp": newer}])
+            with self.assertRaises(ValueError) as context:
+                update_page_impl(
+                    "test.wiki.org", "Test Page", "New content", "summary"
+                )
+            self.assertIn("edit conflict", str(context.exception))
+            self.mock_client.save_page.assert_not_called()
+
+    def test_update_surfaces_edit_conflict(self):
+        """CAS: an editconflict from the API becomes a clear ValueError."""
+        import mwclient.errors
+
+        from wikibot3rd.mcp_server import get_page_impl, update_page_impl
+
+        self.mock_client.save_page.side_effect = mwclient.errors.APIError(
+            "editconflict", "Edit conflict detected", {}
+        )
+        with patch(
+            "wikibot3rd.mcp_server.get_wiki_client", return_value=self.mock_client
+        ):
+            get_page_impl("test.wiki.org", "Test Page")
+            with self.assertRaises(ValueError) as context:
+                update_page_impl(
+                    "test.wiki.org", "Test Page", "New content", "summary"
+                )
+            self.assertIn("edit conflict", str(context.exception))
+            self.assertIn("re-read", str(context.exception))
+
+    def test_update_section_is_cas_guarded(self):
+        """CAS: update_section is guarded the same way as update_page."""
+        from wikibot3rd.mcp_server import update_section_impl
+
+        with patch(
+            "wikibot3rd.mcp_server.get_wiki_client", return_value=self.mock_client
+        ):
+            with self.assertRaises(ValueError) as context:
+                update_section_impl(
+                    "test.wiki.org", "Test Page", "1", "New content", "summary"
+                )
+            self.assertIn("was not read in this session", str(context.exception))
+
+    def test_create_page_refuses_existing(self):
+        """CAS: create_page never overwrites an existing page."""
+        from wikibot3rd.mcp_server import create_page_impl
+
+        with patch(
+            "wikibot3rd.mcp_server.get_wiki_client", return_value=self.mock_client
+        ):
+            with self.assertRaises(ValueError) as context:
+                create_page_impl(
+                    "test.wiki.org", "Test Page", "New content", "summary"
+                )
+            self.assertIn("already exists", str(context.exception))
+            self.mock_client.save_page.assert_not_called()
+
+    def test_create_page_new_page_ok(self):
+        """CAS: create_page on a missing page works and records the base."""
+        from wikibot3rd.mcp_server import create_page_impl
+
+        self.mock_page.exists = False
+        saved_page = MagicMock()
+        saved_page.name = "Test Page"
+        saved_page.last_rev_time = self.base_time
+        self.mock_client.save_page.return_value = saved_page
+
+        with patch(
+            "wikibot3rd.mcp_server.get_wiki_client", return_value=self.mock_client
+        ):
+            result = create_page_impl(
+                "test.wiki.org", "Test Page", "New content", "summary"
+            )
+            self.assertTrue(result["success"])
+            self.mock_client.save_page.assert_called_once_with(
+                "Test Page", "New content", "summary"
+            )
 
 
 if __name__ == "__main__":
