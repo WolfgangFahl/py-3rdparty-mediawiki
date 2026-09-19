@@ -638,6 +638,8 @@ class SMWBot(SMW):
             dict: the submit result
         """
         api_url = f"{self.site}/api.php"  # self.site = base wiki URL, e.g. https://example.org/w
+        # without an explicit format the MediaWiki API answers with an HTML page
+        parameters = {**parameters, "format": "json"}
         try:
             response = requests.post(api_url, data=parameters, timeout=30)
             response.raise_for_status()
