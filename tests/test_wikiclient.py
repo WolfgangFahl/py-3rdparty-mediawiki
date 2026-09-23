@@ -18,6 +18,24 @@ class TestWikiClient(Basetest):
         Basetest.setUp(self, debug=debug, profile=profile)
         self.clients = WikiClient.get_clients().values()
 
+    def test_api_path(self):
+        """
+        test that the api path has no duplicate slash
+
+        a url without a path and a script path of / produced // and
+        wiki.genealogy.net answers //api.php with html instead of json
+        """
+        cases = [
+            ("https://wiki.genealogy.net", "/", "/"),
+            ("https://www.openresearch.org", "/mediawiki", "/mediawiki/"),
+            ("https://www.openresearch.org/", "/mediawiki/", "/mediawiki/"),
+            ("https://smw.bitplan.com", "", "/"),
+            ("https://wiki.bitplan.com", "/", "/"),
+        ]
+        for url, script_path, expected in cases:
+            api_path = WikiClient.get_api_path(url, script_path)
+            self.assertEqual(expected, api_path, f"{url} + {script_path}")
+
     def optLogin(self, client):
         """
         optionally login to the given client if necessary

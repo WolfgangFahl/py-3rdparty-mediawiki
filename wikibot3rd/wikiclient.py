@@ -32,6 +32,25 @@ class WikiClient(Wiki):
         self.site: Optional[Site] = None
         self._is_logged_in: bool = False
 
+    @classmethod
+    def get_api_path(cls, url: str, script_path: str) -> str:
+        """
+        Get the path mwclient appends api.php to.
+
+        Args:
+            url: the url of the wiki e.g. https://wiki.genealogy.net
+            script_path: the script path of the wiki e.g. /mediawiki
+
+        Returns:
+            the path with a single leading and trailing slash
+        """
+        o = urlparse(url)
+        parts = [
+            part for part in (o.path + "/" + (script_path or "")).split("/") if part
+        ]
+        api_path = "/" + "/".join(parts) + "/" if parts else "/"
+        return api_path
+
     def get_site(self) -> Site:
         """
         Get the Site object for the MediaWiki site.
@@ -43,8 +62,7 @@ class WikiClient(Wiki):
             o = urlparse(self.wiki_user.url)
             scheme = o.scheme
             host = o.netloc
-            path = o.path + self.wiki_user.scriptPath
-            path = f"{path}/"
+            path = self.get_api_path(self.wiki_user.url, self.wiki_user.scriptPath)
             user_agent = f"{Version.name}/{Version.version}"
             self.site = Site(
                 host=host, path=path, scheme=scheme, clients_useragent=user_agent
