@@ -132,8 +132,12 @@ class TestMCPServer(BaseWikiTest):
         """Test committing a previewed edit (CAS: preview records the base)."""
         import time
 
-        from wikibot3rd.mcp_server import (PREVIEW_STORE, _page_base,
-                                           commit_edit_impl, preview_edit_impl)
+        from wikibot3rd.mcp_server import (
+            PREVIEW_STORE,
+            _page_base,
+            commit_edit_impl,
+            preview_edit_impl,
+        )
 
         _page_base.clear()
         base_time = time.strptime("20260705120000", "%Y%m%d%H%M%S")
@@ -353,8 +357,10 @@ class TestMCPServer(BaseWikiTest):
         (H1) headings and 0 = page lead. Previously the read side skipped
         single-= headings, so update_section wrote to the wrong section.
         """
-        from wikibot3rd.mcp_server import (get_page_sections_impl,
-                                           get_section_content_impl)
+        from wikibot3rd.mcp_server import (
+            get_page_sections_impl,
+            get_section_content_impl,
+        )
 
         wikitext = (
             "lead text\n"
@@ -372,9 +378,7 @@ class TestMCPServer(BaseWikiTest):
         mock_page.text.return_value = wikitext
         mock_client.get_page.return_value = mock_page
 
-        with patch(
-            "wikibot3rd.mcp_server.get_wiki_client", return_value=mock_client
-        ):
+        with patch("wikibot3rd.mcp_server.get_wiki_client", return_value=mock_client):
             sections = get_page_sections_impl("test.wiki.org", "Test Page")
 
             # MediaWiki numbering: 0=lead (implicit), 1=Problems, 2=Alpha,
@@ -437,9 +441,7 @@ class TestMCPServerCAS(BaseWikiTest):
             "wikibot3rd.mcp_server.get_wiki_client", return_value=self.mock_client
         ):
             with self.assertRaises(ValueError) as context:
-                update_page_impl(
-                    "test.wiki.org", "Test Page", "New content", "summary"
-                )
+                update_page_impl("test.wiki.org", "Test Page", "New content", "summary")
             self.assertIn("was not read in this session", str(context.exception))
             self.mock_client.save_page.assert_not_called()
 
@@ -479,9 +481,7 @@ class TestMCPServerCAS(BaseWikiTest):
             newer = time.strptime("20260705120500", "%Y%m%d%H%M%S")
             self.mock_page.revisions.return_value = iter([{"timestamp": newer}])
             with self.assertRaises(ValueError) as context:
-                update_page_impl(
-                    "test.wiki.org", "Test Page", "New content", "summary"
-                )
+                update_page_impl("test.wiki.org", "Test Page", "New content", "summary")
             self.assertIn("edit conflict", str(context.exception))
             self.mock_client.save_page.assert_not_called()
 
@@ -499,9 +499,7 @@ class TestMCPServerCAS(BaseWikiTest):
         ):
             get_page_impl("test.wiki.org", "Test Page")
             with self.assertRaises(ValueError) as context:
-                update_page_impl(
-                    "test.wiki.org", "Test Page", "New content", "summary"
-                )
+                update_page_impl("test.wiki.org", "Test Page", "New content", "summary")
             self.assertIn("edit conflict", str(context.exception))
             self.assertIn("re-read", str(context.exception))
 
@@ -526,9 +524,7 @@ class TestMCPServerCAS(BaseWikiTest):
             "wikibot3rd.mcp_server.get_wiki_client", return_value=self.mock_client
         ):
             with self.assertRaises(ValueError) as context:
-                create_page_impl(
-                    "test.wiki.org", "Test Page", "New content", "summary"
-                )
+                create_page_impl("test.wiki.org", "Test Page", "New content", "summary")
             self.assertIn("already exists", str(context.exception))
             self.mock_client.save_page.assert_not_called()
 

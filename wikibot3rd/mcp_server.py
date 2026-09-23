@@ -513,9 +513,7 @@ def get_section_content_impl(
     if sec.isdigit():
         idx = int(sec)
         if idx < 0 or idx >= len(sections):
-            raise ValueError(
-                f"Section {section_number} not found in page {page_title}"
-            )
+            raise ValueError(f"Section {section_number} not found in page {page_title}")
         section = sections[idx]
     else:
         # resolve a header name to its MediaWiki section number
@@ -567,9 +565,7 @@ def update_section_impl(
         "success": True,
         "title": page_title,
         "section_number": section_number,
-        "message": (
-            f"Section {section_number} of '{page_title}' updated successfully"
-        ),
+        "message": (f"Section {section_number} of '{page_title}' updated successfully"),
     }
 
 
@@ -784,9 +780,7 @@ def preview_edit_impl(
     _record_base(wiki_id, page_title, page)
 
     if section_number is not None and section_number != "new":
-        section_data = get_section_content_impl(
-            wiki_id, page_title, section_number
-        )
+        section_data = get_section_content_impl(wiki_id, page_title, section_number)
         old_content = section_data.get("content", "")
 
     token = str(uuid.uuid4())
@@ -1056,9 +1050,7 @@ def update_section(
     ... Reads and writes use the same numbering, so the index you read back
     from get_page_sections is the index you write here.
     """
-    return update_section_impl(
-        wiki_id, page_title, section_number, content, summary
-    )
+    return update_section_impl(wiki_id, page_title, section_number, content, summary)
 
 
 @mcp.tool()
@@ -1099,9 +1091,7 @@ def preview_edit(
     get_page_sections: None = full page; 0 = page lead; 1 = first heading;
     ... Use "new" to create a new section.
     """
-    return preview_edit_impl(
-        wiki_id, page_title, content, summary, section_number
-    )
+    return preview_edit_impl(wiki_id, page_title, content, summary, section_number)
 
 
 @mcp.tool()
