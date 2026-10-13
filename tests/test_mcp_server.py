@@ -71,6 +71,24 @@ class TestMCPServer(BaseWikiTest):
         self.assertEqual(result["title"], "Search Result")
         self.assertEqual(result["pageid"], "123")
 
+    def test_search_page_text_and_limit(self):
+        """Test that search_page searches page text and honors limit - see #140."""
+        from wikibot3rd.mcp_server import search_page_impl
+
+        mock_client = MagicMock()
+        mock_site = MagicMock()
+        mock_client.get_site.return_value = mock_site
+        mock_site.search.return_value = iter(
+            [{"title": f"Page {i}", "pageid": i} for i in range(6)]
+        )
+
+        with patch("wikibot3rd.mcp_server.get_wiki_client", return_value=mock_client):
+            result = search_page_impl("test.wiki.org", "term", limit=5)
+
+        mock_site.search.assert_called_once_with("term", what="text", limit=5)
+        self.assertEqual(len(result), 5)
+        self.assertEqual(result[0]["title"], "Page 0")
+
     def test_get_wiki_client_not_found(self):
         """Test that ValueError is raised for unknown wiki."""
         from wikibot3rd.mcp_server import get_wiki_client

@@ -9,6 +9,7 @@ Allows AI assistants (Claude, Cursor, ChatGPT) to interact with wikis.
 
 import time
 import uuid
+from itertools import islice
 from typing import Any, Dict, List, Optional
 
 import mwclient.errors
@@ -346,12 +347,15 @@ def search_page_impl(wiki_id: str, query: str, limit: int = 10) -> List[Dict[str
         limit: Maximum results (default 10).
 
     Returns:
-        List of matching pages with title and snippet.
+        List of at most limit matching pages with title and snippet.
     """
     client = get_wiki_client(wiki_id)
     site = client.get_site()
-    results = site.search(query, limit=limit)
-    return [format_search_result(r) for r in results]
+    # without what the MySQL search backend matches titles only - see #140
+    # mwclient continues beyond limit (batch size) so cap the generator
+    results = islice(site.search(query, what="text", limit=limit), limit)
+    found = [format_search_result(r) for r in results]
+    return found
 
 
 def search_page_by_prefix_impl(wiki_id: str, prefix: str, limit: int = 10) -> List[str]:
